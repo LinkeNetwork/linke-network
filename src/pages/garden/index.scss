@@ -1,0 +1,63 @@
+.garden-wrap {}
+
+.banner-wrap {
+  background-color: #602C00;
+
+  .banner-container {
+    margin: 0 auto;
+    max-width: 1200px;
+    height: 100%;
+    position: relative;
+    background-repeat: no-repeat;
+    height: 680px;
+    background-size: 430px 527px;
+    background-position: right 120px;
+
+    &-client {
+      background-size: 70%;
+      background-position: center 260px;
+
+      .img-logo {
+        padding-left: 20px;
+      }
+    }
+
+    .title-wrap {
+      margin-top: 192px;
+
+      &-client {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        .title-small {
+          font-size: 30px;
+        }
+
+        .title-big {
+          font-size: 50px;
+        }
+      }
+    }
+  }
+
+  .logo-img {
+    width: 157px;
+    margin-top: 20px;
+  }
+
+  .title {
+    color: #231815;
+    font-weight: bold;
+
+    &-small {
+      font-size: 40px;
+    }
+
+    &-big {
+      font-size: 95px;
+    }
+  }
+}

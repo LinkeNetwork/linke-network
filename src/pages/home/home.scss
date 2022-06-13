@@ -1,0 +1,35 @@
+ header{
+  border-bottom: 1px solid #F2F2F2;
+}
+.header-content{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 auto;
+  min-width: 1200px;
+  height: 60px;
+  margin: 0 auto;
+  width: 80%;
+}
+.header-left {
+  img {
+    width: 157px;
+    height: 40px;
+  }
+}
+.header-right {
+  display: flex;
+  li {
+    margin-left: 40px;
+    font-size: 18px;
+    color: #666;
+    a {
+      color: #666;
+      font-size: 18px;
+    }
+  }
+}
+
+@media (max-width: 991.98px) {
+  
+}

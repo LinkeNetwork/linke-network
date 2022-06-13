@@ -1,0 +1,40 @@
+/*
+公共基础样式
+样式重置
+*/
+@import './theme.scss';
+@import './iconfont.css';
+html, body {
+  background-color: transparent;
+  font-family: $font-family;
+  -webkit-font-smoothing: antialiased !important;
+  height: 100%;
+  margin: 0;
+}
+.button{
+  &-link{
+    font-size:12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    &:hover{
+      opacity: .4;
+    }
+    i{
+      font-size: 14px;
+      margin-right: 5px;
+    }
+  }
+  &-min{
+    padding:6px 10px;
+    cursor: pointer;
+    background: #333;
+    color: #fff;
+    font-size: 12px;
+    border-radius: 5px;
+    &:hover{
+      color: #fff;
+      background: #222;
+    }
+  }
+}

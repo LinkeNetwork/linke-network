@@ -1,0 +1,64 @@
+.nav-wrap {
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 8;
+  border-right: 1px solid #dee2e6;
+  background: #f6f6f6;
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    li {
+      padding: 1.5rem 10px 1.5rem 20px;
+      width: 100%;
+      min-width: 120px;
+      display: flex;
+      &:hover {
+        // a {
+        //   color: #FFCE00;
+        // }
+      }
+      &.active {
+        div {
+          color: #FFCE00;
+        }
+      }
+    }
+    div {
+      color: rgba(0,0,0,.6);
+      font-weight: 550;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .iconfont {
+      margin-right: 5px;
+      font-size: 20px;
+    }
+  }
+  .home-icon-wrap {
+    position: absolute;
+    bottom: 10px;
+    img {
+      
+    }
+  }
+  &-client {
+    width: 100%;
+    z-index: 8;
+    .nav-item{
+      padding-top: 4rem;
+    }
+  }
+}
+.icon-guanbi {
+  position: absolute;
+  right: 20px;
+  top: 2rem;
+}
+@media (max-width: 991.98px) {
+  .nav-wrap {
+    // display: none;
+  }
+}

@@ -1,0 +1,49 @@
+.modal{
+  background: #fff;
+  padding:10px 20px 10px;
+  border-radius: 4px;
+  width: 430px;
+  position: relative;
+  animation: sliderUp .5s ease;
+  &-client{
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: inherit;
+  }
+    &-wrap{
+      z-index: 100001;
+      position: fixed;
+      background: transparent;
+      left:0;
+      top:0;
+      bottom: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  &-close{
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 15px;
+    &:hover{
+      opacity: .5;
+    }
+  }
+  &-title{
+    font-size: 16px;
+    padding:20px 0 30px;
+    margin:0;
+  }
+  .icon-close {
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 15px;
+}
+}

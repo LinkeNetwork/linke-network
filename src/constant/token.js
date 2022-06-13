@@ -1,0 +1,22 @@
+export const token = {
+  CZZ: {
+    name: "CZZ",
+    symbol: "CZZ",
+    decimals: 18,
+    chainNum: 2019,
+    chainId: "0x7e3",
+    rpcUrls: ["https://node.classzz.com"],
+    chainName: "Classzz_main",
+    blockExplorerUrls: ["https://scan.classzz.com/"],
+  },
+  REI: {
+    name: "REI",
+    symbol: "REI",
+    decimals: 18,
+    chainNum: 47805,
+    chainId: "0xbabd",
+    rpcUrls: ["https://rpc.rei.network/"],
+    chainName: "REI Network",
+    blockExplorerUrls: ["https://scan.rei.network/"],
+  }
+}
