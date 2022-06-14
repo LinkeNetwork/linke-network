@@ -1,5 +1,6 @@
 import styled from "styled-components"
 import dataImage from '../../assets/images/home-acount.png'
+import dataImageClient from '../../assets/images/home-acount-client.png'
 import {detectMobile} from "../../utils"
 import {createClient} from 'urql'
 import {useEffect, useState} from "react"
@@ -77,7 +78,7 @@ export default function CountInfo() {
     return (
         <CountInfoContanier>
             <div className={`info-wrap ${detectMobile() ? 'info-wrap-client' : ''}`}
-                 style={{backgroundImage: `url(${dataImage})`}}>
+                 style={{backgroundImage: `url(${detectMobile() ? dataImageClient : dataImage})`}}>
               <div className="item-wrap">
                 {
                   countList.map((item,index) => {

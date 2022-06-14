@@ -2,22 +2,25 @@ import Image from '../../component/Image'
 import twitterImage from '../../assets/images/twitter.png'
 import groupImage from '../../assets/images/linke.png'
 import mediumImage from '../../assets/images/medium.png' 
+import twitterImage1 from '../../assets/images/twitter1.png'
+import groupImage1 from '../../assets/images/linke1.png'
+import mediumImage1 from '../../assets/images/medium1.png' 
 import styled from 'styled-components'
 export default function FindUs(props) {
   const { type } = props
   return (
     <FindUsContainer>
       <a href="https://twitter.com/Bee_protocol" target="_blank" rel="noreferrer">
-        <Image size={type === 'footer' ? 60 : 40} src={twitterImage} />
+        <Image size={type === 'footer' ? 50 : 40} src={type === 'footer' ? twitterImage : twitterImage1} />
       </a>
       <a href="https://beeprotocol.xyz/chat/0xF49DB8e1F5D2120cdf7511Cf17D876622fFc7D22" target="_blank" rel="noreferrer">
-        <Image size={type === 'footer' ? 60 : 40} src={groupImage} />
+        <Image size={type === 'footer' ? 50 : 40} src={type === 'footer' ? groupImage : groupImage1}/>
       </a>
       <a href="https://medium.com/@Bee_protocol" target="_blank" className={`${type === 'footer' ? 'medium-link': ''}`} rel="noreferrer">
         {/* <div className={`medium-wrap ${type === 'footer' ? '' : 'small'}`}>
           <span className="iconfont icon-medium"></span>
         </div> */}
-        <Image size={type === 'footer' ? 60 : 40} src={mediumImage} />
+        <Image size={type === 'footer' ? 50 : 40} src={type === 'footer' ? mediumImage : mediumImage1}/>
       </a>
     </FindUsContainer>
   )

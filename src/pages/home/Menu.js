@@ -59,11 +59,12 @@ const MenuContainer = styled.div`
   .menu-top {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin: 20px;
   }
   .menu-left {
     img {
-      width: 157px;
+      width: 137px;
     }
   }
   .menu-item {
@@ -72,7 +73,7 @@ const MenuContainer = styled.div`
       font-size: 20px;
       line-height: 60px;
       font-weight: bold;
-      color: #FFB600;
+      color: #666;
     }
   }
   .menu-bottom {
@@ -84,7 +85,7 @@ const MenuContainer = styled.div`
     justify-content: space-between;
   }
   .menu-bottom-left {
-    color: #FFB600;
+    color: #666;
     font-size: 16px;
   }
   .menu-bottom-right {
