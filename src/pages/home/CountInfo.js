@@ -135,26 +135,40 @@ const CountInfoContanier = styled.div`
 
     &-client {
       margin: 50px 0;
-      height: 212px;
+      height: 300px;
       background-size: 100%;
       .item-wrap {
         .item {
-          height: 22px;
-          margin-bottom: 18px;
+          height: 29px;
+          margin-bottom: 40px;
           margin-left: -20px;
-  
           .name, .count {
             top: 0;
             font-size: 13px;
           }
+          &:nth-child(2) {
+            .name {
+              top: -36px;
+            }
+          }
+          &:nth-child(3) {
+            .count {
+              top: 4px;
+            }
+          }
+          &:nth-child(4),&:nth-child(5) {
+            .count {
+              top: 3px;
+            }
+          }
           .name {
-            left: 63%;
+            left: 72%;
             font-size: 12px;
-            top: -18px;
+            top: -19px;
           }
           .count {
-            left: 83%;
-            top: 3px;
+            left: 75%;
+            top: 6px;
             font-size: 12px;
           }
         }
@@ -189,7 +203,37 @@ const CountInfoContanier = styled.div`
   @media (max-width: 768px) {
     .info-wrap {
       .item-wrap {
-        margin-top: 28px;
+        margin-top: 0;
+      }
+    }
+  }
+  @media (max-width: 390px) {
+    .info-wrap {
+      .item-wrap {
+        margin-top: 10px;
+        .item {
+          height: 24px;
+        }
+      }
+    }
+  }
+  @media (max-width: 375px) {
+    .info-wrap {
+      .item-wrap {
+        margin-top: 16px;
+        .item {
+          height: 21px;
+        }
+      }
+    }
+  }
+  @media (max-width: 360px) {
+    .info-wrap {
+      .item-wrap {
+        margin-top: 22px;
+        .item {
+          height: 19px;
+        }
       }
     }
   }
