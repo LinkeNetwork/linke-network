@@ -28,7 +28,6 @@ export default function ProfileInfo(props) {
 
   }
   const getPrivateChatStatus = async (pathname) => {
-    debugger
     const networkInfo = await getChainInfo()
     const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(pathname)
     setShowPrivateChat(Boolean(res))
@@ -36,7 +35,6 @@ export default function ProfileInfo(props) {
     console.log(res, 'getPrivateChatStatus=====')
   }
   const getFollowStatus = async (client) => {
-    // debugger
     const tokensQuery = `
     query{
       followers(where:{from: "`+ getLocal('account')?.toLowerCase() + `", to: "` + urlParams?.toLowerCase() + `"}){

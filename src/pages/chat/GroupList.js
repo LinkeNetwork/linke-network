@@ -33,7 +33,6 @@ export default function GroupList(props) {
   const history = useHistory()
   const path = history.location.pathname
   const getGroupList = async () => {
-    debugger
     if(currentTabIndex !== 0 || currentTabIndex == undefined) return
     showMask()
     const address = getLocal('account')
