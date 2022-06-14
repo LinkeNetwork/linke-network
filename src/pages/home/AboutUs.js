@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import intl from 'react-intl-universal'
+import { detectMobile } from '../../utils'
 
 export default function AboutUs() {
   let list = [
@@ -27,7 +28,7 @@ export default function AboutUs() {
   })
   return (
     <AboutContainer>
-      <div className='about-container'>
+      <div className={`about-container ${detectMobile() ? 'about-container-client' : ''}`}>
         <ul>
           {
             list.map((item, index) => {
@@ -55,15 +56,15 @@ export default function AboutUs() {
 const AboutContainer = styled.div`
   margin: 60px 0 0;
   .about-container {
-    margin: 0 auto;
-    width: 80%;
-    position: relative;
-    min-width: 1160px;
-    max-width: 1400px;
     ul {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
+    }
+    &-client {
+      .item {
+        width: 100%;
+      }
     }
   }
   .title{
@@ -144,18 +145,12 @@ const AboutContainer = styled.div`
     margin: 20px 0 32px;
   }
   @media (max-width: 991.98px) {
-    padding: 0 1rem;
     margin-top: 40px;
     .item {
       display: flex;
       padding: 30px 15px;
       height: auto;
-      margin: 20px 0;
-      &:nth-child(even){
-        img {
-          margin: 40px 0;
-        }
-      }
+      margin: 10px 0;
       &-title {
         font-size: 22px;
       }

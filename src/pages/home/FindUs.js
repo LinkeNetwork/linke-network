@@ -58,9 +58,6 @@ const FindUsContainer = styled.div`
   .icon-medium {
     font-size: 12px;
    }
-   .medium-link {
-     padding: 10px
-   }
  }
  
 `

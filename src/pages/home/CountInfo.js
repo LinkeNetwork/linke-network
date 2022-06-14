@@ -1,6 +1,6 @@
 import styled from "styled-components"
 import dataImage from '../../assets/images/home-acount.png'
-import {detectMobile, getLocal} from "../../utils"
+import {detectMobile} from "../../utils"
 import {createClient} from 'urql'
 import {useEffect, useState} from "react"
 
@@ -80,13 +80,13 @@ export default function CountInfo() {
                  style={{backgroundImage: `url(${dataImage})`}}>
               <div className="item-wrap">
                 {
-                  countList.map(item => {
-                      return (
-                          <div className="item">
-                              <span className="name">{item.name}</span>
-                              <span className="count">{item.count}</span>
-                          </div>
-                      )
+                  countList.map((item,index) => {
+                    return (
+                      <div className="item" key={index}>
+                          <span className="name">{item.name}</span>
+                          <span className="count">{item.count}</span>
+                      </div>
+                    )
                   })
                 }
               </div>
@@ -97,25 +97,21 @@ export default function CountInfo() {
 const CountInfoContanier = styled.div`
   .info-wrap {
     position: relative;
-    height: 500px;
-    width: 70%;
-    max-width: 1234px;
-    min-width: 1160px;
+    height: 420px;
     background-repeat: no-repeat;
     background-position: left;
     background-size: 72%;
-    margin: 0 auto;
-    margin-top: 120px;
+    margin: 120px 50px 0;
 
     .item-wrap{
-      margin-top: 50px;
+      margin-top: 53px;
       position: absolute;
       width: 100%;
     }
     .item {
       position: relative;
-      height: 40px;
-      margin-bottom: 37px;
+      height: 43px;
+      margin-bottom: 38px;
     }
 
     .name {
@@ -137,71 +133,73 @@ const CountInfoContanier = styled.div`
     }
 
     &-client {
-      margin: 0 1rem;
-      height: 260px;
-      // background-size: 70%;
-      background-size: 210px;
-      padding-top: 50px;
-
-      .item {
-        height: 20px;
-        margin-bottom: 10px;
-        margin-left: -20px;
-
-        .name, .count {
-          top: 0;
-          font-size: 13px;
-        }
-        .name {
-          left: 65%;
-          font-size: 12px;
-          top: 12px;
-        }
-        .count {
-          left: 184px;
-          top: 10px;
-        }
-      }
-    }
-  }
-  @media (max-width: 1450px) {
-    .info-wrap {
+      margin: 50px 0;
+      height: 212px;
+      background-size: 100%;
       .item-wrap {
-        margin-top: 75px;
         .item {
-          height: 50px;
-          margin-bottom: 43px;
-          &:nth-child(2) {
-            height: 48px;
-            margin-bottom: 38px;
+          height: 22px;
+          margin-bottom: 18px;
+          margin-left: -20px;
+  
+          .name, .count {
+            top: 0;
+            font-size: 13px;
           }
-          &:nth-child(4) {
-            height: 45px;
-            margin-bottom: 45px;
+          .name {
+            left: 63%;
+            font-size: 12px;
+            top: -18px;
           }
           .count {
-            top: 10px;
-          }
-          &:nth-child(1),&:nth-child(2),&:nth-child(3) {
-            .count {
-              top: 13px;
-            }
+            left: 83%;
+            top: 3px;
+            font-size: 12px;
           }
         }
       }
     }
-   
   }
   @media (min-width: 1450px) {
     .info-wrap {
+      height: 520px;
       .item-wrap {
-        margin-top: 68px;
+        margin-top: 66px;
         .item {
-          height: 50px;
+          height: 54px;
           margin-bottom: 46px;
           .name {
-            top: 8px;
+            top: 12px;
           }
+          .count {
+            top: 18px;
+          }
+        }
+      }
+    }
+  }
+  @media (max-width: 1280px) {
+    .info-wrap {
+      .item-wrap {
+        margin-top: 53px;
+      }
+    }
+  }
+  @media (max-width: 768px) {
+    .info-wrap {
+      .item-wrap {
+        margin-top: 28px;
+      }
+    }
+  }
+  @media (min-width: 1450px) and (max-width: 1680px) {
+    .info-wrap {
+      height: 490px;
+      .item-wrap {
+        margin-top: 63px;
+        .item {
+          height: 50px;
+          margin-bottom: 44px;
         }
       }
     }

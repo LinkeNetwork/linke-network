@@ -1,9 +1,10 @@
 import styled from "styled-components"
 import intl from 'react-intl-universal'
+import { detectMobile } from '../../utils'
 import joinUsBg from '../../assets/images/join-us-bg.png'
 export default function JoinUs() {
   return (
-    <JoinUsContanier style={{ backgroundImage: `url(${joinUsBg})` }}>
+    <JoinUsContanier style={{ backgroundImage: `url(${joinUsBg})` }}  className={`${detectMobile() ? 'container-client' : ''}`}>
       <div className="join-wrapper">
         <div className="left-wrap">
           {intl.get('JoinUsTitleOne')}
@@ -28,13 +29,27 @@ const JoinUsContanier = styled.div`
 background-size: 100%;
 width: 100%;
 margin: 100px 0;
+&.container-client {
+  margin: 50px 0;
+  .join-wrapper {
+    flex-direction: column;
+    width: 90%;
+    .left-wrap {
+      margin: 0 0 20px 0;
+      font-size: 34px;
+      width: 100%;
+    }
+    .right-wrap {
+      width: 100%;
+    }
+  }
+}
 .join-wrapper{
-  padding: 35px 0;
-  width: 80%;
   max-width: 1400px;
-  display: flex;
-  min-width: 1160px;
+  width: 80%;
   margin: 0 auto;
+  padding: 35px 0;
+  display: flex;
   justify-content: space-between;
 }
 .left-wrap {

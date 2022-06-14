@@ -41,8 +41,10 @@ const IntroductionContainer = styled.div`
       padding: 30px;
     }
     .info {
-      font-size: 15px;
+      font-size: 18px;
+      color: #231815;
       padding: 0 30px;
+      margin-top: 10px;
     }
   }
 `

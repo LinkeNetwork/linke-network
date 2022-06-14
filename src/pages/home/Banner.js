@@ -2,10 +2,11 @@ import React from 'react'
 import styled from 'styled-components'
 import banner from '../../assets/images/banner.png'
 import titleLogo from '../../assets/images/title.png'
-import intl from "react-intl-universal";
+import intl from "react-intl-universal"
+import { detectMobile } from "../../utils"
 export default function Banner() {
   return(
-    <BannerContainer>
+    <BannerContainer className={`${detectMobile() ? 'container-client' : ''}`}>
       <div className='banner-left'>
         <div className='banner-title'>
           <img src={titleLogo}/>
@@ -19,14 +20,28 @@ export default function Banner() {
   )
 }
 const BannerContainer = styled.div`
-  max-width: 1400px;
   margin: 60px auto 0;
   display: flex;
-  width: 80%;
   position: relative;
-  min-width: 1160px;
   padding-top: 48px;
   align-items: center;
+  &.container-client {
+    flex-direction: column;
+    .banner-left{
+      width: 100%
+    }
+    .banner-left {
+      margin-right: 0;
+    }
+    .banner-right {
+      width: 90%;
+      margin-top: 30px;
+    }
+    .banner-title {
+      width: 70%;
+      margin: 0 auto 20px;
+    }
+  }
   .banner-left {
     display: flex;
     flex-direction: column;
@@ -49,24 +64,15 @@ const BannerContainer = styled.div`
     }
   }
   .banner-info {
-    // position: absolute;
-    // bottom: 136px;
     font-size: 18px;
-    // font-weight: bold;
-    // text-align: center;
-    // padding: 0 30px;
     color: #231815;
   }
   @media (max-width: 991.98px) {
-    background-size: 90%;
     .banner-title {
       bottom: 220px
     }
   }
   @media (max-width: 767px) {
-    background-size: 100%;
-    height: 400px;
-    // margin-top: 61px;
     .banner-title {
       font-size: 26px;
       bottom: 220px;

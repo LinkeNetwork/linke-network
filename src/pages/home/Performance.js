@@ -6,6 +6,7 @@ import Image4 from '../../assets/images/introduction4.svg'
 import Image5 from '../../assets/images/introduction5.svg'
 import Image6 from '../../assets/images/introduction6.svg'
 import intl from "react-intl-universal";
+import { detectMobile } from "../../utils"
 
 export default function Performance() {
   let list = [
@@ -35,15 +36,15 @@ export default function Performance() {
     }
   ]
   return (
-    <PerformanceContainer>
-      <div className="title">{intl.get('BuildTitle')}</div>
-      <div className="item-container">
+    <PerformanceContainer className={`${detectMobile() ? 'container-client' : ''}`}>
+      <div className={`title ${detectMobile() ? 'title-client' : ''}`}>{intl.get('BuildTitle')}</div>
+      <div className={`item-container ${detectMobile() ? 'item-container-client' : ''}`}>
         {
           list.map((item, index) => {
             return (
               <div key={index} className="item">
                 <img src={item.image} alt="" />
-                <div style={{fontSize: '22px'}}>{intl.get(item.text)}</div>
+                <div className="text">{intl.get(item.text)}</div>
               </div>
             )
           })
@@ -58,6 +59,9 @@ const PerformanceContainer = styled.div`
   max-width: 1200px;
   margin: 110px auto 0;
   text-align: center;
+  &.container-client {
+    margin-top: 40px;
+  }
   .title {
     font-size: 32px;
     margin: 50px 0;
@@ -89,32 +93,36 @@ const PerformanceContainer = styled.div`
     flex-wrap: wrap;
     width: 100%;
     justify-content: center;
+    .text {
+      font-size: 22px;
+    }
+    &-client {
+      justify-content: space-between;
+      .text {
+        font-size: 18px;
+      }
+      .item:nth-child(even) {
+        margin-right: 0
+      }
+      .item {
+        width: 48%;
+        height: inherit;
+        padding-bottom: 30px;
+        img {
+          width: 100px;
+          height: 100px;
+          margin: 30px 0;
+        }
+      }
+    }
+  }
+  .title-client {
+    font-size: 26px;
   }
   img {
     width: 150px;
     height: 154px;
     margin: 90px auto 60px;
-  }
-  @media (max-width: 991.98px) {
-    .item:nth-child(even) {
-      margin-right: 0
-    }
-    img {
-      width: 80px;
-      height: 80px;
-      margin: 40px 0;
-    }
-    .title {
-      font-size: 26px;
-    }
-    .item-container {
-      padding: 0 20px;
-      justify-content: space-between;
-      .item {
-        width: 47%;
-        height: 220px;
-      }
-    }
   }
   @media (min-width: 1450px) {
     .item-container {

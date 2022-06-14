@@ -55,7 +55,7 @@ const HeaderContanier = styled.div`
  }
  .header-content {
   .icon-client {
-    width: 107px;
+    width: 137px;
     height: 30px;
    }
  }

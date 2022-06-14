@@ -4,6 +4,7 @@ import memberImage2 from '../../assets/images/member2.png'
 import memberImage3 from '../../assets/images/member3.png'
 import styled from "styled-components"
 import intl from "react-intl-universal";
+import { detectMobile } from '../../utils'
 export default function Member() {
   const memberList = [
     {
@@ -27,13 +28,13 @@ export default function Member() {
   ]
   return (
     <MemberContanier>
-      <div className="title">{intl.get('MemberTitle')}</div>
+      <div className={`title ${detectMobile() ? 'title-client' : ''}`}>{intl.get('MemberTitle')}</div>
       {
         memberList.map((item, index) => {
           return (
-            <div className="member-list" key={index}>
+            <div className={`member-list ${detectMobile() ? 'member-list-client' : ''}`} key={index}>
             <div className="avatar">
-              <Image src={item.avatar} size={288}/>
+              <Image src={item.avatar} size={detectMobile() ? 200 : 288}/>
             </div>
             <div className="member-info">
             <div className="name">
@@ -51,9 +52,6 @@ export default function Member() {
   )
 }
 const MemberContanier = styled.div`
-width: 80%;
-margin: 0 auto;
-min-width: 1170px;
 .title {
   margin: 114px 0 44px;
   text-align: center;
@@ -62,6 +60,27 @@ min-width: 1170px;
 }
 .member-list{
   display: flex;
+  &-client {
+    flex-direction: column;
+    .avatar {
+      margin: 0 0 30px;
+    }
+    .member-info {
+      .name, .post {
+        text-align: center
+      }
+      .name {
+        font-size: 30px;
+      }
+      .post{
+        font-size: 24px;
+      }
+      .introduction {
+        font-size: 18px;
+        margin-bottom: 40px;
+      }
+    }
+  }
 }
 .member-info {
   color: #231815;

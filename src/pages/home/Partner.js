@@ -10,14 +10,15 @@ import partner8 from '../../assets/images/partner8.png'
 import partner9 from '../../assets/images/partner9.png'
 import partner10 from '../../assets/images/partner10.png'
 import intl from "react-intl-universal";
+import { detectMobile } from '../../utils'
 export default function Partner() {
   const partnerList = [
     partner1, partner2, partner3, partner4, partner5, partner6, partner7, partner8, partner9, partner10
   ]
   return(
     <PartnerContanier>
-      <div className="title">{intl.get('PartnerText')}</div>
-      <ul>
+      <div className={`title ${detectMobile() ? 'title-client' : ''}`}>{intl.get('PartnerText')}</div>
+      <ul className={`${detectMobile() ? 'image-wrap-client' : ''}`}>
         {
           partnerList.map((item,index) => {
             return(
@@ -39,10 +40,7 @@ const PartnerContanier = styled.div`
   font-weight: bold;
 }
 ul {
-  width: 80%;
-  margin: 0 auto;
   border: 1px solid #000;
-  min-width: 1170px;
   border-radius: 20px;
   padding: 65px 56px 10px;
   display: flex;
@@ -82,6 +80,25 @@ ul {
       &:nth-child(4), &:nth-child(8){
         margin-right: 0
       }
+    }
+  }
+}
+ul.image-wrap-client {
+  padding: 30px 30px 0px;
+  .image-wrap{
+    width: 140px;
+    margin: 0 40px 20px 0;
+    &:nth-child(even) {
+      margin-right: 0
+    }
+    &:nth-child(3) {
+      width: 110px;
+      margin-right: 70px;
+    }
+    &:nth-child(7){
+      width: 180px;
+      margin-right: 10px;
+      margin-left: -10px;
     }
   }
 }

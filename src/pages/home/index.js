@@ -1,6 +1,7 @@
 import React, { lazy } from "react"
 import './home.scss'
 import Header from "./Header"
+import { detectMobile } from "../../utils"
 const CountInfo = lazy(() => import('./CountInfo'))
 const Banner = lazy(() => import('./Banner'))
 const Version = lazy(() => import('./Version'))
@@ -13,19 +14,23 @@ const Member = lazy(() => import('./Member'))
 const Footer = lazy(() => import('./Footer'))
 
 export default function Home() {
-  return(
+  return (
     <div>
-      <Header/>
-      <Banner/>
-      <CountInfo />
-      <Version />
+      <div className={`home-container ${detectMobile() ? 'home-container-client' : ''}`}>
+        <Header />
+        <Banner />
+        <CountInfo />
+        <Version />
+      </div>
       <JoinUs />
-      <AboutUs/>
-      <Introduction/>
-      <Performance/>
-      <Partner />
-      <Member />
-      <Footer/>
+      <div className={`home-container ${detectMobile() ? 'home-container-client' : ''}`}>
+        <AboutUs />
+        <Introduction />
+        <Performance />
+        <Partner />
+        <Member />
+      </div>
+      <Footer />
     </div>
   )
 }

@@ -72,12 +72,6 @@ const FooterContainer = styled.div`
       font-size: 20px;
       padding: 40px 0;
     }
-    .img-container {
-      width: 150px;
-      img {
-        width: 40px!important;
-      }
-    }
     .bottom-container {
       .title {
         padding: 20px!important

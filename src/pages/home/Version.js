@@ -2,7 +2,7 @@ import aboutImage1 from '../../assets/images/about1.png'
 import aboutImage2 from '../../assets/images/about2.png'
 import styled from 'styled-components'
 import intl from 'react-intl-universal'
-
+import { detectMobile } from '../../utils'
 export default function AboutUs() {
   let list = [
     {
@@ -17,7 +17,7 @@ export default function AboutUs() {
     }
   ]
   return (
-    <VersionContainer>
+    <VersionContainer className={`${detectMobile() ? 'container-client' : ''}`}>
       <div className='about-container'>
         <ul>
           {
@@ -50,10 +50,7 @@ const VersionContainer = styled.div`
   margin: 120px 0 0;
   .about-container {
     margin: 0 auto;
-    width: 80%;
     position: relative;
-    min-width: 1160px;
-    max-width: 1400px;
   }
   .title{
     font-size: 30px;
@@ -106,19 +103,24 @@ const VersionContainer = styled.div`
     font-weight: bold;
     margin: 20px 0 32px;
   }
+  &.container-client {
+    .image-container, .text-container {
+      width: 100%;
+    }
+    .image-container {
+      margin-bottom: 40px;
+    }
+    .item:nth-child(odd){
+      flex-wrap: wrap;
+    }
+  }
   @media (max-width: 991.98px) {
-    padding: 0 1rem;
     margin-top: 40px;
     .item {
       display: flex;
       padding: 30px 15px;
       height: auto;
       margin: 20px 0;
-      &:nth-child(even){
-        img {
-          margin: 40px 0;
-        }
-      }
       &-title {
         font-size: 22px;
       }

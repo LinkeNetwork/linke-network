@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { Link } from 'react-router-dom'
-import logo from '../../assets/images/logo.png'
+import logo from '../../assets/images/linke-logo.svg'
 import FindUs from './FindUs'
 export default function Menu(props) {
   const { closeMenu, showMenu } = props
