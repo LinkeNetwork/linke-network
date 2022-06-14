@@ -5,6 +5,7 @@
   "browser": {
     "crypto": false
   },
+
   "dependencies": {
     "@beeprotocol/beemultiavatar": "^1.0.7",
     "@metamask/eth-sig-util": "^4.0.1",
