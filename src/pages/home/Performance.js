@@ -105,7 +105,7 @@ const PerformanceContainer = styled.div`
         margin-right: 0
       }
       .item {
-        width: 48%;
+        width: 47.5%;
         height: inherit;
         padding-bottom: 30px;
         img {

@@ -86,19 +86,10 @@ ul {
 ul.image-wrap-client {
   padding: 30px 30px 0px;
   .image-wrap{
-    width: 140px;
+    width: 42%;
     margin: 0 40px 20px 0;
     &:nth-child(even) {
       margin-right: 0
-    }
-    &:nth-child(3) {
-      width: 110px;
-      margin-right: 70px;
-    }
-    &:nth-child(7){
-      width: 180px;
-      margin-right: 10px;
-      margin-left: -10px;
     }
   }
 }

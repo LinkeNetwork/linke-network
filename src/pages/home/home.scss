@@ -48,3 +48,22 @@ header{
     }
   }
 }
+@media (max-width: 390px) {
+  .home-container-client {
+    ul.image-wrap-client {
+      padding: 30px 30px 5px;
+      .image-wrap {
+        width: 43%;
+      }
+    }
+  }
+}
+@media (max-width: 375px) {
+  .home-container-client {
+    ul.image-wrap-client {
+      .image-wrap {
+        width: 42%;
+      }
+    }
+  }
+}
