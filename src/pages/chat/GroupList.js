@@ -196,7 +196,7 @@ export default function GroupList(props) {
       }
     }`
     const res = await client.query(groupListQuery).toPromise()
-    const privateGroupList = [...res?.data?.profiles]
+    const privateGroupList = [...list, ...res?.data?.profiles]
     console.log(res, privateGroupList, 'groupListQuery=====')
     setGroupList(privateGroupList)
     setState({
