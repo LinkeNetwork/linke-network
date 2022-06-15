@@ -17,6 +17,7 @@ import { ethers } from "ethers"
 import { detectMobile, throttle } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
 import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI } from '../../abi/index'
+import usePrivateMessage from '../../hooks/usePrivateMessage'
 import ChangeNetwork from './ChangeNetwork'
 import Modal from '../../component/Modal'
 import Nav from '../nav'
@@ -36,6 +37,7 @@ export default function Chat() {
   const { getChainInfo } = useChain()
   const history = useHistory()
   const { getGroupMember } = useGroupMember()
+  const { getDecryptedMessage } = usePrivateMessage()
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
@@ -94,6 +96,7 @@ export default function Chat() {
   useEffect(() => {
     if(currentTabIndex === 1) {
       getMyAvatar()
+      getMyPublicKey()
     }
   }, [currentTabIndex])
   const getCurrentNetwork = async() => {
@@ -121,6 +124,7 @@ export default function Chat() {
     console.log(res, res.data?.profile?.avatar,'getMyAvatar====')
   }
   const changeChatType = (index) => {
+    setCurrentAddress()
     history.push('/chat')
     setCurrentTabIndex(index)
     console.log(index, 'changeChatType=====')
@@ -142,6 +146,12 @@ export default function Chat() {
       setMyPublicKey(result)
       console.log(result, 'getMyKey=====')
     })
+  }
+  const getPrivateChatStatus = async (id) => {
+    const networkInfo = await getChainInfo()
+    const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(id)
+    setPrivateKey(res)
+    console.log(res, 'getPrivateChatStatus=====')
   }
   const initRoomAddress = () => {
     let data = history.location?.state
@@ -327,6 +337,8 @@ export default function Chat() {
   }
   const showChatList = (e, item, list) => {
     console.log(item, 'item=====')
+    getPrivateChatStatus(item.id)
+    getPrivateChatList(item.id)
     setMemberCount()
     setHasMore(true)
     setRoomAvatar(item.avatar)
@@ -439,13 +451,14 @@ export default function Chat() {
   const onClickDialog = (e) => {
     setShowJoinRoom(true)
   }
-  const getPrivateChatList = async() => {
+  const getPrivateChatList = async(toAddress) => {
     const networkInfo = await getChainInfo()
-    const tokensQuery = `
+    debugger
+    const myAddress = getLocal('account')?.toLowerCase()
+    const tokensToQuery = `
     query{
-      encryptedInfos(where:{sender: "`+ getLocal('account')?.toLowerCase() +`", to: ` + currentAddress?.toLowerCase() + `}){
+      encryptedInfos(where:{sender: "`+ myAddress +`", to: "`+ toAddress?.toLowerCase() + `"}){
         id,
-        transaction,
         sender,
         block,
         chatText,
@@ -453,11 +466,37 @@ export default function Chat() {
       }
     }
     `
+    const tokensSenderQuery = `
+    query{
+      encryptedInfos(where:{to: "`+ myAddress +`", sender: "`+ toAddress?.toLowerCase() + `"}){
+        id,
+        sender,
+        block,
+        chatText,
+        chatTextSender
+      }
+    }
+    `
+    console.log(myAddress, toAddress?.toLowerCase(), tokensToQuery, '====>>>')
     const client = createClient({
       url: networkInfo?.APIURL
     })
-
-    const data = await client.query(tokensQuery).toPromise()
+    try{
+      const resTo = await client.query(tokensToQuery).toPromise()
+      const resSender = await client.query(tokensSenderQuery).toPromise()
+      resTo?.data?.encryptedInfos.map(item => {
+        console.log(item.chatTextSender, 'item.chatTextSender===')
+        getDecryptedMessage(item.chatTextSender)
+      })
+      resSender?.data?.encryptedInfos.map(item => {
+        console.log(item.chatText, 'item.chatTextSender===')
+        getDecryptedMessage(item.chatText)
+      })
+      console.log(resTo, 'getPrivateChatList====')
+      console.log(resSender, 'ressSender====')
+    } catch(error) {
+      console.log(error, '====')
+    }
   }
   const getencryptedMessage = (chatText, encryptedKey ) => {
     const ethUtil = require('ethereumjs-util')
@@ -484,9 +523,11 @@ export default function Chat() {
       if(currentTabIndex === 1) {
         debugger
         const networkInfo = await getChainInfo()
+        console.log(privateKey, myPublicKey)
         const encryptedMessage = getencryptedMessage(chatText, privateKey)
         const encryptedSenderMessage = getencryptedMessage(chatText, myPublicKey)
         console.log(encryptedSenderMessage, encryptedMessage, 'encryptedMessage====')
+        debugger
         var tx = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       } 
       if(currentTabIndex === 0 ) {
@@ -667,6 +708,10 @@ export default function Chat() {
     console.log(data, chatList, result,'initChatList====')
     console.log(result, 'result===')
   }
+  const handleHiddenMask = () => {
+    setShowMask(false)
+    setCurrentAddress()
+  }
   useEffect(() => {
     getBalance()
     getCurrentNetwork()
@@ -793,7 +838,7 @@ export default function Chat() {
                   </div>
                   <ChatTab changeChatType={(index) => changeChatType(index)} currentTabIndex={currentTabIndex}/>
                   <ListGroup
-                    hiddenMask={() => {setShowMask(false)}}
+                    hiddenMask={() => {handleHiddenMask()}}
                     showMask={() => setShowMask(true)}
                     showChatList={(e, item, list) => showChatList(e, item, list)}
                     currentIndex={currentIndex}
