@@ -17,7 +17,6 @@ import { ethers } from "ethers"
 import { detectMobile, throttle } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
 import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI } from '../../abi/index'
-import usePrivateMessage from '../../hooks/usePrivateMessage'
 import ChangeNetwork from './ChangeNetwork'
 import Modal from '../../component/Modal'
 import Nav from '../nav'
@@ -37,7 +36,6 @@ export default function Chat() {
   const { getChainInfo } = useChain()
   const history = useHistory()
   const { getGroupMember } = useGroupMember()
-  const { getDecryptedMessage } = usePrivateMessage()
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
@@ -86,6 +84,7 @@ export default function Chat() {
   const [privateKey, setPrivateKey] = useState()
   const [myPublicKey, setMyPublicKey] = useState()
   const [myAvatar, setMyAvatar] = useState()
+  const [hasDecrypted, setHasDecrypted] = useState(false)
   useEffect(()=>{
     currentAddressRef.current = currentAddress
     hasScrollRef.current = hasScroll
@@ -241,6 +240,7 @@ export default function Chat() {
     const chatList = data?.data?.chatInfos || []
     // const currentList = chatList.sort(function (a, b) { return a.block - b.block; })
     const result = formateData(chatList)
+    console.log(result,'===>>>>>')
     getMemberList(roomAddress, result)
   }
   const initCurrentAddress = (list) => {
@@ -451,51 +451,66 @@ export default function Chat() {
   const onClickDialog = (e) => {
     setShowJoinRoom(true)
   }
+  const formatePrivateData = (res, type) => {
+    const data = res?.data?.encryptedInfos.map(item => {
+      return {
+        ...item,
+        encryptedText: type === 1 ? item.chatTextSender : item.chatText,
+        position: type === 1 ? true : false,
+        isSuccess: true,
+        showOperate: false,
+        showProfile: false,
+        isDecrypted: false,
+        avatar: type === 1 ? myAvatar : roomAvatar
+      }
+    })
+    return data
+  }
   const getPrivateChatList = async(toAddress) => {
     const networkInfo = await getChainInfo()
     debugger
     const myAddress = getLocal('account')?.toLowerCase()
-    const tokensToQuery = `
+    const tokensSenderQuery = `
     query{
       encryptedInfos(where:{sender: "`+ myAddress +`", to: "`+ toAddress?.toLowerCase() + `"}){
         id,
         sender,
         block,
         chatText,
+        to,
         chatTextSender
       }
     }
     `
-    const tokensSenderQuery = `
+    const tokensReceivedrQuery = `
     query{
       encryptedInfos(where:{to: "`+ myAddress +`", sender: "`+ toAddress?.toLowerCase() + `"}){
         id,
         sender,
         block,
+        to,
         chatText,
         chatTextSender
       }
     }
     `
-    console.log(myAddress, toAddress?.toLowerCase(), tokensToQuery, '====>>>')
     const client = createClient({
       url: networkInfo?.APIURL
     })
     try{
-      const resTo = await client.query(tokensToQuery).toPromise()
       const resSender = await client.query(tokensSenderQuery).toPromise()
-      resTo?.data?.encryptedInfos.map(item => {
-        console.log(item.chatTextSender, 'item.chatTextSender===')
-        getDecryptedMessage(item.chatTextSender)
-      })
-      resSender?.data?.encryptedInfos.map(item => {
-        console.log(item.chatText, 'item.chatTextSender===')
-        getDecryptedMessage(item.chatText)
-      })
-      console.log(resTo, 'getPrivateChatList====')
-      console.log(resSender, 'ressSender====')
+      const resReceived = await client.query(tokensReceivedrQuery).toPromise()
+      const senderInfo = formatePrivateData(resSender, 1)
+      const receivedInfo =  formatePrivateData(resReceived, 2)
+      const privateChatList = [...senderInfo, ...receivedInfo]
+      console.log(privateChatList, 'privateChatList====')
+      const currentList = privateChatList.sort(function (a, b) { return b.block - a.block; })
+      setChatList(currentList)
+      setShowMask(false)
+      console.log(currentList, chatList, 'currentList=====')
     } catch(error) {
       console.log(error, '====')
+      setShowMask(false)
     }
   }
   const getencryptedMessage = (chatText, encryptedKey ) => {
@@ -554,9 +569,7 @@ export default function Chat() {
       }
 
       chatList.unshift(newChat)
-      if(currentTabIndex === 0) {
-        getMemberList(currentAddress, chatList)
-      }
+      getMemberList(currentAddress, chatList)
       // setChatList(chatList)
       console.log(chatList, 'chatList====123')
       let callback = await tx.wait()
@@ -602,6 +615,7 @@ export default function Chat() {
   const resetData = () => {
     setCurrentAddress()
     setRoomAvatar()
+    setCurrentTabIndex(0)
     setCurrentRoomName()
     getBalance()
     getCurrentNetwork()
@@ -671,19 +685,21 @@ export default function Chat() {
     const client = createClient({
       url: networkInfo?.APIURL
     })
-
-    const data = await client.query(tokensQuery).toPromise()
-    const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
-    const formatList = addAvatarToList(newList)
-    const list = [...chatListRef.current]
-    if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList.length) {
-      debugger
-      setChatList(formatList.concat(list))
+    if(currentTabIndex === 0) {
+      const data = await client.query(tokensQuery).toPromise()
+      const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
+      const formatList = addAvatarToList(newList)
+      const list = [...chatListRef.current]
+      if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList.length) {
+        debugger
+        setChatList(formatList.concat(list))
+      }
+      console.log(newList, 'newList====')
+      console.log(chatList, 'getCurrentChatList====')
     }
-    console.log(newList, 'newList====')
-    console.log(chatList, 'getCurrentChatList====')
   }
   const getMemberList = async(roomAddress, chatList) => {
+    if(currentTabIndex === 1) return
     const data = await getGroupMember(currentAddressRef?.current)
     const memberListInfo = data?.users
     setMemberListInfo(memberListInfo)
@@ -711,6 +727,28 @@ export default function Chat() {
   const handleHiddenMask = () => {
     setShowMask(false)
     setCurrentAddress()
+  }
+  const getDecryptedMessage = (id, message) => {
+    debugger
+    setHasDecrypted(false)
+    window.ethereum
+    .request({
+      method: 'eth_decrypt',
+      params: [message, getLocal('account')],
+    })
+    .then((decryptedMessage) => {
+      const index = chatList.findIndex(item => item.id == id)
+      chatList[index].isDecrypted = true
+      chatList[index].chatText = decryptedMessage
+      setHasDecrypted(true)
+      setChatList(chatList)
+      console.log('The decrypted message i====:', chatList, decryptedMessage)
+      }
+    )
+    .catch((error) => console.log(error.message));
+  }
+  const handleDecryptedMessage = (id, text) => {
+    getDecryptedMessage(id, text)
   }
   useEffect(() => {
     getBalance()
@@ -875,11 +913,14 @@ export default function Chat() {
                               getScrollParent={() => this.scrollParentRef}
                               currentAddress={currentAddress}
                               chatList={chatList}
+                              hasDecrypted={hasDecrypted}
                               hasMore={hasMore}
                               myAddress={myAddress}
+                              currentTabIndex={currentTabIndex}
                               sendSuccess={sendSuccess}
                               hasToBottom={hasToBottom}
                               loadingData={() => loadingData()}
+                              handleDecryptedMessage={(id,text) => handleDecryptedMessage(id,text)}
                               shareInfo={(e,v) => shareInfo(e,v)}
                             />
                          

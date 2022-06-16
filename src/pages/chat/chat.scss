@@ -201,6 +201,19 @@
     width: 100%;
   }
 }
+.icon-suoding{
+  position: absolute;
+  top: -5px;
+  
+  color: #666;
+  &-right {
+    right: 0;
+  }
+  &-left {
+    left: -3px;
+    top: -8px;
+  }
+}
 .right-header-content {
   display: flex;
   width: 100%;

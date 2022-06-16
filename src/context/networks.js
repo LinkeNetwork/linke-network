@@ -10,7 +10,7 @@ const networks =  [
     blockExplorerUrls: ["https://explorer.classzz.com/"],
     ProfileAddress: "0x717c7c5FC78E97d56edD8a28bB2cf85c66747DcC",
     GroupProfileAddress: "0x8281236725980eFA2E26e0a12Dc2F28F689f8e58",
-    APIURL: "https://node.classzz.com/subgraphs/name/Bee-Protocol/bee-subgraph",
+    APIURL: "https://node.classzz.com/subgraphs/name/LinkeNetwork/linke-network-subgraph",
     PrivateChatAddress: '0xD6425022DC33C6b5bf339AC873430b442d50D63b'
   },
   {

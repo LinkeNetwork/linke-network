@@ -144,13 +144,11 @@ export default function GroupList(props) {
     var list = []
     if(data) {
       const {address, name, avatar} = history.location?.state
-      list = [
-        {
-          id: address,
-          name: name,
-          avatar: avatar
-        }
-      ]
+      list = {
+        id: address,
+        name: name,
+        avatar: avatar
+      }
     }
     const networkInfo = await getChainInfo()
     const senderQuery = `
@@ -196,7 +194,13 @@ export default function GroupList(props) {
       }
     }`
     const res = await client.query(groupListQuery).toPromise()
-    const privateGroupList = [...list, ...res?.data?.profiles]
+    const privateGroupList = [...res?.data?.profiles] || []
+    if(list.id) {
+      const index = privateGroupList?.findIndex((item) => item.id === list.id)
+      if(index === -1) {
+        privateGroupList.push(list)
+      }
+    }
     console.log(res, privateGroupList, 'groupListQuery=====')
     setGroupList(privateGroupList)
     setState({
