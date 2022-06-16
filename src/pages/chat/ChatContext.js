@@ -10,7 +10,7 @@ import Image from "../../component/Image"
 import InfiniteScroll from 'react-infinite-scroll-component'
 import useGlobal from "../../hooks/useGlobal"
 export default function ChatContext(props) {
-  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom } = props
+  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom, currentTabIndex, handleDecryptedMessage, hasDecrypted } = props
   // const [chatLists, setChatLists] = useState(chatList)
   const { setState } = useGlobal()
   const [showViewBtn, setShowViewBtn] = useState(false)
@@ -224,7 +224,31 @@ export default function ChatContext(props) {
                         </div>
 
                       </div>
-                      <span className='text-left'>{v.chatText}</span>
+                      <div className='text-left'>
+                        {
+                          currentTabIndex === 0 && <span>{v.chatText}</span>
+                        }
+                        {
+                          currentTabIndex === 1 && v.position && 
+                          <div>
+                            {
+                              v.isDecrypted ? <span>{v.chatText}</span> : <span onClick={() => {handleDecryptedMessage(v.id, v.chatTextSender)}}>Click to view</span>
+                            }
+                          </div>
+                        }
+                        {
+                          currentTabIndex === 1 && !v.position && 
+                          <div>
+                            {
+                              v.isDecrypted ? <span>{v.chatText}</span> : <span onClick={() => {handleDecryptedMessage(v.id, v.chatText)}}>Click to view</span>
+                            }
+                          </div>
+                        }
+                        {
+                          !v.isDecrypted && currentTabIndex === 1 &&
+                          <span className={`iconfont icon-suoding ${v.position ? 'icon-suoding-left': 'icon-suoding-right'}`}></span>
+                        }
+                      </div>
                       {
                         !v.isSuccess &&
                         <span className='iconfont icon-loading'></span>

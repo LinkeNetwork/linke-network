@@ -113,7 +113,7 @@ export default function ProfileInfo(props) {
     setModalTitle(title)
     setShowFollowers(true)
   }
-  const getPrivateKey = () => {
+  const getPublicKey = () => {
     window.ethereum
     .request({
       method: 'eth_getEncryptionPublicKey',
@@ -126,7 +126,7 @@ export default function ProfileInfo(props) {
       await res.wait()
       setShoMask(false)
       setShowPrivateChat(true)
-      console.log(res, '======‘getPrivateKey')
+      console.log(res, '======getPublicKey')
     })
     .catch((error) => {
       if (error.code === 4001) {
@@ -149,7 +149,7 @@ export default function ProfileInfo(props) {
     })
   }
   const OpenPrivate = () => {
-    getPrivateKey()
+    getPublicKey()
   }
   useEffect(() => {
     setAddress(getLocal('account'))

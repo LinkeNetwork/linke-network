@@ -1,7 +1,7 @@
 @font-face {
   font-family: "iconfont"; /* Project id 3216036 */
   src: url('./fonts//iconfont.woff2') format('woff2'),
-       url('./fonts//iconfont.woff') format('woff'),
+       url('./fonts/iconfont.woff') format('woff'),
        url('./fonts/iconfont.ttf') format('truetype');
 }
 
@@ -11,6 +11,18 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-suoding:before {
+  content: "\e602";
+}
+
+.icon-danyehuaban:before {
+  content: "\e62e";
+}
+
+.icon-jiesuo:before {
+  content: "\e601";
 }
 
 .icon-yanse:before {

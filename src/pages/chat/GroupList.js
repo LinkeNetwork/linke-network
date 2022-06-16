@@ -32,8 +32,9 @@ export default function GroupList(props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const history = useHistory()
   const path = history.location.pathname
+
   const getGroupList = async () => {
-    if(currentTabIndex !== 0 || currentTabIndex == undefined) return
+    debugger
     showMask()
     const address = getLocal('account')
     if(!address) {
@@ -137,20 +138,73 @@ export default function GroupList(props) {
     const index =  groupInfos && groupInfos.findIndex((item) => item.id.toLowerCase() == roomAddress)
     setCurrentRoomIndex(index)
   }
-  const getPrivateGroupList = () => {
-    if(currentTabIndex !== 1 || currentTabIndex == undefined || !history.location?.state) return
+  const getPrivateGroupList = async() => {
     console.log(history.location?.state, 'history.location?.state====')
-    const {address, name, avatar} = history.location?.state
-    const list = [
-      {
+    const data = history.location?.state
+    var list = []
+    if(data) {
+      const {address, name, avatar} = history.location?.state
+      list = {
         id: address,
         name: name,
         avatar: avatar
       }
-    ]
-    setGroupList([...list])
+    }
+    const networkInfo = await getChainInfo()
+    const senderQuery = `
+      query{
+        encryptedInfos(where:{sender: "`+ getLocal('account')?.toLowerCase() +`"}){
+          to
+        }
+      }
+    `
+    const tokensQuery = `
+      query{
+        encryptedInfos(where:{to: "`+ getLocal('account')?.toLowerCase() +`"}){
+          sender
+        }
+      }
+    `
+    const client = createClient({
+      url: networkInfo?.APIURL
+    })
+    const list1 = await client.query(senderQuery).toPromise()
+    const list2 = await client.query(tokensQuery).toPromise()
+    const groupList = []
+    list1?.data?.encryptedInfos.map(item => {
+      if(!groupList.includes(item.to)) {
+        groupList.push(item.to)
+      }
+    })
+    list2?.data?.encryptedInfos.map(item => {
+      if(!groupList.includes(item.sender)) {
+        groupList.push(item.sender)
+      }
+    })
+    console.log(groupList, 'groupList====')
+    const idList = groupList.filter(Boolean)
+    const idsList = '"' + idList.join('","')+ '"'
+    console.log(idList, list1?.data?.encryptedInfos, list2?.data?.encryptedInfos, 'getPrivateGroupList====')
+    const groupListQuery = `
+    query{
+      profiles(where:{id_in: [`+idsList+`]}){
+        id,
+        name,
+        avatar
+      }
+    }`
+    const res = await client.query(groupListQuery).toPromise()
+    const privateGroupList = [...res?.data?.profiles] || []
+    if(list.id) {
+      const index = privateGroupList?.findIndex((item) => item.id === list.id)
+      if(index === -1) {
+        privateGroupList.push(list)
+      }
+    }
+    console.log(res, privateGroupList, 'groupListQuery=====')
+    setGroupList(privateGroupList)
     setState({
-      groupLists: [...list]
+      groupLists: privateGroupList
     })
   }
   useEffect(() => {
@@ -166,8 +220,12 @@ export default function GroupList(props) {
     })
   },[newGroupList])
   useEffect(() => {
-    getPrivateGroupList()
-    getGroupList()
+    if(currentTabIndex === 0) {
+      getGroupList()
+    }
+    if(currentTabIndex === 1) {
+      getPrivateGroupList()
+    }
   }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex])
   return (
     <ListGroupContainer>

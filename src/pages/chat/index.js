@@ -82,6 +82,9 @@ export default function Chat() {
   const [roomAvatar, setRoomAvatar] = useState()
   const [encryptionChatText, setEncryptionChatText] = useState()
   const [privateKey, setPrivateKey] = useState()
+  const [myPublicKey, setMyPublicKey] = useState()
+  const [myAvatar, setMyAvatar] = useState()
+  const [hasDecrypted, setHasDecrypted] = useState(false)
   useEffect(()=>{
     currentAddressRef.current = currentAddress
     hasScrollRef.current = hasScroll
@@ -89,6 +92,12 @@ export default function Chat() {
     chatListRef.current = chatList
     currentAddress && getMemberCount(currentAddress)
   }, [currentAddress, hasScroll, roomList, chatList])
+  useEffect(() => {
+    if(currentTabIndex === 1) {
+      getMyAvatar()
+      getMyPublicKey()
+    }
+  }, [currentTabIndex])
   const getCurrentNetwork = async() => {
     const networkInfo = await getChainInfo()
     setCurrentGraphApi(networkInfo?.APIURL)
@@ -96,8 +105,25 @@ export default function Chat() {
     setCurrNetwork(networkInfo?.name)
     console.log(networkInfo, 'networkInfo=====')
   }
-
+  const getMyAvatar = async () => {
+    const networkInfo = await getChainInfo()
+    const tokensQuery = `
+    query{
+      profile(id: "`+ getLocal('account').toLowerCase() + `"){
+        name,
+        avatar,
+      }
+    }
+    `
+    const client = createClient({
+      url: networkInfo?.APIURL
+    })
+    const res = await client.query(tokensQuery).toPromise()
+    setMyAvatar(res.data?.profile?.avatar)
+    console.log(res, res.data?.profile?.avatar,'getMyAvatar====')
+  }
   const changeChatType = (index) => {
+    setCurrentAddress()
     history.push('/chat')
     setCurrentTabIndex(index)
     console.log(index, 'changeChatType=====')
@@ -109,9 +135,27 @@ export default function Chat() {
     setBalance(etherString)
     console.log(etherString, 'balance===')
   }
+  const getMyPublicKey = () => {
+    window.ethereum
+    .request({
+      method: 'eth_getEncryptionPublicKey',
+      params: [getLocal('account')], // you must have access to the specified account
+    })
+    .then((result) => {
+      setMyPublicKey(result)
+      console.log(result, 'getMyKey=====')
+    })
+  }
+  const getPrivateChatStatus = async (id) => {
+    const networkInfo = await getChainInfo()
+    const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(id)
+    setPrivateKey(res)
+    console.log(res, 'getPrivateChatStatus=====')
+  }
   const initRoomAddress = () => {
     let data = history.location?.state
     if(data) {
+      getMyPublicKey()
       const {currentIndex, address, name , avatar, privateKey} = data
       setCurrentTabIndex(currentIndex)
       setCurrentAddress(address)
@@ -196,6 +240,7 @@ export default function Chat() {
     const chatList = data?.data?.chatInfos || []
     // const currentList = chatList.sort(function (a, b) { return a.block - b.block; })
     const result = formateData(chatList)
+    console.log(result,'===>>>>>')
     getMemberList(roomAddress, result)
   }
   const initCurrentAddress = (list) => {
@@ -291,8 +336,12 @@ export default function Chat() {
     setMemberCount(memberListInfo?.length)
   }
   const showChatList = (e, item, list) => {
+    console.log(item, 'item=====')
+    getPrivateChatStatus(item.id)
+    getPrivateChatList(item.id)
     setMemberCount()
     setHasMore(true)
+    setRoomAvatar(item.avatar)
     history.push(`/chat/${item.id}`)
     setCurrentAddress(item.id)
     clearInterval(timer.current)
@@ -402,32 +451,99 @@ export default function Chat() {
   const onClickDialog = (e) => {
     setShowJoinRoom(true)
   }
- 
+  const formatePrivateData = (res, type) => {
+    const data = res?.data?.encryptedInfos.map(item => {
+      return {
+        ...item,
+        encryptedText: type === 1 ? item.chatTextSender : item.chatText,
+        position: type === 1 ? true : false,
+        isSuccess: true,
+        showOperate: false,
+        showProfile: false,
+        isDecrypted: false,
+        avatar: type === 1 ? myAvatar : roomAvatar
+      }
+    })
+    return data
+  }
+  const getPrivateChatList = async(toAddress) => {
+    const networkInfo = await getChainInfo()
+    debugger
+    const myAddress = getLocal('account')?.toLowerCase()
+    const tokensSenderQuery = `
+    query{
+      encryptedInfos(where:{sender: "`+ myAddress +`", to: "`+ toAddress?.toLowerCase() + `"}){
+        id,
+        sender,
+        block,
+        chatText,
+        to,
+        chatTextSender
+      }
+    }
+    `
+    const tokensReceivedrQuery = `
+    query{
+      encryptedInfos(where:{to: "`+ myAddress +`", sender: "`+ toAddress?.toLowerCase() + `"}){
+        id,
+        sender,
+        block,
+        to,
+        chatText,
+        chatTextSender
+      }
+    }
+    `
+    const client = createClient({
+      url: networkInfo?.APIURL
+    })
+    try{
+      const resSender = await client.query(tokensSenderQuery).toPromise()
+      const resReceived = await client.query(tokensReceivedrQuery).toPromise()
+      const senderInfo = formatePrivateData(resSender, 1)
+      const receivedInfo =  formatePrivateData(resReceived, 2)
+      const privateChatList = [...senderInfo, ...receivedInfo]
+      console.log(privateChatList, 'privateChatList====')
+      const currentList = privateChatList.sort(function (a, b) { return b.block - a.block; })
+      setChatList(currentList)
+      setShowMask(false)
+      console.log(currentList, chatList, 'currentList=====')
+    } catch(error) {
+      console.log(error, '====')
+      setShowMask(false)
+    }
+  }
+  const getencryptedMessage = (chatText, encryptedKey ) => {
+    const ethUtil = require('ethereumjs-util')
+    var Buffer = require('buffer').Buffer
+    window.Buffer = Buffer;
+    const sigUtil = require('@metamask/eth-sig-util')
+    const encryptedMessage = ethUtil.bufferToHex(
+      Buffer.from(
+        JSON.stringify(
+          sigUtil.encrypt({
+            publicKey: encryptedKey,
+            data: chatText,
+            version: 'x25519-xsalsa20-poly1305',
+          })
+        ),
+        'utf8'
+      )
+    )
+    return encryptedMessage
+  }
   const startChat = async (chatText) => {
     setSendSuccess(false)
     try {
       if(currentTabIndex === 1) {
         debugger
         const networkInfo = await getChainInfo()
-        const ethUtil = require('ethereumjs-util')
-        var Buffer = require('buffer').Buffer
-        window.Buffer = Buffer;
-        const sigUtil = require('@metamask/eth-sig-util')
-        const encryptedMessage = ethUtil.bufferToHex(
-          Buffer.from(
-            JSON.stringify(
-              sigUtil.encrypt({
-                publicKey: privateKey,
-                data: chatText,
-                version: 'x25519-xsalsa20-poly1305',
-              })
-            ),
-            'utf8'
-          )
-        )
-        console.log(encryptedMessage, 'encryptedMessage====')
-
-        var tx = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage)
+        console.log(privateKey, myPublicKey)
+        const encryptedMessage = getencryptedMessage(chatText, privateKey)
+        const encryptedSenderMessage = getencryptedMessage(chatText, myPublicKey)
+        console.log(encryptedSenderMessage, encryptedMessage, 'encryptedMessage====')
+        debugger
+        var tx = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       } 
       if(currentTabIndex === 0 ) {
         var tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).send(chatText, 'msg')
@@ -445,6 +561,7 @@ export default function Chat() {
         isSuccess: false,
         showProfile: false,
         showOperate: false,
+        avatar: myAvatar
       }
 
       if (!chatList) {
@@ -459,13 +576,12 @@ export default function Chat() {
       
       console.log('callback', callback)
       if (callback?.status === 1) {
-        const index = chatList.findIndex((item) => item.id.toLowerCase() == tx.hash.toLowerCase())
-        const sendIndex = memberListInfo.findIndex((item) => item.id.toLowerCase() == tx.from.toLowerCase())
-        console.log(tx.from, 'tx.hash===', memberListInfo[sendIndex].profile?.avatar)
+        const index = chatList?.findIndex((item) => item.id.toLowerCase() == tx.hash.toLowerCase())
+        const sendIndex = memberListInfo?.findIndex((item) => item.id.toLowerCase() == tx.from.toLowerCase())
         console.log(chatList[index], '==callback==')
         chatList[index].isSuccess = true
         chatList[index].block = callback?.blockNumber
-        chatList[index].avatar = memberListInfo[sendIndex].profile?.avatar
+        chatList[index].avatar = currentTabIndex === 0 ? memberListInfo[sendIndex].profile?.avatar : myAvatar
         console.log(chatList, '====change')
         setChatListState(chatList)
       }
@@ -496,23 +612,26 @@ export default function Chat() {
     // debugger
     setHasScroll(true)
   }
+  const resetData = () => {
+    setCurrentAddress()
+    setRoomAvatar()
+    setCurrentTabIndex(0)
+    setCurrentRoomName()
+    getBalance()
+    getCurrentNetwork()
+    initRoomAddress()
+    getMyAccount()
+    history.push(`/chat`)
+  }
   const accountsChange = () => {
     if (window.ethereum) {
       window.ethereum.on('accountsChanged', (chainId) => {
         if (history.location.pathname.includes('/chat')) {
-          getBalance()
-          getCurrentNetwork()
-          initRoomAddress()
-          getMyAccount()
-          history.push(`/chat`)
+          resetData()
         }
       })
       window.ethereum.on('chainChanged', (chainId) => {
-        getBalance()
-        getCurrentNetwork()
-        initRoomAddress()
-        getMyAccount()
-        history.push(`/chat`)
+        resetData()
       })
     }
   }
@@ -566,19 +685,21 @@ export default function Chat() {
     const client = createClient({
       url: networkInfo?.APIURL
     })
-
-    const data = await client.query(tokensQuery).toPromise()
-    const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
-    const formatList = addAvatarToList(newList)
-    const list = [...chatListRef.current]
-    if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList.length) {
-      debugger
-      setChatList(formatList.concat(list))
+    if(currentTabIndex === 0) {
+      const data = await client.query(tokensQuery).toPromise()
+      const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
+      const formatList = addAvatarToList(newList)
+      const list = [...chatListRef.current]
+      if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList.length) {
+        debugger
+        setChatList(formatList.concat(list))
+      }
+      console.log(newList, 'newList====')
+      console.log(chatList, 'getCurrentChatList====')
     }
-    console.log(newList, 'newList====')
-    console.log(chatList, 'getCurrentChatList====')
   }
   const getMemberList = async(roomAddress, chatList) => {
+    if(currentTabIndex === 1) return
     const data = await getGroupMember(currentAddressRef?.current)
     const memberListInfo = data?.users
     setMemberListInfo(memberListInfo)
@@ -602,6 +723,32 @@ export default function Chat() {
     startInterval(roomAddress, list)
     console.log(data, chatList, result,'initChatList====')
     console.log(result, 'result===')
+  }
+  const handleHiddenMask = () => {
+    setShowMask(false)
+    setCurrentAddress()
+  }
+  const getDecryptedMessage = (id, message) => {
+    debugger
+    setHasDecrypted(false)
+    window.ethereum
+    .request({
+      method: 'eth_decrypt',
+      params: [message, getLocal('account')],
+    })
+    .then((decryptedMessage) => {
+      const index = chatList.findIndex(item => item.id == id)
+      chatList[index].isDecrypted = true
+      chatList[index].chatText = decryptedMessage
+      setHasDecrypted(true)
+      setChatList(chatList)
+      console.log('The decrypted message i====:', chatList, decryptedMessage)
+      }
+    )
+    .catch((error) => console.log(error.message));
+  }
+  const handleDecryptedMessage = (id, text) => {
+    getDecryptedMessage(id, text)
   }
   useEffect(() => {
     getBalance()
@@ -729,7 +876,7 @@ export default function Chat() {
                   </div>
                   <ChatTab changeChatType={(index) => changeChatType(index)} currentTabIndex={currentTabIndex}/>
                   <ListGroup
-                    hiddenMask={() => {setShowMask(false)}}
+                    hiddenMask={() => {handleHiddenMask()}}
                     showMask={() => setShowMask(true)}
                     showChatList={(e, item, list) => showChatList(e, item, list)}
                     currentIndex={currentIndex}
@@ -766,11 +913,14 @@ export default function Chat() {
                               getScrollParent={() => this.scrollParentRef}
                               currentAddress={currentAddress}
                               chatList={chatList}
+                              hasDecrypted={hasDecrypted}
                               hasMore={hasMore}
                               myAddress={myAddress}
+                              currentTabIndex={currentTabIndex}
                               sendSuccess={sendSuccess}
                               hasToBottom={hasToBottom}
                               loadingData={() => loadingData()}
+                              handleDecryptedMessage={(id,text) => handleDecryptedMessage(id,text)}
                               shareInfo={(e,v) => shareInfo(e,v)}
                             />
                          
