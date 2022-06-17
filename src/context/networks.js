@@ -1,4 +1,3 @@
-
 const networks =  [
   {
     name: "CZZ",
