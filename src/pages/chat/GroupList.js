@@ -140,6 +140,7 @@ export default function GroupList(props) {
   }
   const getPrivateGroupList = async() => {
     console.log(history.location?.state, 'history.location?.state====')
+    showMask()
     const data = history.location?.state
     var list = []
     if(data) {
@@ -206,6 +207,7 @@ export default function GroupList(props) {
     setState({
       groupLists: privateGroupList
     })
+    hiddenMask()
   }
   useEffect(() => {
     if(hasAccess) {

@@ -17,6 +17,7 @@ import { ethers } from "ethers"
 import { detectMobile, throttle } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
 import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI } from '../../abi/index'
+import localForage from "localforage"
 import ChangeNetwork from './ChangeNetwork'
 import Modal from '../../component/Modal'
 import Nav from '../nav'
@@ -95,7 +96,13 @@ export default function Chat() {
   useEffect(() => {
     if(currentTabIndex === 1) {
       getMyAvatar()
-      getMyPublicKey()
+      localForage.getItem('publicKeyList').then(res => {
+        const key = res && res[getLocal('account')]
+        console.log(key, '===key===')
+        if(!key) {
+          getMyPublicKey()
+        }
+      })
     }
   }, [currentTabIndex])
   const getCurrentNetwork = async() => {
@@ -143,6 +150,16 @@ export default function Chat() {
     })
     .then((result) => {
       setMyPublicKey(result)
+      localForage.getItem('publicKeyList').then(res => {
+        if(res) {
+          res[getLocal('account')] = result
+          localForage.setItem('publicKeyList', res)
+        } else {
+          const obj = {}
+          obj[getLocal('account')] = result
+          localForage.setItem('publicKeyList', obj)
+        }
+      })
       console.log(result, 'getMyKey=====')
     })
   }
@@ -155,7 +172,6 @@ export default function Chat() {
   const initRoomAddress = () => {
     let data = history.location?.state
     if(data) {
-      getMyPublicKey()
       const {currentIndex, address, name , avatar, privateKey} = data
       setCurrentTabIndex(currentIndex)
       setCurrentAddress(address)
@@ -734,7 +750,7 @@ export default function Chat() {
     window.ethereum
     .request({
       method: 'eth_decrypt',
-      params: [message, getLocal('account')],
+      params: [message, getLocal('account')]
     })
     .then((decryptedMessage) => {
       const index = chatList.findIndex(item => item.id == id)
