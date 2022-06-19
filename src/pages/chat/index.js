@@ -482,6 +482,36 @@ export default function Chat() {
     })
     return data
   }
+  const setPrivateChatList = (list) => {
+    debugger
+    const currentAddress =  history.location.pathname.split('/chat/')[1]
+    localForage.getItem('privateChatList').then(res => {
+      if(res) {
+        debugger
+        res[currNetwork][getLocal('account')]['rooms'][currentAddress] = {
+          'chatList': list
+        }
+        localForage.setItem('privateChatList', res)
+      } else {
+        let privateChatList = {}
+        privateChatList[currNetwork] = {
+          [getLocal('account')]: {
+            ['rooms']: {
+              [currentAddress]: {
+                ['chatList']: list
+              }
+            }
+          }
+        }
+        console.log(privateChatList,'privateChatList=====')
+        localForage.setItem('privateChatList', privateChatList)
+      }
+    }).catch(error => {
+      console.log(error, '=====error')
+    }) 
+    
+    console.log(currNetwork, getLocal('account'), '====>>>currNetwork')
+  }
   const getPrivateChatList = async(toAddress) => {
     const networkInfo = await getChainInfo()
     debugger
@@ -521,6 +551,7 @@ export default function Chat() {
       const privateChatList = [...senderInfo, ...receivedInfo]
       console.log(privateChatList, 'privateChatList====')
       const currentList = privateChatList.sort(function (a, b) { return b.block - a.block; })
+      setPrivateChatList(currentList)
       setChatList(currentList)
       setShowMask(false)
       console.log(currentList, chatList, 'currentList=====')
