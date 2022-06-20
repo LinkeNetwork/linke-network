@@ -12,7 +12,7 @@ import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 export default function GroupList(props) {
   const { hasCreateRoom, setState } = useGlobal()
-  const { showChatList, onSetCurIndex, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex} = props
+  const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName} = props
   const { getChainInfo } = useChain()
   const [groupList, setGroupList] = useState([])
   const [timeOutEvent, setTimeOutEvent] = useState()
@@ -57,7 +57,17 @@ export default function GroupList(props) {
       url: networkInfo?.APIURL
     })
     const res = await client.query(tokensQuery).toPromise()
-    const groupInfos = res.data?.groupUser?.groupInfos || []
+    var groupInfos = res.data?.groupUser?.groupInfos || []
+    const roomAddress = path.split('/chat/')[1]?.toLowerCase()
+    if(roomAddress) {
+      const index = groupInfos?.findIndex((item) => item.id === roomAddress)
+      if(index === -1) {
+        groupInfos.push({
+          id: roomAddress,
+          name: currentRoomName
+        })
+      }
+    }
     setState({
       groupLists: [...groupInfos],
       hasGetGroupLists: true

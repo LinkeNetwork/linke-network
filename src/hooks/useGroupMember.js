@@ -7,7 +7,7 @@ export default function useGroupMember() {
     const networkInfo = await getChainInfo()
     const tokensQuery = `
     query{
-      groupInfo(id: "`+ currentAddress.toLowerCase() + `"){
+      groupInfo(id: "`+ currentAddress?.toLowerCase() + `"){
         id,
         description,
         name,

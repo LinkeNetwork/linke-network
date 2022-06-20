@@ -168,7 +168,7 @@ export default function ChatContext(props) {
         {
           currentAddress && chatList && chatList.map((v, i) => {
             return (
-              <div key={i.transaction} className="chat-item-wrap">
+              <div key={v.id} className="chat-item-wrap">
                 {
                   !v.hasDelete &&
                   <div className={`chat-item ${v.position ? 'chat-end' : 'chat-start'}`} id="chatItem">

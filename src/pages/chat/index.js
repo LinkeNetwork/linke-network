@@ -922,20 +922,21 @@ export default function Chat() {
                     }
                   </div>
                   <ChatTab changeChatType={(index) => changeChatType(index)} currentTabIndex={currentTabIndex}/>
+                
                   <ListGroup
-                    hiddenMask={() => {handleHiddenMask()}}
-                    showMask={() => setShowMask(true)}
-                    showChatList={(e, item, list) => showChatList(e, item, list)}
-                    currentIndex={currentIndex}
-                    chainId={currentChainId}
-                    newGroupList ={roomList}
-                    hasAccess={hasAccess}
-                    currentTabIndex={currentTabIndex}
-                    currentAddress={currentAddress?.toLowerCase()}
-                    onClickDialog={() => {setShowJoinRoom(true)}}
-                    confirmDelete={() => {setDialogType('delete')}}>
-                  </ListGroup>
-
+                  hiddenMask={() => {handleHiddenMask()}}
+                  showMask={() => setShowMask(true)}
+                  showChatList={(e, item, list) => showChatList(e, item, list)}
+                  currentIndex={currentIndex}
+                  chainId={currentChainId}
+                  newGroupList ={roomList}
+                  currentRoomName={currentRoomName}
+                  hasAccess={hasAccess}
+                  currentTabIndex={currentTabIndex}
+                  currentAddress={currentAddress?.toLowerCase()}
+                  onClickDialog={() => {setShowJoinRoom(true)}}
+                  confirmDelete={() => {setDialogType('delete')}}>
+                </ListGroup>
                 </div>
               </div>
               <div className={`tab-content ${showChat ? 'translate-tab' : ''}`}>
