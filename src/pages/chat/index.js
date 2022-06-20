@@ -773,7 +773,6 @@ export default function Chat() {
   }
   const handleHiddenMask = () => {
     setShowMask(false)
-    setCurrentAddress()
   }
   const getDecryptedMessage = (id, message) => {
     debugger
