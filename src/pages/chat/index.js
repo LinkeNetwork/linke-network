@@ -31,6 +31,7 @@ import JoinGroupButton from './JoinGroupButton'
 import useChain from '../../hooks/useChain'
 import { useHistory } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
+import * as zango from "zangodb";
 
 
 export default function Chat() {
@@ -235,6 +236,9 @@ export default function Chat() {
   const initChatList = async (roomAddress, list) => {
     console.log(roomList, currentAddress, currentAddressRef.current,hasToBottom, '1111')
     const networkInfo = await getChainInfo()
+    let db = new zango.Db('mydb', 1,{chatInfos:{ id:true}});
+    let collection = db.collection('chatInfos');
+
     const tokensQuery = `
     query{
       chatInfos(orderBy:block,orderDirection:desc, first:20, where:{room: "`+ roomAddress?.toLowerCase() + `"}){
@@ -254,6 +258,11 @@ export default function Chat() {
 
     const data = await client.query(tokensQuery).toPromise()
     const chatList = data?.data?.chatInfos || []
+
+    collection.insert(chatList,(error) => {
+      if (error) { throw error; }
+    })
+
     // const currentList = chatList.sort(function (a, b) { return a.block - b.block; })
     const result = formateData(chatList)
     console.log(result,'===>>>>>')
@@ -514,7 +523,6 @@ export default function Chat() {
   }
   const getPrivateChatList = async(toAddress) => {
     const networkInfo = await getChainInfo()
-    debugger
     const myAddress = getLocal('account')?.toLowerCase()
     const tokensSenderQuery = `
     query{
@@ -717,6 +725,8 @@ export default function Chat() {
     const lastBlock = chatListRef.current.length && +chatListRef.current[0]?.block + 1
     if(!lastBlock || chatListRef.current[0]?.block == 0) return
     console.log(lastBlock, 'lastBlock=====1')
+    let db = new zango.Db('mydb', 1,{chatInfos:['id']});
+    let collection = db.collection('chatInfos');
     const tokensQuery = `
     query{
       chatInfos(orderBy:block,orderDirection:desc, where:{room: "`+ roomAddress?.toLowerCase() +`", block_gte: ` + lastBlock + `}){
@@ -735,6 +745,9 @@ export default function Chat() {
     if(currentTabIndex === 0) {
       const data = await client.query(tokensQuery).toPromise()
       const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
+      collection.insert(data?.data?.chatInfos,(error) => {
+        if (error) { throw error; }
+      })
       const formatList = addAvatarToList(newList)
       const list = [...chatListRef.current]
       if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList.length) {
