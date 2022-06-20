@@ -55,7 +55,7 @@ export default function ShareInfo(props) {
         <div className='qrcode-dom'>
           <QRCode
             renderAs="svg"
-            value={`https://beeprotocol.xyz/${currentAddress}`}
+            value={`https://www.linke.network/${currentAddress}`}
             size={60}
             fgColor="#000"
           />
