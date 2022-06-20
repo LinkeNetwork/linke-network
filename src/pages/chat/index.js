@@ -236,7 +236,7 @@ export default function Chat() {
   const initChatList = async (roomAddress, list) => {
     console.log(roomList, currentAddress, currentAddressRef.current,hasToBottom, '1111')
     const networkInfo = await getChainInfo()
-    let db = new zango.Db('mydb', 1,{chatInfos:{ id:true}});
+    let db = new zango.Db('mydb', 63,{chatInfos:{ id:true, room:true}});
     let collection = db.collection('chatInfos');
 
     const tokensQuery = `
@@ -259,9 +259,21 @@ export default function Chat() {
     const data = await client.query(tokensQuery).toPromise()
     const chatList = data?.data?.chatInfos || []
 
-    collection.insert(chatList,(error) => {
-      if (error) { throw error; }
+    chatList.map(function (v,k){
+
+      const a = collection.findOne({
+        id: v.id
+      })
+
+      debugger
+      if (a._eventsCount === 0){
+        collection.insert( v, (error) => {
+          if (error) { throw error; }
+        });
+      }
+
     })
+
 
     // const currentList = chatList.sort(function (a, b) { return a.block - b.block; })
     const result = formateData(chatList)
@@ -381,15 +393,15 @@ export default function Chat() {
     console.log(currentAddress, item,'===9-0===')
     // debugger
     // setRoomList(list)
-    
+
 
     setTimeout(() => {
       initChatList(item.id, list)
     }, 10)
-    
+
     getJoinRoomAccess(item.id)
   }
-  
+
   const scrollToBottom = () => {
     if (messagesEnd && messagesEnd.current) {
       messagesEnd.current.scrollIntoView(false)
@@ -415,11 +427,11 @@ export default function Chat() {
     }
     `
     console.log(currentGraphApi, 'currentGraphApi=====2', 'firstBlock', firstBlock)
-    
+
     const client = createClient({
       url: currentGraphApi
     })
-    
+
     const data = await client.query(tokensQuery).toPromise()
     console.log(data, 'loading=data=')
     const loadingList = data?.data?.chatInfos || []
@@ -448,7 +460,7 @@ export default function Chat() {
         setChatList(result)
       }
     }, 10)
-    
+
     console.log(fetchData, 'chatList.length')
   }
   const formateData = (list) => {
@@ -492,11 +504,9 @@ export default function Chat() {
     return data
   }
   const setPrivateChatList = (list) => {
-    debugger
     const currentAddress =  history.location.pathname.split('/chat/')[1]
     localForage.getItem('privateChatList').then(res => {
       if(res) {
-        debugger
         res[currNetwork][getLocal('account')]['rooms'][currentAddress] = {
           'chatList': list
         }
@@ -517,8 +527,8 @@ export default function Chat() {
       }
     }).catch(error => {
       console.log(error, '=====error')
-    }) 
-    
+    })
+
     console.log(currNetwork, getLocal('account'), '====>>>currNetwork')
   }
   const getPrivateChatList = async(toAddress) => {
@@ -599,7 +609,7 @@ export default function Chat() {
         console.log(encryptedSenderMessage, encryptedMessage, 'encryptedMessage====')
         debugger
         var tx = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
-      } 
+      }
       if(currentTabIndex === 0 ) {
         var tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).send(chatText, 'msg')
       }
@@ -628,7 +638,7 @@ export default function Chat() {
       // setChatList(chatList)
       console.log(chatList, 'chatList====123')
       let callback = await tx.wait()
-      
+
       console.log('callback', callback)
       if (callback?.status === 1) {
         const index = chatList?.findIndex((item) => item.id.toLowerCase() == tx.hash.toLowerCase())
@@ -845,10 +855,10 @@ export default function Chat() {
           </iframe>
         </div>
       }
-      
-      
+
+
         {
-          showGroupMember && 
+          showGroupMember &&
           <div className='group-member-wrap'>
             <div className='mask' onClick={() => { setShowGroupMember(false)}}></div>
             <GroupMember currentAddress={currentAddress} closeGroupMember={() => { setShowGroupMember(false)}}/>
@@ -861,14 +871,14 @@ export default function Chat() {
           </Modal>
         }
         {
-          
-          showJoinRoom && 
+
+          showJoinRoom &&
           <Modal title="Start New Chat" visible={showJoinRoom} onClose={() => {setShowJoinRoom(false)}}>
             <JoinRooom getCurrentRoomInfo={(address) => getCurrentRoomInfo(address)}/>
           </Modal>
         }
         {
-          showCreateNewRoom && 
+          showCreateNewRoom &&
           <Modal title="Create New RoomName" visible={showCreateNewRoom} onClose={() => {setShowCreateNewRoom(false)}}>
             <CreateNewRoom createNewRoom={(address, name) => createNewRoom(address, name)}  hiddenCreateInfo={() => {setShowCreateNewRoom(false)}}/>
           </Modal>
@@ -934,7 +944,7 @@ export default function Chat() {
                     }
                   </div>
                   <ChatTab changeChatType={(index) => changeChatType(index)} currentTabIndex={currentTabIndex}/>
-                
+
                   <ListGroup
                   hiddenMask={() => {handleHiddenMask()}}
                   showMask={() => setShowMask(true)}
@@ -983,7 +993,7 @@ export default function Chat() {
                               handleDecryptedMessage={(id,text) => handleDecryptedMessage(id,text)}
                               shareInfo={(e,v) => shareInfo(e,v)}
                             />
-                         
+
                           <div style={{ float: "left", clear: "both" }}
                             ref={messagesEnd}>
                           </div>

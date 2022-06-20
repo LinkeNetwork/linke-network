@@ -34,7 +34,6 @@ export default function GroupList(props) {
   const path = history.location.pathname
 
   const getGroupList = async () => {
-    debugger
     showMask()
     const address = getLocal('account')
     if(!address) {
@@ -72,7 +71,7 @@ export default function GroupList(props) {
       groupLists: [...groupInfos],
       hasGetGroupLists: true
     })
-    
+
     console.log(res.data?.groupUser?.groupInfos, 'groupInfos====')
     setGroupList(groupInfos || [])
     getCurrentRoomIndex(groupInfos)
@@ -266,7 +265,7 @@ export default function GroupList(props) {
                 style={moveStyle}
                 key={item.id}
               >
-                
+
                 <Modal title="Confirm" visible={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
                   <div className='dialog-title'>Do you want to delete this chat room?</div>
                   <div className='btn-wrapper'>
