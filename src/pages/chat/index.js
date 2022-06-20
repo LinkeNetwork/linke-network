@@ -261,11 +261,9 @@ export default function Chat() {
   }
 
   const insertData = (datas) =>{
-    const colname = 'chatInfos'+ (currNetwork ? currNetwork : '')
-    const dbconfig = {}
-    dbconfig[colname] = { id:true, room:true }
-    let db = new zango.Db('chats', 63, dbconfig);
-    let collection = db.collection(colname);
+    const dbname = 'chats-'+ (currNetwork ? currNetwork : '')
+    let db = new zango.Db(dbname, 63, {chatInfos:{ id:true, room:true }});
+    let collection = db.collection('chatInfos');
     for (let i = 0; i < datas.length; i++) {
       collection.findOne({id:datas[i].id}).then((doc) => {
         if (doc) {
