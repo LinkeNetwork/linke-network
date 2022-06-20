@@ -255,14 +255,14 @@ export default function Chat() {
 
     const data = await client.query(tokensQuery).toPromise()
     const chatList = data?.data?.chatInfos || []
-    insertData(chatList)
     const result = formateData(chatList)
+    insertData(result)
     getMemberList(roomAddress, result)
   }
 
   const insertData = (datas) =>{
-    const dbname = 'chats-'+ (currNetwork ? currNetwork : '')
-    let db = new zango.Db(dbname, 63, {chatInfos:{ id:true, room:true }});
+    const dbname = 'chats-'+ (currNetwork ? currNetwork : '') + '-' + myAddress
+    let db = new zango.Db(dbname, 63, {chatInfos:['id', 'room']});
     let collection = db.collection('chatInfos');
     for (let i = 0; i < datas.length; i++) {
       collection.findOne({id:datas[i].id}).then((doc) => {
@@ -447,6 +447,7 @@ export default function Chat() {
         showOperate: false,
       }
     })
+    insertData(fetchData)
     const newfetchData = addAvatarToList(fetchData)
     setTimeout(() => {
       if(chatListRef.current.length) {
