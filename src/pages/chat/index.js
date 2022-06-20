@@ -233,12 +233,9 @@ export default function Chat() {
     setHasAccess(hasAccess)
     console.log(hasAccess, Boolean(hasAccess), 'hasAccess======')
   }
-  const initChatList = async (roomAddress, list) => {
-    console.log(roomList, currentAddress, currentAddressRef.current,hasToBottom, '1111')
-    const networkInfo = await getChainInfo()
-    let db = new zango.Db('mydb', 63,{chatInfos:{ id:true, room:true}});
-    let collection = db.collection('chatInfos');
 
+  const initChatList = async (roomAddress, list) => {
+    const networkInfo = await getChainInfo()
     const tokensQuery = `
     query{
       chatInfos(orderBy:block,orderDirection:desc, first:20, where:{room: "`+ roomAddress?.toLowerCase() + `"}){
@@ -251,35 +248,35 @@ export default function Chat() {
       }
     }
     `
-    console.log(currentGraphApi, 'currentGraphApi=====1')
+
     const client = createClient({
       url: networkInfo?.APIURL
     })
 
     const data = await client.query(tokensQuery).toPromise()
     const chatList = data?.data?.chatInfos || []
-
-    chatList.map(function (v,k){
-
-      const a = collection.findOne({
-        id: v.id
-      })
-
-      debugger
-      if (a._eventsCount === 0){
-        collection.insert( v, (error) => {
-          if (error) { throw error; }
-        });
-      }
-
-    })
-
-
-    // const currentList = chatList.sort(function (a, b) { return a.block - b.block; })
+    insertData(chatList)
     const result = formateData(chatList)
-    console.log(result,'===>>>>>')
     getMemberList(roomAddress, result)
   }
+
+  const insertData = (datas) =>{
+    const colname = 'chatInfos'+ (currNetwork ? currNetwork : '')
+    const dbconfig = {}
+    dbconfig[colname] = { id:true, room:true }
+    let db = new zango.Db('chats', 63, dbconfig);
+    let collection = db.collection(colname);
+    for (let i = 0; i < datas.length; i++) {
+      collection.findOne({id:datas[i].id}).then((doc) => {
+        if (doc) {
+          collection.update({id:datas[i].id}, {$set: datas[i]})
+        } else {
+          collection.insert(datas[i])
+        }
+      })
+    }
+  }
+
   const initCurrentAddress = (list) => {
     clearInterval(timer.current)
     clearInterval(allTimer.current)
@@ -287,6 +284,7 @@ export default function Chat() {
     setCurrentAddress(list)
     setChatList([])
   }
+
   const handleChangeNetWork = async (network) => {
     setShowMenulist(false)
     const { name, decimals, symbol, chainId, rpcUrls, chainName, blockExplorerUrls } = token[network]
@@ -436,6 +434,7 @@ export default function Chat() {
     console.log(data, 'loading=data=')
     const loadingList = data?.data?.chatInfos || []
     console.log(loadingList, 'loadingList====')
+    insertData(loadingList)
     // loadingList.sort(function (a, b) { return a.block - b.block; })
     if(loadingList.length < 20) {
       setHasMore(false)
@@ -761,7 +760,6 @@ export default function Chat() {
       const formatList = addAvatarToList(newList)
       const list = [...chatListRef.current]
       if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList.length) {
-        debugger
         setChatList(formatList.concat(list))
       }
       console.log(newList, 'newList====')
