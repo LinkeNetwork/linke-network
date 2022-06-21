@@ -820,8 +820,10 @@ export default function Chat() {
   const handleHiddenMask = () => {
     setShowMask(false)
   }
-  const getDecryptedMessage = (id, message) => {
+  const getDecryptedMessage = async(id, message) => {
     debugger
+    const db = await setDataBase()
+    const collection = db.collection('chatInfos')
     setHasDecrypted(false)
     window.ethereum
     .request({
