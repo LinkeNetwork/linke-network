@@ -13,6 +13,7 @@ import ShareInfo from './ShareInfo'
 import CreateNewRoom from './CreateNewRoom'
 import JoinRooom from './JoinRoom'
 import useGroupMember from '../../hooks/useGroupMember'
+import useDataBase from '../../hooks/useDataBase'
 import { ethers } from "ethers"
 import { detectMobile, throttle } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
@@ -36,6 +37,7 @@ import * as zango from "zangodb";
 
 export default function Chat() {
   const { getChainInfo } = useChain()
+  const { collection, setDataBase } = useDataBase()
   const history = useHistory()
   const { getGroupMember } = useGroupMember()
   const timer = useRef()
@@ -99,12 +101,13 @@ export default function Chat() {
       getMyAvatar()
       localForage.getItem('publicKeyList').then(res => {
         const key = res && res[getLocal('account')]
-        console.log(key, '===key===')
         if(!key) {
           getMyPublicKey()
         }
       })
     }
+    history.push('/chat')
+    setCurrentAddress()
   }, [currentTabIndex])
   const getCurrentNetwork = async() => {
     const networkInfo = await getChainInfo()
@@ -134,7 +137,9 @@ export default function Chat() {
     setCurrentAddress()
     history.push('/chat')
     setCurrentTabIndex(index)
-    console.log(index, 'changeChatType=====')
+    setState({
+      currentTabIndex: index
+    })
   }
   const getBalance = async() => {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
@@ -260,10 +265,10 @@ export default function Chat() {
     getMemberList(roomAddress, result)
   }
 
-  const insertData = (datas) =>{
-    const dbname = 'chats-'+ (currNetwork ? currNetwork : '') + '-' + myAddress
-    let db = new zango.Db(dbname, 63, {chatInfos:['id', 'room']});
-    let collection = db.collection('chatInfos');
+  const insertData = async(datas) =>{
+    const db = await setDataBase()
+    const collection = db.collection('chatInfos')
+    console.log(collection, '======')
     for (let i = 0; i < datas.length; i++) {
       collection.findOne({id:datas[i].id}).then((doc) => {
         if (doc) {
@@ -364,14 +369,17 @@ export default function Chat() {
     setShowSettingList(false)
   }
   const getMemberCount = async(id) => {
+    if(currentTabIndex === 1) return
     const data = await getGroupMember(id)
     const memberListInfo = data?.users
     setMemberCount(memberListInfo?.length)
   }
   const showChatList = (e, item, list) => {
     console.log(item, 'item=====')
-    getPrivateChatStatus(item.id)
-    getPrivateChatList(item.id)
+    if(currentTabIndex === 1) {
+      getPrivateChatStatus(item.id)
+      getPrivateChatList(item.id)
+    }
     setMemberCount()
     setHasMore(true)
     setRoomAvatar(item.avatar)
@@ -379,7 +387,12 @@ export default function Chat() {
     setCurrentAddress(item.id)
     clearInterval(timer.current)
     clearInterval(allTimer.current)
-    getMemberCount(item.id)
+    if(currentTabIndex === 0) {
+      getMemberCount(item.id)
+      setTimeout(() => {
+        initChatList(item.id, list)
+      }, 10)
+    }
     setCurrentRoomName(item.name)
     setChatList([])
     setShowChat(true)
@@ -389,12 +402,6 @@ export default function Chat() {
     console.log(currentAddress, item,'===9-0===')
     // debugger
     // setRoomList(list)
-
-
-    setTimeout(() => {
-      initChatList(item.id, list)
-    }, 10)
-
     getJoinRoomAccess(item.id)
   }
 
@@ -486,7 +493,7 @@ export default function Chat() {
   const onClickDialog = (e) => {
     setShowJoinRoom(true)
   }
-  const formatePrivateData = (res, type) => {
+  const formatePrivateData = (res, toAddress, type) => {
     const data = res?.data?.encryptedInfos.map(item => {
       return {
         ...item,
@@ -496,6 +503,7 @@ export default function Chat() {
         showOperate: false,
         showProfile: false,
         isDecrypted: false,
+        room: toAddress.toLowerCase(),
         avatar: type === 1 ? myAvatar : roomAvatar
       }
     })
@@ -529,7 +537,7 @@ export default function Chat() {
 
     console.log(currNetwork, getLocal('account'), '====>>>currNetwork')
   }
-  const getPrivateChatList = async(toAddress) => {
+  const fetchPrivateChatList = async(toAddress) => {
     const networkInfo = await getChainInfo()
     const myAddress = getLocal('account')?.toLowerCase()
     const tokensSenderQuery = `
@@ -562,19 +570,37 @@ export default function Chat() {
     try{
       const resSender = await client.query(tokensSenderQuery).toPromise()
       const resReceived = await client.query(tokensReceivedrQuery).toPromise()
-      const senderInfo = formatePrivateData(resSender, 1)
-      const receivedInfo =  formatePrivateData(resReceived, 2)
+      const senderInfo = formatePrivateData(resSender, toAddress, 1)
+      const receivedInfo =  formatePrivateData(resReceived, toAddress, 2)
       const privateChatList = [...senderInfo, ...receivedInfo]
       console.log(privateChatList, 'privateChatList====')
       const currentList = privateChatList.sort(function (a, b) { return b.block - a.block; })
       setPrivateChatList(currentList)
       setChatList(currentList)
+      insertData(currentList)
       setShowMask(false)
       console.log(currentList, chatList, 'currentList=====')
     } catch(error) {
       console.log(error, '====')
       setShowMask(false)
     }
+  }
+  const getPrivateChatList = async(toAddress) => {
+    const db = await setDataBase()
+    const collection = db.collection('chatInfos')
+    console.log(toAddress, collection, currentAddress, 'toAddress====')
+    const res = await collection?.find({room: toAddress}).toArray(function (err, result) {
+      console.log(result, 'find======')
+      if(result) {
+        setChatList(result)
+        setShowMask(false)
+      }
+    })
+    if(!res || res?.length === 0) {
+      debugger
+      fetchPrivateChatList(toAddress)
+    }
+    console.log(res, '====>>res')
   }
   const getencryptedMessage = (chatText, encryptedKey ) => {
     const ethUtil = require('ethereumjs-util')
@@ -803,10 +829,19 @@ export default function Chat() {
       params: [message, getLocal('account')]
     })
     .then((decryptedMessage) => {
+      collection.update({
+        id: id
+      }, {
+        isDecrypted: true,
+        chatText: decryptedMessage
+      }, (error) => {
+        if (error) { throw error; }
+      })
       const index = chatList.findIndex(item => item.id == id)
       chatList[index].isDecrypted = true
       chatList[index].chatText = decryptedMessage
       setHasDecrypted(true)
+      insertData()
       setChatList(chatList)
       console.log('The decrypted message i====:', chatList, decryptedMessage)
       }

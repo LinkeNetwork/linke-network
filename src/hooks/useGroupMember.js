@@ -1,9 +1,12 @@
 import useChain from "./useChain"
 import { createClient } from 'urql'
+import useGlobal from "./useGlobal"
 export default function useGroupMember() {
   const { getChainInfo } = useChain()
-
+  const { currentTabIndex } = useGlobal()
   const getGroupMember = async(currentAddress) => {
+    console.log(currentTabIndex, 'currentTabIndex====>>.')
+    if(currentTabIndex === 1) return
     const networkInfo = await getChainInfo()
     const tokensQuery = `
     query{
