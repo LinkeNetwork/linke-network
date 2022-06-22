@@ -10,7 +10,7 @@ export default function useDataBase() {
     const networkInfo = await getChainInfo()
     const currNetwork = networkInfo?.name
     const dbname = 'chats-'+ (currNetwork ? currNetwork : '') + '-' + getLocal('account')
-    let db = new zango.Db(dbname, 2, {chatInfos:['id', 'room', 'block']})
+    let db = new zango.Db(dbname, 2, {chatInfos:['id', 'room']})
     let collection = db.collection('chatInfos')
     console.log(collection, 'collection=====')
     return db

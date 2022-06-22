@@ -382,7 +382,7 @@ export default function Chat() {
     console.log(item, 'item=====')
     if(currentTabIndex === 1) {
       getPrivateChatStatus(item.id)
-      getPrivateChatList(item.id)
+      getPrivateChatList(item.id, item.avatar)
     }
     setMemberCount()
     setHasMore(true)
@@ -540,7 +540,8 @@ export default function Chat() {
 
     console.log(currNetwork, getLocal('account'), '====>>>currNetwork')
   }
-  const fetchPrivateChatList = async(toAddress) => {
+  const fetchPrivateChatList = async(toAddress, avatar) => {
+    setRoomAvatar(avatar)
     const networkInfo = await getChainInfo()
     const myAddress = getLocal('account')?.toLowerCase()
     const tokensSenderQuery = `
@@ -588,23 +589,17 @@ export default function Chat() {
       setShowMask(false)
     }
   }
-  const getPrivateChatList = async(toAddress) => {
+  const getPrivateChatList = async(toAddress, avatar) => {
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
-    const res = await collection?.find({room: toAddress}).project({
-      _id: 0,
-      block: '$_id.block'
-    }).sort({ block: 1 }).toArray((error, docs) => {
-      for (let doc of docs) {
-        console.log('doc:', doc);
-      }
-    });
-
+    const res = await collection?.find({room: toAddress}).project({}).sort({ block: -1 }).toArray()
     if(!res || res?.length === 0) {
       debugger
-      fetchPrivateChatList(toAddress)
+      fetchPrivateChatList(toAddress, avatar)
+    } else {
+      setChatList(res)
+      setShowMask(false)
     }
-    setChatList(res)
     console.log(res, '====>>res')
   }
   const getencryptedMessage = (chatText, encryptedKey ) => {
