@@ -6,12 +6,14 @@ import useChain from '../../hooks/useChain'
 import { useHistory } from 'react-router-dom'
 import useGlobal from "../../hooks/useGlobal"
 import Image from '../../component/Image'
+import { Jazzicon } from '@ukstv/jazzicon-react'
 export default function FollowerList(props) {
   const { urlParams, followType, hiddenFollowerList } = props
   const { setState } = useGlobal()
   const history = useHistory()
   const { getChainInfo } = useChain()
   const [followerList, setFollowerList] = useState([])
+  const [followerCount, setFollowerCount] = useState()
   const getAvatar = async(ids, list) => {
     const networkInfo = await getChainInfo()
     const idsList = '"' + ids.join('","')+ '"'
@@ -29,8 +31,17 @@ export default function FollowerList(props) {
       url: networkInfo?.APIURL
     })
     const res = await client.query(tokensQuery).toPromise()
-    setFollowerList(res?.data?.profiles)
-    console.log(res,res?.data?.profiles , 'getAvatar====')
+    let profiles = res?.data?.profiles
+    const noProfiles = ids.filter(ele => profiles.every(item => item.id !== ele))
+    noProfiles.map(item => {
+      profiles.push({
+        name: '',
+        id: item,
+        avatar: ''
+      })
+    })
+    setFollowerList(profiles)
+    console.log(noProfiles, profiles, 'noProfiles==')
   }
   const geFollowerList = async () => {
     const networkInfo = await getChainInfo()
@@ -62,6 +73,7 @@ export default function FollowerList(props) {
     const res = await client.query(tokensQuery).toPromise()
     const data = res?.data?.followers
     const ids = followType === 1 ? data.map(item => item.to) : data.map(item => item.from)
+    setFollowerCount(res.data.followers.length)
     getAvatar(ids, res.data.followers)
   }
   const viewProfile = (item) => {
@@ -79,13 +91,18 @@ export default function FollowerList(props) {
   }, [])
   return (
     <FollowerListContainer>
-      <div className="follower-count">{followerList.length}</div>
+      <div className="follower-count">{followerCount}</div>
       <div className="follower-wrap">
         {
           followerList && followerList.map(item => {
             return (
               <div className="follower-list" onClick={() => viewProfile(item)} key={item.id}>
-                <Image src={item.avatar} size={35} />
+                {/* <Image src={item.avatar} size={35} /> */}
+                {
+                  item.avatar 
+                  ? <Image size={35} src={item.avatar}/>
+                  : <Jazzicon address={item.id} className="avatar-icon" />
+                }
                 <div className="name">{item.name}</div>
                 <div className="address">({formatAddress(item.id)})</div>
               </div>
@@ -133,5 +150,9 @@ const FollowerListContainer = styled.div`
     font-size: 16px;
     font-weight: bold;
     margin-left: 10px;
+  }
+  .avatar-icon {
+    width: 35px;
+    height: 35px;
   }
 `
