@@ -45,10 +45,21 @@ export default function ShareInfo(props) {
         <div className='share-title-wrapper'>
           <img src={imgURL} className="logo-icon" alt="" />
           <div className='share-title'>
-            <span>消</span>
-            <span>息</span>
-            <span>快</span>
-            <span>讯</span>
+            {
+              currentAddress.toLowerCase() === '0x8e3687d008571189c21d72b5f27a7f8cda6248d1' 
+              ? <div className='title-wrapper'>
+                  <span>币</span>
+                  <span>头</span>
+                  <span>条</span>
+                </div>
+              : <div className='title-wrapper'>
+                  <span>消</span>
+                  <span>息</span>
+                  <span>快</span>
+                  <span>讯</span>
+                </div>
+            }
+            
           </div>
         </div>
         <div className='share-info'>{shareTextInfo}</div>
