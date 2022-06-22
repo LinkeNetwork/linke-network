@@ -149,12 +149,14 @@ export default function Chat() {
     console.log(etherString, 'balance===')
   }
   const getMyPublicKey = () => {
+    debugger
     window.ethereum
     .request({
       method: 'eth_getEncryptionPublicKey',
       params: [getLocal('account')], // you must have access to the specified account
     })
     .then((result) => {
+      console.log(result, '===getMyPublicKey==')
       setMyPublicKey(result)
       localForage.getItem('publicKeyList').then(res => {
         if(res) {
@@ -269,7 +271,7 @@ export default function Chat() {
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
     console.log(collection, '======')
-    for (let i = 0; i < datas.length; i++) {
+    for (let i = 0; i < datas?.length; i++) {
       collection.findOne({id:datas[i].id}).then((doc) => {
         if (doc) {
           collection.update({id:datas[i].id}, {$set: datas[i]})
@@ -375,6 +377,7 @@ export default function Chat() {
     setMemberCount(memberListInfo?.length)
   }
   const showChatList = (e, item, list) => {
+    setRoomAvatar(item.avatar)
     console.log(item, 'item=====')
     if(currentTabIndex === 1) {
       getPrivateChatStatus(item.id)
@@ -382,7 +385,6 @@ export default function Chat() {
     }
     setMemberCount()
     setHasMore(true)
-    setRoomAvatar(item.avatar)
     history.push(`/chat/${item.id}`)
     setCurrentAddress(item.id)
     clearInterval(timer.current)
@@ -579,7 +581,7 @@ export default function Chat() {
       setChatList(currentList)
       insertData(currentList)
       setShowMask(false)
-      console.log(currentList, chatList, 'currentList=====')
+      console.log(currentList, 'currentList=====')
     } catch(error) {
       console.log(error, '====')
       setShowMask(false)
@@ -588,9 +590,9 @@ export default function Chat() {
   const getPrivateChatList = async(toAddress) => {
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
-    console.log(toAddress, collection, currentAddress, 'toAddress====')
-    const res = await collection?.find({room: toAddress}).toArray(function (err, result) {
+    const res = await collection?.find({room: toAddress}).sort({block: 1}).toArray((err, result) => {
       console.log(result, 'find======')
+      if (err) { throw err; }
       if(result) {
         setChatList(result)
         setShowMask(false)
@@ -600,6 +602,7 @@ export default function Chat() {
       debugger
       fetchPrivateChatList(toAddress)
     }
+    setChatList(res)
     console.log(res, '====>>res')
   }
   const getencryptedMessage = (chatText, encryptedKey ) => {
@@ -627,11 +630,13 @@ export default function Chat() {
       if(currentTabIndex === 1) {
         debugger
         const networkInfo = await getChainInfo()
-        console.log(privateKey, myPublicKey)
+        const myPublicKey = await localForage.getItem('publicKeyList').then(res => {
+          return res[myAddress]
+        })
         const encryptedMessage = getencryptedMessage(chatText, privateKey)
         const encryptedSenderMessage = getencryptedMessage(chatText, myPublicKey)
         console.log(encryptedSenderMessage, encryptedMessage, 'encryptedMessage====')
-        debugger
+        console.log(privateKey, myPublicKey)
         var tx = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       }
       if(currentTabIndex === 0 ) {
@@ -671,15 +676,25 @@ export default function Chat() {
         chatList[index].isSuccess = true
         chatList[index].block = callback?.blockNumber
         chatList[index].avatar = currentTabIndex === 0 ? memberListInfo[sendIndex].profile?.avatar : myAvatar
-        console.log(chatList, '====change')
+        chatList[index].isDecrypted = true
         setChatListState(chatList)
+        console.log(chatList, '====change')
+        const db = await setDataBase()
+        const collection = db.collection('chatInfos')
+        newChat.isSuccess = true
+        newChat.block = String(callback?.blockNumber)
+        newChat.avatar = currentTabIndex === 0 ? memberListInfo[sendIndex].profile?.avatar : myAvatar
+        newChat.room = currentAddress
+        newChat.isDecrypted = true
+        collection.insert(newChat)
+        console.log(newChat, 'newChat====>>.')
       }
     } catch (error) {
       console.log(error, 'error==')
     }
 
   }
-
+  
   const setChatListState = (chatList, address) => {
     if (address === currentAddress || !address) {
       if (!chatList || chatList === {}) {
