@@ -272,6 +272,7 @@ export default function Chat() {
     const collection = db.collection('chatInfos')
     console.log(collection, '======')
     for (let i = 0; i < datas?.length; i++) {
+      datas[i].block = parseInt(datas[i].block)
       collection.findOne({id:datas[i].id}).then((doc) => {
         if (doc) {
           collection.update({id:datas[i].id}, {$set: datas[i]})
@@ -590,14 +591,15 @@ export default function Chat() {
   const getPrivateChatList = async(toAddress) => {
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
-    const res = await collection?.find({room: toAddress}).sort({block: 1}).toArray((err, result) => {
-      console.log(result, 'find======')
-      if (err) { throw err; }
-      if(result) {
-        setChatList(result)
-        setShowMask(false)
+    const res = await collection?.find({room: toAddress}).project({
+      _id: 0,
+      block: '$_id.block'
+    }).sort({ block: 1 }).toArray((error, docs) => {
+      for (let doc of docs) {
+        console.log('doc:', doc);
       }
-    })
+    });
+
     if(!res || res?.length === 0) {
       debugger
       fetchPrivateChatList(toAddress)
