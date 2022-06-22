@@ -378,18 +378,20 @@ export default function Chat() {
     setMemberCount(memberListInfo?.length)
   }
   const showChatList = (e, item, list) => {
+    clearInterval(timer.current)
+    clearInterval(allTimer.current)
     setRoomAvatar(item.avatar)
     console.log(item, 'item=====')
     if(currentTabIndex === 1) {
       getPrivateChatStatus(item.id)
       getPrivateChatList(item.id, item.avatar)
+      startInterval(item.id)
+      console.log(groupLists, '======groupLists')
     }
     setMemberCount()
     setHasMore(true)
     history.push(`/chat/${item.id}`)
     setCurrentAddress(item.id)
-    clearInterval(timer.current)
-    clearInterval(allTimer.current)
     if(currentTabIndex === 0) {
       getMemberCount(item.id)
       setTimeout(() => {
@@ -496,7 +498,7 @@ export default function Chat() {
   const onClickDialog = (e) => {
     setShowJoinRoom(true)
   }
-  const formatePrivateData = (res, toAddress, type) => {
+  const formatePrivateData = (res, toAddress, avatar, type) => {
     const data = res?.data?.encryptedInfos.map(item => {
       return {
         ...item,
@@ -507,7 +509,7 @@ export default function Chat() {
         showProfile: false,
         isDecrypted: false,
         room: toAddress.toLowerCase(),
-        avatar: type === 1 ? myAvatar : roomAvatar
+        avatar: type === 1 ? myAvatar : (roomAvatar || avatar)
       }
     })
     return data
@@ -542,11 +544,10 @@ export default function Chat() {
   }
   const fetchPrivateChatList = async(toAddress, avatar) => {
     setRoomAvatar(avatar)
-    const networkInfo = await getChainInfo()
     const myAddress = getLocal('account')?.toLowerCase()
     const tokensSenderQuery = `
     query{
-      encryptedInfos(where:{sender: "`+ myAddress +`", to: "`+ toAddress?.toLowerCase() + `"}){
+      encryptedInfos(orderBy:block,orderDirection:desc, first:50, where:{sender: "`+ myAddress +`", to: "`+ toAddress?.toLowerCase() + `"}){
         id,
         sender,
         block,
@@ -558,7 +559,7 @@ export default function Chat() {
     `
     const tokensReceivedrQuery = `
     query{
-      encryptedInfos(where:{to: "`+ myAddress +`", sender: "`+ toAddress?.toLowerCase() + `"}){
+      encryptedInfos(orderBy:block,orderDirection:desc, first:50, where:{to: "`+ myAddress +`", sender: "`+ toAddress?.toLowerCase() + `"}){
         id,
         sender,
         block,
@@ -568,17 +569,8 @@ export default function Chat() {
       }
     }
     `
-    const client = createClient({
-      url: networkInfo?.APIURL
-    })
     try{
-      const resSender = await client.query(tokensSenderQuery).toPromise()
-      const resReceived = await client.query(tokensReceivedrQuery).toPromise()
-      const senderInfo = formatePrivateData(resSender, toAddress, 1)
-      const receivedInfo =  formatePrivateData(resReceived, toAddress, 2)
-      const privateChatList = [...senderInfo, ...receivedInfo]
-      console.log(privateChatList, 'privateChatList====')
-      const currentList = privateChatList.sort(function (a, b) { return b.block - a.block; })
+      const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, toAddress, avatar)
       setPrivateChatList(currentList)
       setChatList(currentList)
       insertData(currentList)
@@ -588,6 +580,19 @@ export default function Chat() {
       console.log(error, '====')
       setShowMask(false)
     }
+  }
+  const formateCurrentPrivateList = async(tokensSenderQuery, tokensReceivedrQuery, toAddress, avatar) => {
+    const networkInfo = await getChainInfo()
+    const client = createClient({
+      url: networkInfo?.APIURL
+    })
+    const resSender = await client.query(tokensSenderQuery).toPromise()
+    const resReceived = await client.query(tokensReceivedrQuery).toPromise()
+    const senderInfo = formatePrivateData(resSender, toAddress, avatar, 1)
+    const receivedInfo =  formatePrivateData(resReceived, toAddress, avatar, 2)
+    const privateChatList = [...senderInfo, ...receivedInfo]
+    const currentList = privateChatList.sort(function (a, b) { return b.block - a.block; })
+    return currentList
   }
   const getPrivateChatList = async(toAddress, avatar) => {
     const db = await setDataBase()
@@ -764,31 +769,19 @@ export default function Chat() {
     })
     return list
   }
-  const getCurrentChatList = async (roomAddress) => {
-    // debugger
-    const networkInfo = await getChainInfo()
-    console.log(chatList,chatListRef.current, roomAddress, 'chatList===1>>>>')
-    const lastBlock = chatListRef.current.length && +chatListRef.current[0]?.block + 1
-    if(!lastBlock || chatListRef.current[0]?.block == 0) return
-    console.log(lastBlock, 'lastBlock=====1')
-    let db = new zango.Db('mydb', 1,{chatInfos:['id']});
-    let collection = db.collection('chatInfos');
+  const getCurrentGroupChatList = async(client, collection, lastBlock, roomAddress) => {
     const tokensQuery = `
-    query{
-      chatInfos(orderBy:block,orderDirection:desc, where:{room: "`+ roomAddress?.toLowerCase() +`", block_gte: ` + lastBlock + `}){
-        id,
-        transaction,
-        sender,
-        block,
-        chatText,
-        room
-      }
-    }
-    `
-    const client = createClient({
-      url: networkInfo?.APIURL
-    })
-    if(currentTabIndex === 0) {
+        query{
+          chatInfos(orderBy:block,orderDirection:desc, where:{room: "`+ roomAddress?.toLowerCase() +`", block_gte: ` + lastBlock + `}){
+            id,
+            transaction,
+            sender,
+            block,
+            chatText,
+            room
+          }
+        }
+      `
       const data = await client.query(tokensQuery).toPromise()
       const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
       collection.insert(data?.data?.chatInfos,(error) => {
@@ -801,7 +794,59 @@ export default function Chat() {
       }
       console.log(newList, 'newList====')
       console.log(chatList, 'getCurrentChatList====')
+  }
+  const getCurrentChatList = async (roomAddress) => {
+    // debugger
+    const networkInfo = await getChainInfo()
+    console.log(chatList,chatListRef.current, roomAddress, 'chatList===1>>>>')
+    const lastBlock = chatListRef.current.length && +chatListRef.current[0]?.block + 1
+    if(!lastBlock || chatListRef.current[0]?.block == 0) return
+    console.log(lastBlock, 'lastBlock=====1')
+    let db = new zango.Db('mydb', 1,{chatInfos:['id']});
+    let collection = db.collection('chatInfos');
+    
+    const client = createClient({
+      url: networkInfo?.APIURL
+    })
+    if(currentTabIndex === 0) {
+      getCurrentGroupChatList(client, collection, lastBlock, roomAddress)
     }
+    if(currentTabIndex === 1) {
+      getCurrentPrivateChatList(client, collection, lastBlock, roomAddress)
+    }
+  }
+  const getCurrentPrivateChatList = async(client, collection, lastBlock, roomAddress) => {
+    const tokensSenderQuery = `
+    query{
+      encryptedInfos(orderBy:block,orderDirection:desc, where:{sender: "`+ myAddress +`", to: "`+ roomAddress?.toLowerCase() + `",block_gte: ` + lastBlock + `}){
+        id,
+        sender,
+        block,
+        chatText,
+        to,
+        chatTextSender
+      }
+    }
+    `
+    const tokensReceivedrQuery = `
+    query{
+      encryptedInfos(orderBy:block,orderDirection:desc,where:{to: "`+ myAddress +`", sender: "`+ roomAddress?.toLowerCase() + `",block_gte: ` + lastBlock + `}){
+        id,
+        sender,
+        block,
+        to,
+        chatText,
+        chatTextSender
+      }
+    }
+    `
+    const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, roomAddress)
+    const list = [...chatListRef.current]
+    if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && currentList.length) {
+      setChatList(currentList.concat(list))
+    }
+    insertData(currentList)
+    console.log(currentList, 'formateCurrentPrivateList====')
   }
   const getMemberList = async(roomAddress, chatList) => {
     if(currentTabIndex === 1) return
