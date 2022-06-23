@@ -97,6 +97,11 @@ export default function Chat() {
     currentAddress && getMemberCount(currentAddress)
   }, [currentAddress, hasScroll, roomList, chatList])
   useEffect(() => {
+    groupLists?.map(item => {
+      startInterval(item.id)
+    })
+  }, [groupLists])
+  useEffect(() => {
     if(currentTabIndex === 1) {
       getMyAvatar()
       localForage.getItem('publicKeyList').then(res => {
@@ -709,7 +714,7 @@ export default function Chat() {
         console.log(chatList[index], '==callback==')
         chatList[index].isSuccess = true
         chatList[index].block = callback?.blockNumber
-        chatList[index].avatar = currentTabIndex === 0 ? memberListInfo[sendIndex].profile?.avatar : myAvatar
+        chatList[index].avatar = currentTabIndex === 0 ? memberListInfo[sendIndex]?.profile?.avatar : myAvatar
         chatList[index].isDecrypted = true
         setChatListState(chatList)
         console.log(chatList, '====change')
@@ -717,7 +722,7 @@ export default function Chat() {
         const collection = db.collection('chatInfos')
         newChat.isSuccess = true
         newChat.block = String(callback?.blockNumber)
-        newChat.avatar = currentTabIndex === 0 ? memberListInfo[sendIndex].profile?.avatar : myAvatar
+        newChat.avatar = currentTabIndex === 0 ? memberListInfo[sendIndex]?.profile?.avatar : myAvatar
         newChat.room = currentAddress
         newChat.isDecrypted = true
         collection.insert(newChat)
@@ -773,7 +778,7 @@ export default function Chat() {
       })
     }
   }
-  const startInterval = (currentAddress, roomList) => {
+  const startInterval = (currentAddress) => {
     let index = groupLists && groupLists.findIndex((item) => item.id.toLowerCase() == currentAddress.toLowerCase())
     const groupList = [...groupLists]
     let newRoomList = groupList.splice(index, 1)
@@ -786,9 +791,42 @@ export default function Chat() {
       }
     }, 20000)
   }
-  const addAvatarToList = (newList) => {
-    if(!newList) return
+  const getUserAvatar = async(newList) => {
     let list = []
+    const ids = newList.map(item => item.sender)
+    console.log(ids, '=====>>>>ids')
+    const networkInfo = await getChainInfo()
+    const idsList = '"' + ids.join('","')+ '"'
+    if(!ids) return
+    const tokensQuery = `
+    query{
+      profiles(where:{id_in: [`+idsList+`]}){
+        id,
+        name,
+        avatar,
+        tokenId
+      }
+    }`
+    const client = createClient({
+      url: networkInfo?.APIURL
+    })
+    const res = await client.query(tokensQuery).toPromise()
+    console.log(res, 'memberListInfo=====')
+    newList?.map(item => {
+      res?.data?.profiles?.map(info => {
+         if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
+           list.push({
+             ...item,
+             avatar: info?.avatar
+           })
+         }
+       })
+     })
+    return list
+  }
+  const addAvatarToList = async(newList) => {
+    let list = []
+    console.log(memberListInfo, newList, '=====>>>.addAvatarToList')
     newList?.map(item => {
      memberListInfo?.map(info => {
         if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
@@ -825,7 +863,7 @@ export default function Chat() {
       `
       const data = await client.query(tokensQuery).toPromise()
       const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
-      const formatList = addAvatarToList(newList)
+      const formatList = await getUserAvatar(newList)
       console.log(newList, formatList, 'formatList---')
       collection.insert(formatList,(error) => {
         updateNewList(roomAddress, collection)
