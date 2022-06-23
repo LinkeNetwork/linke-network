@@ -219,7 +219,7 @@ export default function Chat() {
       updateGroupList(name, roomAddress)
       getJoinRoomAccess(roomAddress)
       setCurrentRoomName(name)
-      initChatList(roomAddress)
+      getInitChatList(roomAddress)
       initCurrentAddress(roomAddress)
     }
     catch (e) {
@@ -240,8 +240,7 @@ export default function Chat() {
     setHasAccess(hasAccess)
     console.log(hasAccess, Boolean(hasAccess), 'hasAccess======')
   }
-
-  const initChatList = async (roomAddress, list) => {
+  const fetchPublicChatList = async(roomAddress) => {
     const networkInfo = await getChainInfo()
     const tokensQuery = `
     query{
@@ -384,10 +383,9 @@ export default function Chat() {
     clearInterval(allTimer.current)
     setRoomAvatar(item.avatar)
     console.log(item, 'item=====')
+    getInitChatList(item.id, item.avatar)
     if(currentTabIndex === 1) {
       getPrivateChatStatus(item.id)
-      getPrivateChatList(item.id, item.avatar)
-      console.log(groupLists, '======groupLists')
     }
     startInterval(item.id)
     setMemberCount()
@@ -396,18 +394,11 @@ export default function Chat() {
     setCurrentAddress(item.id)
     if(currentTabIndex === 0) {
       getMemberCount(item.id)
-      setTimeout(() => {
-        initChatList(item.id, list)
-      }, 10)
     }
     setCurrentRoomName(item.name)
     setShowChat(true)
     setShowMask(true)
-    // debugger
     setHasScroll(false)
-    console.log(currentAddress, item,'===9-0===')
-    // debugger
-    // setRoomList(list)
     getJoinRoomAccess(item.id)
   }
 
@@ -632,19 +623,21 @@ export default function Chat() {
     const currentList = privateChatList.sort(function (a, b) { return b.block - a.block; })
     return currentList
   }
-  const getPrivateChatList = async(toAddress, avatar) => {
-    console.log(avatar, '====avatar====')
+  const getInitChatList = async(toAddress, avatar) => {
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
     const res = await collection?.find({room: toAddress}).project({}).sort({ block: -1 }).toArray()
     if(!res || res?.length === 0) {
       debugger
-      fetchPrivateChatList(toAddress, avatar)
+      if(currentTabIndex === 0) {
+        fetchPublicChatList(toAddress)
+      } else {
+        fetchPrivateChatList(toAddress, avatar)
+      }
     } else {
       setChatList(res)
       setShowMask(false)
     }
-    console.log(res, '====>>res')
   }
   const getencryptedMessage = (chatText, encryptedKey ) => {
     const ethUtil = require('ethereumjs-util')
@@ -931,6 +924,7 @@ export default function Chat() {
       })
     })
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
+      insertData(result)
       setChatList(result)
     }
     setShowMask(false)
