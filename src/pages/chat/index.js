@@ -789,8 +789,8 @@ export default function Chat() {
   const addAvatarToList = (newList) => {
     if(!newList) return
     let list = []
-    newList.map(item => {
-     memberListInfo.map(info => {
+    newList?.map(item => {
+     memberListInfo?.map(info => {
         if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
           list.push({
             ...item,
@@ -826,9 +826,9 @@ export default function Chat() {
       const data = await client.query(tokensQuery).toPromise()
       const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
       const formatList = addAvatarToList(newList)
-      updateNewList(roomAddress, collection)
-      console.log(formatList, 'formatList---')
+      console.log(newList, formatList, 'formatList---')
       collection.insert(formatList,(error) => {
+        updateNewList(roomAddress, collection)
         if (error) { throw error; }
       })
       const list = [...chatListRef.current]
