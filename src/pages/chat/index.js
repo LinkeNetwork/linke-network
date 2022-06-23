@@ -250,6 +250,7 @@ export default function Chat() {
         transaction,
         sender,
         block,
+        index,
         chatText,
         room
       }
@@ -263,6 +264,7 @@ export default function Chat() {
     const data = await client.query(tokensQuery).toPromise()
     const chatList = data?.data?.chatInfos || []
     const result = formateData(chatList)
+    setChatList(result)
     insertData(result)
     getMemberList(roomAddress, result)
   }
@@ -430,7 +432,8 @@ export default function Chat() {
         sender,
         block,
         chatText,
-        room
+        room,
+        index
       }
     }
     `

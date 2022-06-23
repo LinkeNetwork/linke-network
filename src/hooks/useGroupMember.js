@@ -16,6 +16,7 @@ export default function useGroupMember() {
         name,
         avatar,
         userCount,
+        chatCount,
         users {
           id,
           name,
