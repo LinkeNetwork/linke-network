@@ -12,7 +12,7 @@ import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 export default function GroupList(props) {
   const { hasCreateRoom, setState } = useGlobal()
-  const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName} = props
+  const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress} = props
   const { getChainInfo } = useChain()
   const [groupList, setGroupList] = useState([])
   const [timeOutEvent, setTimeOutEvent] = useState()
@@ -47,7 +47,8 @@ export default function GroupList(props) {
         id,
         groupInfos{
           id,
-          name
+          name,
+          chatCount
         }
       }
     }
@@ -237,7 +238,7 @@ export default function GroupList(props) {
     if(currentTabIndex === 1) {
       getPrivateGroupList()
     }
-  }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex])
+  }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex, currentAddress])
   return (
     <ListGroupContainer>
       {
@@ -317,10 +318,10 @@ export default function GroupList(props) {
                   </div>
 
                 }
-                {/* {
-                item.unreadNumber > 0 && item.path !== getLocal('account') &&
-                <div className={`unread-num ${!detectMobile() ? 'unread-num-web' : 'unread-num-client'}`}>{item.unreadNumber}</div>
-              } */}
+                {
+                item.newChatCount > 0 && item.id !== currentAddress &&
+                <div className={`unread-num ${!detectMobile() ? 'unread-num-web' : 'unread-num-client'}`}>{item.newChatCount}</div>
+              }
 
               </div>
             )

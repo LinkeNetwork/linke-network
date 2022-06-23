@@ -387,9 +387,9 @@ export default function Chat() {
     if(currentTabIndex === 1) {
       getPrivateChatStatus(item.id)
       getPrivateChatList(item.id, item.avatar)
-      startInterval(item.id)
       console.log(groupLists, '======groupLists')
     }
+    startInterval(item.id)
     setMemberCount()
     setHasMore(true)
     history.push(`/chat/${item.id}`)
@@ -401,7 +401,6 @@ export default function Chat() {
       }, 10)
     }
     setCurrentRoomName(item.name)
-    setChatList([])
     setShowChat(true)
     setShowMask(true)
     // debugger
@@ -809,7 +808,15 @@ export default function Chat() {
     })
     return list
   }
-  const getCurrentGroupChatList = async(client, collection, lastBlock, roomAddress) => {
+  const getCurrentGroupChatList = async(client, roomAddress) => {
+    const db = await setDataBase()
+    const collection = db.collection('chatInfos')
+    const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
+    console.log(res, '=====>>>res')
+    const lastBlock = res?.length && +res[0]?.block + 1
+    console.log(roomAddress, lastBlock, 'getCurrentGroupChatList')
+    if(!lastBlock || chatListRef.current[0]?.block == 0) return
+    console.log(lastBlock, 'lastBlock=====1')
     const tokensQuery = `
         query{
           chatInfos(orderBy:block,orderDirection:desc, where:{room: "`+ roomAddress?.toLowerCase() +`", block_gte: ` + lastBlock + `}){
@@ -818,44 +825,62 @@ export default function Chat() {
             sender,
             block,
             chatText,
-            room
+            room,
+            index
           }
         }
       `
       const data = await client.query(tokensQuery).toPromise()
       const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
+      updateNewList(roomAddress, newList, collection)
       collection.insert(data?.data?.chatInfos,(error) => {
         if (error) { throw error; }
       })
       const formatList = addAvatarToList(newList)
       const list = [...chatListRef.current]
-      if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList.length) {
+      if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
         setChatList(formatList.concat(list))
       }
-      console.log(newList, 'newList====')
+      console.log(roomAddress, newList, groupLists, 'newList====')
       console.log(chatList, 'getCurrentChatList====')
+  }
+  const updateNewList = async(roomAddress, newList, collection) => {
+    const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
+    const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
+    console.log(res,+res[0].index - Number(groupLists[index].chatCount), roomAddress, groupLists, newList,'1====>>.')
+    if(index > -1) {
+      groupLists[index] = {
+        ...groupLists[index],
+        newChatCount: +res[0].index - Number(groupLists[index].chatCount) - 1
+      }
+    }
+    console.log(groupLists, index, roomAddress, 'index====>>>')
+    setRoomList(groupLists)
   }
   const getCurrentChatList = async (roomAddress) => {
     // debugger
     const networkInfo = await getChainInfo()
-    console.log(chatList,chatListRef.current, roomAddress, 'chatList===1>>>>')
-    const lastBlock = chatListRef.current.length && +chatListRef.current[0]?.block + 1
-    if(!lastBlock || chatListRef.current[0]?.block == 0) return
-    console.log(lastBlock, 'lastBlock=====1')
-    let db = new zango.Db('mydb', 1,{chatInfos:['id']});
-    let collection = db.collection('chatInfos');
+    console.log(chatList,chatListRef.current, roomAddress, currentTabIndex,'chatList===1>>>>')
+    // const lastBlock = chatListRef.current.length && +chatListRef.current[0]?.block + 1
+    // if(!lastBlock || chatListRef.current[0]?.block == 0) return
+    // console.log(lastBlock, 'lastBlock=====1')
+    // let db = new zango.Db('mydb', 1,{chatInfos:['id']});
+    // let collection = db.collection('chatInfos');
     
     const client = createClient({
       url: networkInfo?.APIURL
     })
     if(currentTabIndex === 0) {
-      getCurrentGroupChatList(client, collection, lastBlock, roomAddress)
+      getCurrentGroupChatList(client, roomAddress)
     }
     if(currentTabIndex === 1) {
-      getCurrentPrivateChatList(client, collection, lastBlock, roomAddress)
+      getCurrentPrivateChatList(client, roomAddress)
     }
   }
-  const getCurrentPrivateChatList = async(client, collection, lastBlock, roomAddress) => {
+  const getCurrentPrivateChatList = async(roomAddress) => {
+    const lastBlock = chatListRef.current.length && +chatListRef.current[0]?.block + 1
+    if(!lastBlock || chatListRef.current[0]?.block == 0) return
+    console.log(lastBlock, 'lastBlock=====1')
     const tokensSenderQuery = `
     query{
       encryptedInfos(orderBy:block,orderDirection:desc, where:{sender: "`+ myAddress +`", to: "`+ roomAddress?.toLowerCase() + `",block_gte: ` + lastBlock + `}){
