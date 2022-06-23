@@ -416,12 +416,12 @@ export default function Chat() {
       console.log(messagesEnd, 'messagesEnd====')
     }
   }
-
-  const loadingData = async () => {
-    console.log(chatListRef.current, 'current===')
-    console.log(chatList, 'loadingData===')
+  const loadingGroupData = async() => {
     const firstBlock = chatList && chatList[chatList.length-1]?.block
     if(!firstBlock) return
+    const client = createClient({
+      url: currentGraphApi
+    })
     const tokensQuery = `
     query{
       chatInfos(orderBy:block,orderDirection:desc, first:20, where:{room: "`+ currentAddressRef?.current?.toLowerCase() + `", block_lt: ` + firstBlock + `}){
@@ -434,18 +434,11 @@ export default function Chat() {
       }
     }
     `
-    console.log(currentGraphApi, 'currentGraphApi=====2', 'firstBlock', firstBlock)
-
-    const client = createClient({
-      url: currentGraphApi
-    })
-
     const data = await client.query(tokensQuery).toPromise()
     console.log(data, 'loading=data=')
     const loadingList = data?.data?.chatInfos || []
     console.log(loadingList, 'loadingList====')
     insertData(loadingList)
-    // loadingList.sort(function (a, b) { return a.block - b.block; })
     if(loadingList.length < 20) {
       setHasMore(false)
     }
@@ -470,8 +463,51 @@ export default function Chat() {
         setChatList(result)
       }
     }, 10)
-
     console.log(fetchData, 'chatList.length')
+  }
+  const loadingData = async () => {
+    if(currentTabIndex === 0) {
+      loadingGroupData()
+    }
+    if(currentTabIndex === 1) {
+      loadingPrivateData()
+    }
+  }
+  const loadingPrivateData = async() => {
+    const firstBlock = chatList && chatList[chatList.length-1]?.block
+    if(!firstBlock) return
+    const myAddress = getLocal('account')?.toLowerCase()
+    const tokensSenderQuery = `
+    query{
+      encryptedInfos(orderBy:block,orderDirection:desc, first:20, where:{sender: "`+ myAddress +`", to: "`+ currentAddressRef?.current?.toLowerCase() + `",block_lt: ` + firstBlock + `}){
+        id,
+        sender,
+        block,
+        chatText,
+        to,
+        chatTextSender
+      }
+    }
+    `
+    const tokensReceivedrQuery = `
+    query{
+      encryptedInfos(orderBy:block,orderDirection:desc, first:20, where:{to: "`+ myAddress +`", sender: "`+ currentAddressRef?.current?.toLowerCase() + `",block_lt: ` + firstBlock + `}){
+        id,
+        sender,
+        block,
+        to,
+        chatText,
+        chatTextSender
+      }
+    }
+    `
+    const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, currentAddressRef?.current?.toLowerCase())
+    if(currentList.length < 40) {
+      setHasMore(false)
+    }
+    const list = [...chatListRef.current]
+    setChatList(currentList.concat(list))
+    insertData(currentList)
   }
   const formateData = (list) => {
     const result = list && list.map((item) => {
@@ -547,7 +583,7 @@ export default function Chat() {
     const myAddress = getLocal('account')?.toLowerCase()
     const tokensSenderQuery = `
     query{
-      encryptedInfos(orderBy:block,orderDirection:desc, first:50, where:{sender: "`+ myAddress +`", to: "`+ toAddress?.toLowerCase() + `"}){
+      encryptedInfos(orderBy:block,orderDirection:desc, first:20, where:{sender: "`+ myAddress +`", to: "`+ toAddress?.toLowerCase() + `"}){
         id,
         sender,
         block,
@@ -559,7 +595,7 @@ export default function Chat() {
     `
     const tokensReceivedrQuery = `
     query{
-      encryptedInfos(orderBy:block,orderDirection:desc, first:50, where:{to: "`+ myAddress +`", sender: "`+ toAddress?.toLowerCase() + `"}){
+      encryptedInfos(orderBy:block,orderDirection:desc, first:20, where:{to: "`+ myAddress +`", sender: "`+ toAddress?.toLowerCase() + `"}){
         id,
         sender,
         block,
@@ -595,6 +631,7 @@ export default function Chat() {
     return currentList
   }
   const getPrivateChatList = async(toAddress, avatar) => {
+    console.log(avatar, '====avatar====')
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
     const res = await collection?.find({room: toAddress}).project({}).sort({ block: -1 }).toArray()
