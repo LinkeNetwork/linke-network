@@ -906,13 +906,13 @@ export default function Chat() {
       getCurrentGroupChatList(client, roomAddress)
     }
     if(currentTabIndex === 1) {
-      getCurrentPrivateChatList(client, roomAddress)
+      getCurrentPrivateChatList(roomAddress)
     }
   }
   const getCurrentPrivateChatList = async(roomAddress) => {
     const lastBlock = chatListRef.current.length && +chatListRef.current[0]?.block + 1
     if(!lastBlock || chatListRef.current[0]?.block == 0) return
-    console.log(lastBlock, 'lastBlock=====1')
+    console.log(lastBlock, roomAddress, 'lastBlock=====1')
     const tokensSenderQuery = `
     query{
       encryptedInfos(orderBy:block,orderDirection:desc, where:{sender: "`+ myAddress +`", to: "`+ roomAddress?.toLowerCase() + `",block_gte: ` + lastBlock + `}){
