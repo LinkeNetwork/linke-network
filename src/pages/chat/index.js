@@ -825,11 +825,12 @@ export default function Chat() {
       `
       const data = await client.query(tokensQuery).toPromise()
       const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
-      updateNewList(roomAddress, newList, collection)
-      collection.insert(data?.data?.chatInfos,(error) => {
+      const formatList = addAvatarToList(newList)
+      updateNewList(roomAddress, collection)
+      console.log(formatList, 'formatList---')
+      collection.insert(formatList,(error) => {
         if (error) { throw error; }
       })
-      const formatList = addAvatarToList(newList)
       const list = [...chatListRef.current]
       if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
         setChatList(formatList.concat(list))
@@ -837,10 +838,10 @@ export default function Chat() {
       console.log(roomAddress, newList, groupLists, 'newList====')
       console.log(chatList, 'getCurrentChatList====')
   }
-  const updateNewList = async(roomAddress, newList, collection) => {
+  const updateNewList = async(roomAddress, collection) => {
     const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
     const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
-    console.log(res,+res[0].index - Number(groupLists[index].chatCount), roomAddress, groupLists, newList,'1====>>.')
+    console.log(res,+res[0].index - Number(groupLists[index].chatCount), roomAddress, groupLists,'1====>>.')
     if(index > -1) {
       groupLists[index] = {
         ...groupLists[index],

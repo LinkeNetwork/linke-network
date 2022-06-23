@@ -248,11 +248,11 @@ export default function ChatContext(props) {
                           !v.isDecrypted && currentTabIndex === 1 &&
                           <span className={`iconfont icon-suoding ${v.position ? 'icon-suoding-left': 'icon-suoding-right'}`}></span>
                         }
+                        {
+                          !v.isSuccess &&
+                          <span className='iconfont icon-loading'></span>
+                        }
                       </div>
-                      {
-                        !v.isSuccess &&
-                        <span className='iconfont icon-loading'></span>
-                      }
 
                       {
                         (v.showOperate) &&
