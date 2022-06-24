@@ -7,8 +7,8 @@ import { getDaiWithSigner, getLocal } from '../../utils'
 import { GROUP_FACTORY_ABI } from '../../abi'
 import Loading from '../../component/Loading'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
-import { Avatar } from "antd-mobile"
 import {ethers} from "ethers";
+import Select from 'react-select'
 const client = create('https://ipfs.infura.io:5001')
 export default function CreateNewRoom(props) {
   const { setState } = useGlobal()
@@ -17,6 +17,18 @@ export default function CreateNewRoom(props) {
   const [name, setName] = useState()
   const [shoMask, setShoMask] = useState(false)
   const [describe, setDescribe] = useState()
+  const [currentGroup, setCurrentGroup] = useState()
+  const [currentGroupType, setCurrentGroupType] = useState()
+  const typeList = [
+    {
+      label: 'Public Group',
+      value: 1
+    },
+    {
+      label: 'Subscribe Group',
+      value: 2
+    },
+  ]
   const changeNameInput = (e) => {
     setName(e.target.value)
   }
@@ -33,7 +45,7 @@ export default function CreateNewRoom(props) {
     const name_ = 'group'
     const symbol_ = 'GROUP'
     const params = ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string"], [name, describe, avatarUrl, name_, symbol_]);
-    const tx = await getDaiWithSigner(network?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(1, params)
+    const tx = await getDaiWithSigner(network?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
     let callback = await tx.wait()
     hiddenCreateInfo()
     setState({
@@ -42,6 +54,11 @@ export default function CreateNewRoom(props) {
     createNewRoom(callback.logs[0].address, name)
     console.log('callback', callback, callback.logs[0].address)
     console.log(tx)
+  }
+  const handleSelectChange = (val) => {
+    console.log(val, 'handleSelectChange')
+    setCurrentGroup(val)
+    setCurrentGroupType(val.value)
   }
   return (
     <CreateNewRoomContainer>
@@ -67,6 +84,24 @@ export default function CreateNewRoom(props) {
           placeholder=""
           value={describe}
           onChange={val => changeDescribeInput(val)}
+        />
+      </div>
+      <div className="form-wrap">
+        <legend className="name">Room Type
+          <span>Required</span>
+        </legend>
+        <Select
+          value={currentGroup}
+          onChange={handleSelectChange}
+          options={typeList}
+          theme={(theme) => ({
+            ...theme,
+            colors: {
+              ...theme.colors,
+              primary25: '#dee2e6',
+              primary: '#333',
+            },
+          })}
         />
       </div>
       <button className="submit-btn btn btn-lg btn-primary" onClick={() => handleCreate()}>

@@ -12,7 +12,7 @@ import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 export default function GroupList(props) {
   const { hasCreateRoom, setState } = useGlobal()
-  const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress} = props
+  const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount} = props
   const { getChainInfo } = useChain()
   const [groupList, setGroupList] = useState([])
   const [timeOutEvent, setTimeOutEvent] = useState()
@@ -48,7 +48,8 @@ export default function GroupList(props) {
         groupInfos{
           id,
           name,
-          chatCount
+          chatCount,
+          _type
         }
       }
     }
@@ -230,7 +231,7 @@ export default function GroupList(props) {
     setState({
       groupLists: [...newGroupList]
     })
-  },[newGroupList])
+  },[newGroupList, hasChatCount])
   useEffect(() => {
     if(currentTabIndex === 0) {
       getGroupList()

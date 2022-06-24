@@ -18,7 +18,58 @@
     top: -28%;
   }
 }
-
+.open-tips{
+  position: absolute;
+  right: 20px;
+  background: #333;
+  color: #fff;
+  padding: 3px 15px;
+  font-size: 12px;
+  top: 70px;
+  border-radius: 2px;
+  animation: sliderUp ease-out .3s;
+}
+@keyframes sliderUp{
+  from {
+    opacity: 0;
+    transform: translateY(50%);
+  }
+  to{
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.dialog-operate-btn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 15px 0;
+  div {
+    display: flex;
+    margin: 0 5px;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    width: 140px;
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .cancel-btn {
+    background: #333;
+    color: #fff;
+  }
+  .confirm-btn {
+    color: #333;
+    background: #fff;
+    height: 38px;
+    border: 1px solid #333;
+  }
+}
+.dialog-title {
+  font-size: 16px;
+}
 .profile-wrap {
   margin: 60px 0 0 121px;
   padding-top: 2.5rem;

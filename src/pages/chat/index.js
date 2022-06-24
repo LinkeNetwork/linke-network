@@ -89,13 +89,17 @@ export default function Chat() {
   const [myPublicKey, setMyPublicKey] = useState()
   const [myAvatar, setMyAvatar] = useState()
   const [hasDecrypted, setHasDecrypted] = useState(false)
+  const [hasChatCount, setHasChatCount] = useState(false)
+  const [currentGroupType, setCurrentGroupType] = useState()
+  const currentGroupTypeRef = useRef()
   useEffect(()=>{
     currentAddressRef.current = currentAddress
     hasScrollRef.current = hasScroll
     roomListRef.current = roomList
     chatListRef.current = chatList
+    currentGroupTypeRef.current = currentGroupType
     currentAddress && getMemberCount(currentAddress)
-  }, [currentAddress, hasScroll, roomList, chatList])
+  }, [currentAddress, hasScroll, roomList, chatList, currentGroupType])
   useEffect(() => {
     groupLists?.map(item => {
       startInterval(item.id)
@@ -111,7 +115,6 @@ export default function Chat() {
         }
       })
     }
-    history.push('/chat')
     setCurrentAddress()
   }, [currentTabIndex])
   const getCurrentNetwork = async() => {
@@ -184,6 +187,7 @@ export default function Chat() {
   }
   const initRoomAddress = () => {
     let data = history.location?.state
+    console.log(data, '===initRoomAddress')
     if(data) {
       const {currentIndex, address, name , avatar, privateKey} = data
       setCurrentTabIndex(currentIndex)
@@ -389,6 +393,7 @@ export default function Chat() {
     setRoomAvatar(item.avatar)
     console.log(item, 'item=====')
     getInitChatList(item.id, item.avatar)
+    setCurrentGroupType(item._type)
     if(currentTabIndex === 1) {
       getPrivateChatStatus(item.id)
     }
@@ -885,7 +890,9 @@ export default function Chat() {
         ...groupLists[index],
         newChatCount: +res[0].index - Number(groupLists[index].chatCount) - 1
       }
+      setHasChatCount(true)
     }
+    
     console.log(groupLists, index, roomAddress, 'index====>>>')
     setRoomList(groupLists)
   }
@@ -1145,6 +1152,7 @@ export default function Chat() {
                   hasAccess={hasAccess}
                   currentTabIndex={currentTabIndex}
                   currentAddress={currentAddress?.toLowerCase()}
+                  hasChatCount={hasChatCount}
                   onClickDialog={() => {setShowJoinRoom(true)}}
                   confirmDelete={() => {setDialogType('delete')}}>
                 </ListGroup>
@@ -1188,12 +1196,17 @@ export default function Chat() {
                           </div>
                       </div>
                       {
-                        (hasAccess || hasCreateRoom || currentTabIndex === 1) ? <ChatInputBox
+                        ((hasAccess || hasCreateRoom || currentTabIndex === 1) && currentGroupTypeRef.current != 2) &&
+                        <ChatInputBox
                         startChat={(text) => startChat(text)}
                         clearChatInput={clearChatInput}
                         handleShowPlace={() => {setShowPlaceWrapper(true)}}
                         resetChatInputStatus={() => {setClearChatInput(false)}}
-                      ></ChatInputBox> : <JoinGroupButton currentAddress={currentAddress} changeJoinStatus={() => {setHasAccess(true)}}/>
+                      ></ChatInputBox> 
+                      }
+                      {
+                        (!hasAccess) &&
+                        <JoinGroupButton currentAddress={currentAddress} changeJoinStatus={() => {setHasAccess(true)}} />
                       }
                     </div>
                   }
