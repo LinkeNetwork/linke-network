@@ -782,7 +782,7 @@ export default function Chat() {
         showPlaceWrapper &&
         <div className='place-wrapper'>
           <span className='iconfont icon-guanbi' onClick={() => {setShowPlaceWrapper(false)}}></span>
-          <iframe src="https://place.beeprotocol.xyz/" frameBorder="0" width="100%" height="100%" scrolling="no">
+          <iframe src="https://place.linke.network/" frameBorder="0" width="100%" height="100%" scrolling="no">
           </iframe>
         </div>
       }
