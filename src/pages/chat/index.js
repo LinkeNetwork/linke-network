@@ -43,7 +43,7 @@ export default function Chat() {
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
-  const {groupLists, hasGetGroupLists, hasCreateRoom, setState, hasClickPlace} = useGlobal()
+  const {groupLists, hasGetGroupLists, hasCreateRoom, setState, hasClickPlace, currentNetwork} = useGlobal()
   const [balance, setBalance] = useState()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentGraphApi, setCurrentGraphApi] = useState()
@@ -102,9 +102,10 @@ export default function Chat() {
   }, [currentAddress, hasScroll, roomList, chatList, currentGroupType])
   useEffect(() => {
     groupLists?.map(item => {
+      getInitChatList(item.id, item.avatar)
       startInterval(item.id)
     })
-  }, [groupLists])
+  }, [groupLists, currentTabIndex])
   useEffect(() => {
     if(currentTabIndex === 1) {
       getMyAvatar()
@@ -122,7 +123,9 @@ export default function Chat() {
     setCurrentGraphApi(networkInfo?.APIURL)
     setChainId(networkInfo?.chainId)
     setCurrNetwork(networkInfo?.name)
-    console.log(networkInfo, 'networkInfo=====')
+    setLocal('currentNetwork', networkInfo?.name)
+    setLocal('currentGraphqlApi', networkInfo?.APIURL)
+    console.log(networkInfo, currentNetwork, 'networkInfo=====')
   }
   const getMyAvatar = async () => {
     const networkInfo = await getChainInfo()
@@ -268,11 +271,14 @@ export default function Chat() {
     const client = createClient({
       url: networkInfo?.APIURL
     })
-
+    // debugger
     const data = await client.query(tokensQuery).toPromise()
     const chatList = data?.data?.chatInfos || []
+    console.log(chatList, 'chatList=====>>>')
     const result = formateData(chatList)
-    setChatList(result)
+    if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
+      setChatList(result)
+    }
     insertData(result)
     getMemberList(roomAddress, result)
   }
@@ -441,7 +447,6 @@ export default function Chat() {
     console.log(data, 'loading=data=')
     const loadingList = data?.data?.chatInfos || []
     console.log(loadingList, 'loadingList====')
-    insertData(loadingList)
     if(loadingList.length < 20) {
       setHasMore(false)
     }
@@ -455,17 +460,16 @@ export default function Chat() {
         showOperate: false,
       }
     })
-    insertData(fetchData)
-    const newfetchData = addAvatarToList(fetchData)
-    setTimeout(() => {
-      if(chatListRef.current.length) {
-        const list = [...chatListRef.current]
-        console.log(newfetchData, 'newfetchData===')
-        console.log(fetchData, list, memberListInfo, '====fetchData')
-        const result = list.concat(newfetchData)
-        setChatList(result)
-      }
-    }, 10)
+    
+    const newfetchData = await addAvatarToList(fetchData)
+    insertData(newfetchData)
+    if(chatListRef.current.length) {
+      const list = [...chatListRef.current]
+      console.log(newfetchData, 'newfetchData===')
+      console.log(fetchData, list, memberListInfo, '====fetchData')
+      const result = list.concat(newfetchData)
+      setChatList(result)
+    }
     console.log(fetchData, 'chatList.length')
   }
   const loadingData = async () => {
@@ -553,34 +557,7 @@ export default function Chat() {
     })
     return data
   }
-  const setPrivateChatList = (list) => {
-    const currentAddress =  history.location.pathname.split('/chat/')[1]
-    localForage.getItem('privateChatList').then(res => {
-      if(res) {
-        res[currNetwork][getLocal('account')]['rooms'][currentAddress] = {
-          'chatList': list
-        }
-        localForage.setItem('privateChatList', res)
-      } else {
-        let privateChatList = {}
-        privateChatList[currNetwork] = {
-          [getLocal('account')]: {
-            ['rooms']: {
-              [currentAddress]: {
-                ['chatList']: list
-              }
-            }
-          }
-        }
-        console.log(privateChatList,'privateChatList=====')
-        localForage.setItem('privateChatList', privateChatList)
-      }
-    }).catch(error => {
-      console.log(error, '=====error')
-    })
 
-    console.log(currNetwork, getLocal('account'), '====>>>currNetwork')
-  }
   const fetchPrivateChatList = async(toAddress, avatar) => {
     setRoomAvatar(avatar)
     const myAddress = getLocal('account')?.toLowerCase()
@@ -610,7 +587,6 @@ export default function Chat() {
     `
     try{
       const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, toAddress, avatar)
-      setPrivateChatList(currentList)
       setChatList(currentList)
       insertData(currentList)
       setShowMask(false)
@@ -638,14 +614,18 @@ export default function Chat() {
     const collection = db.collection('chatInfos')
     const res = await collection?.find({room: toAddress}).project({}).sort({ block: -1 }).toArray()
     if(!res || res?.length === 0) {
-      debugger
+      // debugger
       if(currentTabIndex === 0) {
         fetchPublicChatList(toAddress)
       } else {
         fetchPrivateChatList(toAddress, avatar)
       }
     } else {
-      setChatList(res)
+      // debugger
+      if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
+        console.log(res, 'getInitChatList=====>>>')
+        setChatList(res)
+      }
       setShowMask(false)
     }
   }
@@ -792,17 +772,17 @@ export default function Chat() {
     clearInterval(allTimer.current)
     allTimer.current = setInterval(() => {
       for (let i = 0; i < groupList.length; i++) {
+        console.log(groupList, 'groupList====>>>>')
         getCurrentChatList(groupList && groupList[i]?.id)
       }
     }, 20000)
   }
   const getUserAvatar = async(newList) => {
     let list = []
-    const ids = newList.map(item => item.sender)
+    const ids = newList?.map(item => item.sender)
     console.log(ids, '=====>>>>ids')
     const networkInfo = await getChainInfo()
     const idsList = '"' + ids.join('","')+ '"'
-    if(!ids) return
     const tokensQuery = `
     query{
       profiles(where:{id_in: [`+idsList+`]}){
@@ -815,6 +795,7 @@ export default function Chat() {
     const client = createClient({
       url: networkInfo?.APIURL
     })
+    if(!ids || !idsList) return
     const res = await client.query(tokensQuery).toPromise()
     console.log(res, 'memberListInfo=====')
     newList?.map(item => {
@@ -844,14 +825,30 @@ export default function Chat() {
     })
     return list
   }
+  const updateUnreadNum = (roomAddress, res) => {
+    console.log(res, '====>>>1')
+    const currentList = res
+    localForage.getItem('chatListInfo').then(res => {
+      console.log(res, 'res===>>updateUnreadNum')
+      const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
+      const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
+      publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount - 1 || 0
+      const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
+      res[currNetwork][getLocal('account')][roomType] = [...publicRooms]
+      setRoomList(publicRooms)
+      localForage.setItem('chatListInfo', res)
+      console.log(publicRooms, res, 'publicRooms====')
+    })
+  }
   const getCurrentGroupChatList = async(client, roomAddress) => {
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
     const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
+    updateUnreadNum(roomAddress, res)
     console.log(res, '=====>>>res')
     const lastBlock = res?.length && +res[0]?.block + 1
-    console.log(roomAddress, lastBlock, 'getCurrentGroupChatList')
-    if(!lastBlock || chatListRef.current[0]?.block == 0) return
+    console.log(roomAddress, lastBlock, res[0]?.index, 'getCurrentGroupChatList')
+    // if(!lastBlock || chatListRef.current[0]?.block == 0) return
     console.log(lastBlock, 'lastBlock=====1')
     const tokensQuery = `
         query{
@@ -870,11 +867,11 @@ export default function Chat() {
       const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
       const formatList = await getUserAvatar(newList)
       console.log(newList, formatList, 'formatList---')
+      const list = [...chatListRef.current]
       collection.insert(formatList,(error) => {
         updateNewList(roomAddress, collection)
         if (error) { throw error; }
       })
-      const list = [...chatListRef.current]
       if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
         setChatList(formatList.concat(list))
       }
@@ -884,11 +881,11 @@ export default function Chat() {
   const updateNewList = async(roomAddress, collection) => {
     const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
     const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
-    console.log(res,+res[0].index - Number(groupLists[index].chatCount), roomAddress, groupLists,'1====>>.')
+    console.log(res,+res[0]?.index - Number(groupLists[index]?.chatCount), roomAddress, groupLists,'1====>>.')
     if(index > -1) {
       groupLists[index] = {
         ...groupLists[index],
-        newChatCount: +res[0].index - Number(groupLists[index].chatCount) - 1
+        newChatCount: +res[0]?.index - Number(groupLists[index]?.chatCount) - 1
       }
       setHasChatCount(true)
     }
@@ -975,7 +972,7 @@ export default function Chat() {
     }
     setShowMask(false)
     console.log(hasScrollRef.current, 'hasScrollRef.current====')
-    startInterval(roomAddress, list)
+    // startInterval(roomAddress, list)
     console.log(data, chatList, result,'initChatList====')
     console.log(result, 'result===')
   }
@@ -1150,6 +1147,7 @@ export default function Chat() {
                   newGroupList ={roomList}
                   currentRoomName={currentRoomName}
                   hasAccess={hasAccess}
+                  currNetwork={currNetwork}
                   currentTabIndex={currentTabIndex}
                   currentAddress={currentAddress?.toLowerCase()}
                   hasChatCount={hasChatCount}
