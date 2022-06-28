@@ -970,7 +970,7 @@ export default function Chat() {
       })
     })
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-      insertData(result)
+      // insertData(result)
       setChatList(result)
     }
     setShowMask(false)

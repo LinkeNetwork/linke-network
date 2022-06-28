@@ -62,11 +62,13 @@ export default function GroupList(props) {
         const index = groupList?.findIndex(item => item.id == currentAddress?.toLowerCase())
         if(index > -1) {
           groupList[index]['chatCount'] = +fetchData?.chatCount || 0
+          groupList[index]['newChatCount'] = 0
         }
         console.log(groupList, '===chatListInfo==')
         const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
         account[roomType] = [...groupList]
         localForage.setItem('chatListInfo', res)
+        setGroupList(groupList)
         console.log(res, '===>>1')
       }
     })
