@@ -54,16 +54,18 @@ export default function GroupList(props) {
     console.log(fetchData, currNetwork, '=====>>>>updateChatCount')
     localForage.getItem('chatListInfo').then(res => {
       if(currNetwork) {
-        const groupList = 
-          currentTabIndex === 0
-          ? res && res[currNetwork][getLocal('account')]['publicRooms'] || []
-          :  res && res[currNetwork][getLocal('account')]['privateRooms'] || []
+        const account = res ? res[currNetwork][getLocal('account')] : null
+        const publicRooms = account ? account['publicRooms'] : []
+        const privateRooms = account ? account['privateRooms'] : []
+        const groupList = currentTabIndex === 0 ? publicRooms : privateRooms
         console.log(currNetwork, 'currNetwork===<<<')
         const index = groupList?.findIndex(item => item.id == currentAddress?.toLowerCase())
-        groupList[index]['chatCount'] = +fetchData?.chatCount
+        if(index > -1) {
+          groupList[index]['chatCount'] = +fetchData?.chatCount || 0
+        }
         console.log(groupList, '===chatListInfo==')
         const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
-        res[currNetwork][getLocal('account')][roomType] = [...groupList]
+        account[roomType] = [...groupList]
         localForage.setItem('chatListInfo', res)
         console.log(res, '===>>1')
       }
@@ -260,15 +262,17 @@ export default function GroupList(props) {
   const setChatListInfo = (groupInfos, type) => {
     const currNetwork = getLocal('currentNetwork')
     localForage.getItem('chatListInfo').then(res => {
-      const publicRooms = res && res[currNetwork][getLocal('account')]['publicRooms'] || []
-      const privateRooms = res && res[currNetwork][getLocal('account')]['privateRooms'] || []
+      const account = res ? res[currNetwork][getLocal('account')] : null
+      const publicRooms = account ? account['publicRooms'] : []
+      const privateRooms = account ? account['privateRooms'] : []
       let chatListInfo = res ? res : {}
-      if(!res) {
-        chatListInfo[currNetwork] = {
-          [getLocal('account')]: {
-            ['publicRooms']: [],
-            ['privateRooms']: []
-          }
+      debugger
+      if(!account && currNetwork) {
+        const list = Object.keys(chatListInfo)
+        chatListInfo[currNetwork] = list.length ? chatListInfo[currNetwork] : {}
+        chatListInfo[currNetwork][getLocal('account')] = {
+          ['publicRooms']: [],
+          ['privateRooms']: []
         }
       }
       if(type === 1) {
@@ -287,26 +291,14 @@ export default function GroupList(props) {
     })
   }
   useEffect(() => {
-    console.log(newGroupList, '====newGroupList')
-    localForage.getItem('chatListInfo').then(res => {
-      console.log(res, 'res===>>')
-      const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
-      if(currentTabIndex === 0) {
-        setGroupList(publicRooms)
-      }
-      console.log(publicRooms, '88888')
-    })
-    setState({
-      groupLists: [...newGroupList]
-    })
-  },[newGroupList, hasChatCount])
-  useEffect(() => {
-    if(getLocal('isConnect') && currentNetwork) {
+    if(getLocal('isConnect') && currentNetwork?.name) {
       const currNetwork = currentNetwork.name
       localForage.getItem('chatListInfo').then(res => {
         console.log(res, 'res===>>')
-        const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
-        const privateRooms = res && res[currNetwork]?.[getLocal('account')]?.['privateRooms']
+        // debugger
+        const account = res ? res[currNetwork][getLocal('account')] : null
+        const publicRooms = account ? account['publicRooms'] : []
+        const privateRooms = account ? account['privateRooms'] : []
         if(currentTabIndex === 0) {
           if(!publicRooms?.length) {
             getGroupList()
@@ -314,6 +306,9 @@ export default function GroupList(props) {
             console.log(publicRooms, currentAddress, 'publicRooms====1111')
             const groupList = [...publicRooms]
             setGroupList(groupList)
+            setState({
+              groupLists: groupList
+            })
           }
         }
         if(currentTabIndex === 1) {
@@ -321,12 +316,15 @@ export default function GroupList(props) {
             getPrivateGroupList()
           } else {
             setGroupList(privateRooms)
+            setState({
+              groupLists: privateRooms
+            })
           }
         }
       })
       updateChatCount()
     }
-  }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex, currentAddress, hasAccess])
+  }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex, currentAddress, hasAccess, newGroupList, hasChatCount])
   return (
     <ListGroupContainer>
       {

@@ -105,6 +105,7 @@ export default function Chat() {
       getInitChatList(item.id, item.avatar)
       startInterval(item.id)
     })
+    console.log(groupLists, 'groupLists===>>.')
   }, [groupLists, currentTabIndex])
   useEffect(() => {
     if(currentTabIndex === 1) {
@@ -832,12 +833,14 @@ export default function Chat() {
       console.log(res, 'res===>>updateUnreadNum')
       const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
       const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
-      publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount - 1 || 0
-      const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
-      res[currNetwork][getLocal('account')][roomType] = [...publicRooms]
-      setRoomList(publicRooms)
-      localForage.setItem('chatListInfo', res)
-      console.log(publicRooms, res, 'publicRooms====')
+      if(index > -1) {
+        publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount - 1 || 0
+        const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
+        res[currNetwork][getLocal('account')][roomType] = [...publicRooms]
+        setRoomList(publicRooms)
+        localForage.setItem('chatListInfo', res)
+        console.log(publicRooms, res, 'publicRooms====')
+      }
     })
   }
   const getCurrentGroupChatList = async(client, roomAddress) => {
