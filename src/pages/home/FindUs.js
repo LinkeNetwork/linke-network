@@ -10,13 +10,13 @@ export default function FindUs(props) {
   const { type } = props
   return (
     <FindUsContainer>
-      <a href="https://twitter.com/Bee_protocol" target="_blank" rel="noreferrer">
+      <a href="https://twitter.com/LinkeNetwork" target="_blank" rel="noreferrer">
         <Image size={type === 'footer' ? 50 : 40} src={type === 'footer' ? twitterImage : twitterImage1} />
       </a>
-      <a href="https://beeprotocol.xyz/chat/0xF49DB8e1F5D2120cdf7511Cf17D876622fFc7D22" target="_blank" rel="noreferrer">
+      <a href="https://www.linke.network/chat/0xb114927a3df6085bc7c808c07e87b8447a6e9469" target="_blank" rel="noreferrer">
         <Image size={type === 'footer' ? 50 : 40} src={type === 'footer' ? groupImage : groupImage1}/>
       </a>
-      <a href="https://medium.com/@Bee_protocol" target="_blank" className={`${type === 'footer' ? 'medium-link': ''}`} rel="noreferrer">
+      <a href="https://medium.com/@LinkeNetwork" target="_blank" className={`${type === 'footer' ? 'medium-link': ''}`} rel="noreferrer">
         {/* <div className={`medium-wrap ${type === 'footer' ? '' : 'small'}`}>
           <span className="iconfont icon-medium"></span>
         </div> */}
