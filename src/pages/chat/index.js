@@ -91,6 +91,8 @@ export default function Chat() {
   const [hasDecrypted, setHasDecrypted] = useState(false)
   const [hasChatCount, setHasChatCount] = useState(false)
   const [currentGroupType, setCurrentGroupType] = useState()
+  const [manager, setManager] = useState()
+  const [canSendText, setCanSendText] = useState()
   const currentGroupTypeRef = useRef()
   useEffect(()=>{
     currentAddressRef.current = currentAddress
@@ -182,6 +184,12 @@ export default function Chat() {
       })
       console.log(result, 'getMyKey=====')
     })
+  }
+  const getManager = async(id) => {
+    const tx = await getDaiWithSigner(id, PUBLIC_GROUP_ABI).profile()
+    setManager(tx.manager)
+    setCanSendText(tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase())
+    console.log(tx, manager?.toLowerCase() == getLocal('account')?.toLowerCase(), 'tx===manager')
   }
   const getPrivateChatStatus = async (id) => {
     const networkInfo = await getChainInfo()
@@ -411,6 +419,7 @@ export default function Chat() {
     setCurrentAddress(item.id)
     if(currentTabIndex === 0) {
       getMemberCount(item.id)
+      getManager(item.id)
     }
     setCurrentRoomName(item.name)
     setShowChat(true)
@@ -1197,7 +1206,7 @@ export default function Chat() {
                           </div>
                       </div>
                       {
-                        ((hasAccess || hasCreateRoom || currentTabIndex === 1) && currentGroupTypeRef.current != 2) &&
+                        (( hasAccess || hasCreateRoom || currentTabIndex === 1) && (canSendText || currentGroupTypeRef.current != 2)) &&
                         <ChatInputBox
                         startChat={(text) => startChat(text)}
                         clearChatInput={clearChatInput}
