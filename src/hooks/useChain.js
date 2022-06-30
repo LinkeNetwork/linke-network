@@ -11,6 +11,7 @@ export default function useChain() {
       const network = await provider.getNetwork()
       console.log(network, 'network=========>>>')
       const item = networks.filter(i=> i.chainId === network?.chainId)[0]
+      console.log(item, '===getChainInfo=')
       setState({currentNetwork:item})
       return item
     }

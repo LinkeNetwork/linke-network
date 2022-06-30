@@ -24,6 +24,8 @@ export default function ProfileInfo(props) {
   const [modalTitle, setModalTitle] = useState()
   const [showPrivateChat, setShowPrivateChat] = useState()
   const [privateKey, setPrivateKey] = useState()
+  const [showOpenPrivateChat, setShowOpenPrivateChat] = useState(false)
+  const [openTips, showOpenPrivateChatTips] = useState(false)
   const handleCancelFollow = () => {
 
   }
@@ -107,6 +109,9 @@ export default function ProfileInfo(props) {
       </Modal>
     )
   }
+  const openPrivateChatTips = (
+    <div className='open-tips'>Open Success!</div>
+  )
   const getFollowerList = (type) => {
     const title = type === 1 ? 'Followings' : 'Followers'
     setFollowType(type)
@@ -114,6 +119,7 @@ export default function ProfileInfo(props) {
     setShowFollowers(true)
   }
   const getPublicKey = () => {
+    setShowOpenPrivateChat(false)
     window.ethereum
     .request({
       method: 'eth_getEncryptionPublicKey',
@@ -124,33 +130,55 @@ export default function ProfileInfo(props) {
       const networkInfo = await getChainInfo()
       const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).register(result)
       await res.wait()
+      showOpenPrivateChatTips(true)
       setShoMask(false)
       setShowPrivateChat(true)
+      setTimeout(() => {
+        showOpenPrivateChatTips(false)
+      }, 3000)
       console.log(res, '======getPublicKey')
     })
-    .catch((error) => {
+    .catch(async(error) => {
       if (error.code === 4001) {
         console.log("We can't encrypt anything without the key.");
       } else {
-        console.error(error);
+        console.error(error, '====>>>>error');
       }
+      setShoMask(false)
     })
   }
-  const jupmToChat = () => {
-    history.push({
-      pathname: `/chat/${address}`,
-      state: {
-        name: profileInfo?.name,
-        address: address,
-        avatar: profileAvatar,
-        currentIndex: 1,
-        privateKey: privateKey
-      }
-    })
+  const jupmToChat = async() => {
+    const networkInfo = await getChainInfo()
+    const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(getLocal('account'))
+    if(Boolean(res)) {
+      history.push({
+        pathname: `/chat/${address}`,
+        state: {
+          name: profileInfo?.name,
+          address: address,
+          avatar: profileAvatar,
+          currentIndex: 1,
+          privateKey: privateKey
+        }
+      })
+    } else {
+      setShowOpenPrivateChat(true)
+    }
   }
   const OpenPrivate = () => {
     getPublicKey()
   }
+  const openChatModal = (
+    <Modal title="Open Private Message" visible={showOpenPrivateChat} onClose={() => setShowOpenPrivateChat(false)}>
+      <div className='dialog-title'>
+        You haven't opened private message yet, Do you want to open it？
+      </div>
+      <div className='dialog-operate-btn'>
+        <div className='confirm-btn' onClick={getPublicKey}>Confirm</div>
+        <div className='cancel-btn' onClick={() => setShowOpenPrivateChat(false)}>Cancel</div>
+      </div>
+    </Modal>
+  )
   useEffect(() => {
     setAddress(getLocal('account'))
    
@@ -168,6 +196,11 @@ export default function ProfileInfo(props) {
   }, [urlParams, getLocal('account'), hasCreateProfile, profileId])
   return (
     <ProfileInfoContanier>
+      {openChatModal}
+      {
+        openTips &&
+        openPrivateChatTips
+      }
       {
         showFollowers && followerMoadl()
       }

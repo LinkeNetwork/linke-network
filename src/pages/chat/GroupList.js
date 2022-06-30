@@ -1,4 +1,4 @@
-import { detectMobile, getLocal, formatAddress } from "../../utils"
+import { detectMobile, getLocal, formatAddress, setLocal } from "../../utils"
 import useChain from "../../hooks/useChain"
 import { createClient } from 'urql'
 import { useEffect, useState } from "react"
@@ -8,12 +8,13 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import styled from "styled-components"
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import EmptyInfo from './EmptyInfo'
+import localForage from "localforage"
 import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 export default function GroupList(props) {
-  const { hasCreateRoom, setState } = useGlobal()
-  const { showChatList, onSetCurIndex, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex} = props
+  const { hasCreateRoom, setState, currentNetwork } = useGlobal()
   const { getChainInfo } = useChain()
+  const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead} = props
   const [groupList, setGroupList] = useState([])
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
@@ -25,7 +26,6 @@ export default function GroupList(props) {
   const [currentX, setCurrentX] = useState(0)
   const [moveX, setMoveX] = useState(0)
   const [moveY, setMoveY] = useState(0)
-  const [roomIndex, setIndex] = useState()
   const [copied, setCopied] = useState(false)
   const [hasTransition, setHasTransition] = useState(false)
   const [moveStyle, setMoveStyle] = useState({})
@@ -33,38 +33,92 @@ export default function GroupList(props) {
   const history = useHistory()
   const path = history.location.pathname
 
+  const updateChatCount = async() => {
+    if(!currentAddress?.toLowerCase()) return
+    const tokensQuery = `
+      query{
+        groupInfo(id: "`+ currentAddress?.toLowerCase() + `"){
+          id,
+          description,
+          name,
+          avatar,
+          userCount,
+          chatCount,
+          style
+        }
+      }
+    `
+    const client = createClient({
+      url: getLocal('currentGraphqlApi')
+    })
+    const res = await client.query(tokensQuery).toPromise()
+    let fetchData = res?.data?.groupInfo
+    console.log(fetchData, currNetwork, '=====>>>>updateChatCount')
+    localForage.getItem('chatListInfo').then(res => {
+      if(currNetwork) {
+        const account = res ? res[currNetwork][getLocal('account')] : null
+        const publicRooms = account ? account['publicRooms'] : []
+        const privateRooms = account ? account['privateRooms'] : []
+        const groupList = currentTabIndex === 0 ? publicRooms : privateRooms
+        console.log(currNetwork, 'currNetwork===<<<')
+        const index = groupList?.findIndex(item => item.id == currentAddress?.toLowerCase())
+        if(index > -1) {
+          groupList[index]['chatCount'] = +fetchData?.chatCount || 0
+          groupList[index]['newChatCount'] = 0
+        }
+        console.log(groupList, '===chatListInfo==')
+        const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
+        account[roomType] = [...groupList]
+        localForage.setItem('chatListInfo', res)
+        setGroupList(groupList)
+        console.log(res, '===>>1')
+      }
+    })
+    
+  }
   const getGroupList = async () => {
-    debugger
     showMask()
     const address = getLocal('account')
     if(!address) {
       hiddenMask()
       return
     }
-    const networkInfo = await getChainInfo()
     const tokensQuery = `
     query{
       groupUser(id: "`+ address.toLowerCase() + `"){
         id,
         groupInfos{
           id,
-          name
+          name,
+          chatCount,
+          _type
         }
       }
     }
     `
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     const res = await client.query(tokensQuery).toPromise()
-    const groupInfos = res.data?.groupUser?.groupInfos || []
+    var groupInfos = res.data?.groupUser?.groupInfos || []
+    const roomAddress = path.split('/chat/')[1]?.toLowerCase()
+    if(roomAddress) {
+      const index = groupInfos?.findIndex((item) => item.id === roomAddress)
+      if(index === -1) {
+        groupInfos.push({
+          id: roomAddress,
+          name: currentRoomName
+        })
+      }
+    }
     setState({
       groupLists: [...groupInfos],
       hasGetGroupLists: true
     })
-    
+
     console.log(res.data?.groupUser?.groupInfos, 'groupInfos====')
     setGroupList(groupInfos || [])
+    setChatListInfo(groupInfos, 1)
     getCurrentRoomIndex(groupInfos)
     hiddenMask()
   }
@@ -140,6 +194,7 @@ export default function GroupList(props) {
   }
   const getPrivateGroupList = async() => {
     console.log(history.location?.state, 'history.location?.state====')
+    showMask()
     const data = history.location?.state
     var list = []
     if(data) {
@@ -150,7 +205,6 @@ export default function GroupList(props) {
         avatar: avatar
       }
     }
-    const networkInfo = await getChainInfo()
     const senderQuery = `
       query{
         encryptedInfos(where:{sender: "`+ getLocal('account')?.toLowerCase() +`"}){
@@ -166,7 +220,7 @@ export default function GroupList(props) {
       }
     `
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     const list1 = await client.query(senderQuery).toPromise()
     const list2 = await client.query(tokensQuery).toPromise()
@@ -203,30 +257,79 @@ export default function GroupList(props) {
     }
     console.log(res, privateGroupList, 'groupListQuery=====')
     setGroupList(privateGroupList)
+    setChatListInfo(privateGroupList, 2)
     setState({
       groupLists: privateGroupList
     })
+    hiddenMask()
+  }
+  const setChatListInfo = (groupInfos, type) => {
+    const currNetwork = getLocal('currentNetwork')
+    localForage.getItem('chatListInfo').then(res => {
+      const account = res ? res[currNetwork][getLocal('account')] : null
+      const publicRooms = account ? account['publicRooms'] : []
+      const privateRooms = account ? account['privateRooms'] : []
+      let chatListInfo = res ? res : {}
+      if(!account && currNetwork) {
+        const list = Object.keys(chatListInfo)
+        chatListInfo[currNetwork] = list.length ? chatListInfo[currNetwork] : {}
+        chatListInfo[currNetwork][getLocal('account')] = {
+          ['publicRooms']: [],
+          ['privateRooms']: []
+        }
+      }
+      if(type === 1) {
+        if(!publicRooms?.length) {
+          chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...groupInfos]
+          localForage.setItem('chatListInfo', chatListInfo)
+        }
+      } else {
+        if(!privateRooms?.length) {
+          chatListInfo[currNetwork][getLocal('account')]['privateRooms'] = [...groupInfos]
+          localForage.setItem('chatListInfo', chatListInfo)
+        }
+      }
+    }).catch(error => {
+      console.log(error, '=====error')
+    })
   }
   useEffect(() => {
-    if(hasAccess) {
-      getGroupList()
+    console.log(currentNetwork?.name, '00000===>>>')
+    if(getLocal('isConnect') && currentNetwork?.name) {
+      const currNetwork = currentNetwork.name
+      localForage.getItem('chatListInfo').then(res => {
+        console.log(res, 'res===>>')
+        const account = res ? res[currNetwork][getLocal('account')] : null
+        const publicRooms = account ? account['publicRooms'] : []
+        const privateRooms = account ? account['privateRooms'] : []
+        if(currentTabIndex === 0) {
+          if(!publicRooms?.length || hasCreateRoom) {
+            getGroupList()
+          } else {
+            console.log(publicRooms, currentAddress, 'publicRooms====1111')
+            const groupList = [...publicRooms]
+            setGroupList(groupList)
+            setState({
+              groupLists: groupList
+            })
+          }
+        }
+        if(currentTabIndex === 1) {
+          if(!privateRooms?.length) {
+            getPrivateGroupList()
+          } else {
+            setGroupList(privateRooms)
+            setState({
+              groupLists: privateRooms
+            })
+          }
+        }
+      }).catch(error => {
+        console.log(error, 'error===')
+      })
+      updateChatCount()
     }
-  }, hasAccess)
-  useEffect(() => {
-    console.log(newGroupList, '====newGroupList')
-    setGroupList(newGroupList)
-    setState({
-      groupLists: [...newGroupList]
-    })
-  },[newGroupList])
-  useEffect(() => {
-    if(currentTabIndex === 0) {
-      getGroupList()
-    }
-    if(currentTabIndex === 1) {
-      getPrivateGroupList()
-    }
-  }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex])
+  }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount])
   return (
     <ListGroupContainer>
       {
@@ -254,7 +357,7 @@ export default function GroupList(props) {
                 style={moveStyle}
                 key={item.id}
               >
-                
+
                 <Modal title="Confirm" visible={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
                   <div className='dialog-title'>Do you want to delete this chat room?</div>
                   <div className='btn-wrapper'>
@@ -306,10 +409,10 @@ export default function GroupList(props) {
                   </div>
 
                 }
-                {/* {
-                item.unreadNumber > 0 && item.path !== getLocal('account') &&
-                <div className={`unread-num ${!detectMobile() ? 'unread-num-web' : 'unread-num-client'}`}>{item.unreadNumber}</div>
-              } */}
+                {
+                item.newChatCount > 0 && item.id !== currentAddress &&
+                <div className={`unread-num ${!detectMobile() ? 'unread-num-web' : 'unread-num-client'}`}>{item.newChatCount}</div>
+              }
 
               </div>
             )

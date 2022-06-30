@@ -12,7 +12,8 @@ const state = {
   profileId: '',
   currentProfileAddress: '',
   showShareContent: false,
-  hasClickPlace: false
+  hasClickPlace: false,
+  currentTabIndex: '',
 }
 
 export default state

@@ -18,7 +18,7 @@ export default function ModalContainer(props) {
   const maskRef = useRef()
   const close = (e) => {
     if (e.target === maskRef.current)  maskClose && props.onClose(false)
-    e.preventDefault()
+    e.stopPropagation();
   }
   return (
     <Fragment>

@@ -9,7 +9,7 @@ export default function ChatTab(props) {
         {
           tabList.map((item, index) => {
             return(
-              <li onClick={() => changeChatType(index)} className={`${currentTabIndex == index ? 'active' : ''}`}>{item}</li>
+              <li onClick={() => changeChatType(index)} className={`${currentTabIndex == index ? 'active' : ''}`} key={index}>{item}</li>
             )
           })
         }
