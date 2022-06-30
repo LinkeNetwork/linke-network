@@ -329,7 +329,7 @@ export default function GroupList(props) {
       })
       updateChatCount()
     }
-  }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex, currentAddress, hasAccess, newGroupList, hasChatCount])
+  }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount])
   return (
     <ListGroupContainer>
       {
