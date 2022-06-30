@@ -17,7 +17,7 @@ import useDataBase from '../../hooks/useDataBase'
 import { ethers } from "ethers"
 import { detectMobile, throttle } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
-import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI } from '../../abi/index'
+import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI} from '../../abi/index'
 import localForage from "localforage"
 import ChangeNetwork from './ChangeNetwork'
 import Modal from '../../component/Modal'
@@ -679,7 +679,9 @@ export default function Chat() {
         var tx = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       }
       if(currentTabIndex === 0 ) {
-        var tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).send(chatText, 'msg')
+        const abi = currentGroupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
+        debugger
+        var tx = await getDaiWithSigner(currentAddress, abi).send(chatText, 'msg')
       }
       setClearChatInput(true)
       console.log(tx, 'tx===123')
