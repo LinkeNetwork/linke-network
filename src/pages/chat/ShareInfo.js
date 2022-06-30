@@ -30,22 +30,8 @@ export default function ShareInfo(props) {
     })
     const res = await client.query(tokensQuery).toPromise()
     let fetchData = res?.data?.groupInfo
-    const data = { //https://infura-ipfs.io/ipfs/QmcFkvsVyPphrUjNzfK9mJcK7b9aTxiXdnFzySxShJsWxL e96836
-      avatar: "https://infura-ipfs.io/ipfs/QmWJdE2SyewFJFkE1pSPaXFZB256HqfYxkYJMKCJ9d6ywW",
-      chatCount: "0",
-      description: "。。。",
-      id: "0xbd66f2c64094c40bf0af22196bfb27753a254f27",
-      name: "快讯5",
-      style: "{\"avatar\":\"\",\"backgroundColor\":\"#eee\",\"title\":\"7X24h获取最新最热的资讯\",\"footerTips\":\"投资有风险，入市需谨慎。本资讯不作为投资\",\"qrCodeBg\":\"https://infura-ipfs.io/ipfs/Qma1B5337SKNDCMTps62zdSsZoe9WW9Zvz6SnpHHGVKa7r\",\"subTitle\":\"全球数字经济领先媒体\"}",
-      userCount: "1",
-      __typename: "GroupInfo",
-    }
-    const shareInfoStyle = JSON.parse(data.style)
+    const shareInfoStyle = JSON.parse(fetchData.style)
     setShareInfoStyle(shareInfoStyle)
-    console.log(shareInfoStyle, shareInfoStyle.avatar, '00100===>>>')
-
-    // const shareInfoStyle = JSON.parse(fetchData.style)
-    // setShareInfoStyle(shareInfoStyle)
     console.log(fetchData, '===fetchDatafetchData=>>>>')
   }
   const canvasToHtml = () => {
