@@ -7,18 +7,31 @@ import { getDaiWithSigner, getLocal } from '../../utils'
 import { GROUP_FACTORY_ABI } from '../../abi'
 import Loading from '../../component/Loading'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
-import {ethers} from "ethers";
+import { ethers } from "ethers";
 import Select from 'react-select'
 const client = create('https://ipfs.infura.io:5001')
 export default function CreateNewRoom(props) {
   const { setState } = useGlobal()
-  const { createNewRoom, hiddenCreateInfo} = props
+  const { createNewRoom, hiddenCreateInfo } = props
   const { getChainInfo } = useChain()
   const [name, setName] = useState()
   const [shoMask, setShoMask] = useState(false)
   const [describe, setDescribe] = useState()
   const [currentGroup, setCurrentGroup] = useState()
   const [currentGroupType, setCurrentGroupType] = useState()
+  const [groupLogo, setGroupLogo] = useState()
+  const [showLoading, setShowLoading] = useState(false)
+  const [showSubLoading, setShowSubLoading] = useState(false)
+  const [currentColor, setCurrentColor] = useState('#ffffff')
+  const [subTitle, setSubTitle] = useState()
+  const [footerTitle, setFooterTitle] = useState()
+  const [footerTips, setFooterTips] = useState()
+  const [qrCodeBg, setQrCodeBg] = useState()
+  const [contentHeight, setContentHeight] = useState('auto')
+  const [showExplain1, setShowExplain1] = useState(false)
+  const [showExplain2, setShowExplain2] = useState(false)
+  const [showExplain3, setShowExplain3] = useState(false)
+  const [showExplain4, setShowExplain4] = useState(false)
   const typeList = [
     {
       label: 'Public Group',
@@ -26,86 +39,265 @@ export default function CreateNewRoom(props) {
     },
     {
       label: 'Subscribe Group',
-      value: 2
+      value: 3
     },
   ]
-  const changeNameInput = (e) => {
-    setName(e.target.value)
+  const handleShowExplain = (type) => {
+    switch(type) {
+      case 1:
+        setShowExplain1(true)
+        setTimeout(() => {
+          setShowExplain1(false)
+        }, 2000);
+         break;
+      case 2:
+        setShowExplain2(true)
+        setTimeout(() => {
+          setShowExplain2(false)
+        }, 2000);
+         break;
+      case 3:
+        setShowExplain3(true)
+        setTimeout(() => {
+          setShowExplain3(false)
+        }, 2000);
+        break;
+      case 4:
+        setShowExplain4(true)
+        setTimeout(() => {
+          setShowExplain4(false)
+        }, 2000);
+         break;
+    }
   }
-  const changeDescribeInput = (e) => {
-    setDescribe(e.target.value)
-  }
-  const handleCreate = async() => {
+  const handleCreate = async () => {
     setShoMask(true)
     const avatar = getLocal('account') + name
     const info = await client.add(multiavatar(avatar))
     const avatarUrl = `https://infura-ipfs.io/ipfs/${info.path}`
     const network = await getChainInfo()
     console.log(avatarUrl, 'avatarUrl=====')
+    const style = {
+      avatar: groupLogo,
+      backgroundColor: currentColor,
+      title: footerTitle,
+      subTitle: subTitle,
+      footerTips: footerTips,
+      qrCodeBg: qrCodeBg
+    }
+    console.log(style, JSON.stringify(style), 'style======')
     const name_ = 'group'
     const symbol_ = 'GROUP'
-    const params = ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string"], [name, describe, avatarUrl, name_, symbol_]);
-    const tx = await getDaiWithSigner(network?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
-    let callback = await tx.wait()
-    hiddenCreateInfo()
-    setState({
-      hasCreateRoom: true
-    })
-    createNewRoom(callback.logs[0].address, name)
-    console.log('callback', callback, callback.logs[0].address)
-    console.log(tx)
+    const params = ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, JSON.stringify(style), name_, symbol_]);
+    try {
+      const tx = await getDaiWithSigner(network?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
+      let callback = await tx.wait()
+      hiddenCreateInfo()
+      setState({
+        hasCreateRoom: true
+      })
+      createNewRoom(callback.logs[0].address, name)
+      console.log('callback', callback, callback.logs[0].address)
+      console.log(tx)
+    } catch (error) {
+      console.log(error, '==error===')
+      setShoMask(false)
+    }
+
   }
   const handleSelectChange = (val) => {
     console.log(val, 'handleSelectChange')
+    if (val.value == 3) {
+      setContentHeight('500px')
+    }
     setCurrentGroup(val)
     setCurrentGroupType(val.value)
   }
+  const uploadLogo = async (e, type) => {
+    const file = e.target.files[0]
+    try {
+      setShowLoading(true)
+      const added = await client.add(file)
+      const url = `https://infura-ipfs.io/ipfs/${added.path}`
+      if (type === 1) {
+        setGroupLogo(url)
+        setShowLoading(false)
+      } else {
+        setQrCodeBg(url)
+        setShowSubLoading(false)
+      }
+    } catch (error) {
+      console.log('Error uploading file: ', error)
+    }
+  }
   return (
     <CreateNewRoomContainer>
-      <div className="form-wrap">
-        <legend className="name">Name
-          <span>Required</span>
-        </legend>
-        <input
-          type="text"
-          placeholder=""
-          className="form-control form-control-lg"
-          value={name}
-          onChange={val => changeNameInput(val)}
-        />
+      <div className="form-content" style={{ height: `${contentHeight}` }}>
+        <div className="form-wrap">
+          <legend className="name">Room Type
+            <span>Required</span>
+          </legend>
+          <Select
+            value={currentGroup}
+            onChange={handleSelectChange}
+            options={typeList}
+            theme={(theme) => ({
+              ...theme,
+              colors: {
+                ...theme.colors,
+                primary25: '#dee2e6',
+                primary: '#333',
+              },
+            })}
+          />
+        </div>
+        <div className="form-wrap">
+          <legend className="name">Name
+            <span>Required</span>
+          </legend>
+          <input
+            type="text"
+            placeholder=""
+            className="form-control form-control-lg"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        {
+          currentGroupType == 3 &&
+          <div>
+            <div className="form-wrap">
+              <legend className="name">Logo
+              </legend>
+
+              {
+                showLoading && <div className="iconfont icon-loading"></div>
+              }
+              <div style={{ position: 'relative' }}>
+                {
+                  !groupLogo && !showLoading && <div className="iconfont icon-shangchuan">Upload</div>
+                }
+                <input
+                  type="file"
+                  className="upload-logo"
+                  onChange={(e) => uploadLogo(e, 1)}
+                />
+                {
+                  groupLogo &&
+                  <img src={groupLogo} style={{ width: '100%' }} />
+                }
+              </div>
+            </div>
+            <div className="form-wrap">
+              <legend className="name">BackgroundColor
+              </legend>
+              <input
+                type="color"
+                placeholder=""
+                onChange={(e) => setCurrentColor(e.target.value)}
+                value={currentColor}
+              />
+            </div>
+            <div className="form-wrap">
+              <div className="legend-wrapper">
+                <legend className="name">Footer Title
+                </legend>
+                <span className="iconfont icon-prompt" onClick={() => handleShowExplain(1)}></span>
+                {
+                  showExplain1 &&
+                  <img src="https://infura-ipfs.io/ipfs/QmZk1Rd98aeVUCGtPe9uT5iKXFgobLjfdNBERf3msDAud1" />
+                }
+              </div>
+              <input
+                type="text"
+                placeholder=""
+                className="form-control form-control-lg"
+                value={footerTitle}
+                onChange={(e) => setFooterTitle(e.target.value)}
+              />
+            </div>
+            <div className="form-wrap">
+              <div className="legend-wrapper">
+                <legend className="name">Footer Sub Title
+                </legend>
+                <span className="iconfont icon-prompt" onClick={() => handleShowExplain(2)}></span>
+                {
+                  showExplain2 &&
+                  <img src="https://infura-ipfs.io/ipfs/QmdJQKnqvSeDAiyyBAxExjQSPdkYL6eo4yDEAMk1m6iaEG" />
+                }
+              </div>
+              <input
+                type="text"
+                placeholder=""
+                className="form-control form-control-lg"
+                value={subTitle}
+                onChange={(e) => setSubTitle(e.target.value)}
+              />
+            </div>
+            <div className="form-wrap">
+              <div className="legend-wrapper">
+                <legend className="name">Footer Tips
+                </legend>
+                <span className="iconfont icon-prompt" onClick={() => handleShowExplain(3)}></span>
+                {
+                  showExplain3 &&
+                  <img src="https://infura-ipfs.io/ipfs/Qme2MXxFhnFRMFT6yfrz7GvVabPKkHHaQXvmbZF2g2KYET" />
+                }
+              </div>
+              <input
+                type="text"
+                placeholder=""
+                className="form-control form-control-lg"
+                value={footerTips}
+                onChange={(e) => setFooterTips(e.target.value)}
+              />
+            </div>
+            <div className="form-wrap">
+              <div className="legend-wrapper">
+                <legend className="name">Qr code Background
+                </legend>
+                <span className="iconfont icon-prompt" onClick={() => handleShowExplain(4)}></span>
+                {
+                  showExplain4 &&
+                  <img src="https://infura-ipfs.io/ipfs/Qmb2avAMxRCwbd7w6fuMGabWGXFnXYer79TCbUGPBqd9AG" />
+                }
+              </div>
+              {
+                showSubLoading && <div className="iconfont icon-loading"></div>
+              }
+              <div style={{ position: 'relative' }}>
+                {
+                  !qrCodeBg && !showSubLoading && <div className="iconfont icon-shangchuan">Upload</div>
+                }
+                <input
+                  type="file"
+                  className="upload-logo"
+                  onChange={(e) => uploadLogo(e, 2)}
+                />
+                {
+                  qrCodeBg &&
+                  <img src={qrCodeBg} style={{ width: '100%' }} />
+                }
+              </div>
+            </div>
+          </div>
+        }
+        <div className="form-wrap">
+          <legend className="name">Describe
+            <span>Required</span>
+          </legend>
+          <textarea
+            type="text"
+            className="form-control form-control-lg"
+            placeholder=""
+            value={describe}
+            onChange={(e) => { setDescribe(e.target.value) }}
+          />
+        </div>
       </div>
-      <div className="form-wrap">
-        <legend className="name">Describe
-          <span>Required</span>
-        </legend>
-        <textarea
-          type="text"
-          className="form-control form-control-lg"
-          placeholder=""
-          value={describe}
-          onChange={val => changeDescribeInput(val)}
-        />
-      </div>
-      <div className="form-wrap">
-        <legend className="name">Room Type
-          <span>Required</span>
-        </legend>
-        <Select
-          value={currentGroup}
-          onChange={handleSelectChange}
-          options={typeList}
-          theme={(theme) => ({
-            ...theme,
-            colors: {
-              ...theme.colors,
-              primary25: '#dee2e6',
-              primary: '#333',
-            },
-          })}
-        />
-      </div>
+
       <button className="submit-btn btn btn-lg btn-primary" onClick={() => handleCreate()}>
-        Create New RoomName
+        Create New Room
       </button>
       {
         shoMask &&
@@ -116,8 +308,39 @@ export default function CreateNewRoom(props) {
 }
 const CreateNewRoomContainer = styled.div`
 padding-bottom: 20px;
+.form-content {
+  overflow: auto;
+  // height: 500px;
+  margin-bottom: 20px;
+  padding-right: 20px;
+}
 .form-wrap {
+  position: relative;
   margin: 15px 0;
+  .upload-logo {
+    opacity: 0;
+    width: 100%;
+  }
+  .upload-logo {
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    right: 0;
+    left: 0;
+}
+  }
+  .icon-shangchuan{
+    width: 140px;
+    color: #fff;
+    background-color: #FFCE00;
+    border-color: #FFCE00;
+    text-align: center;
+    padding: 4px 0;
+    border-radius: 0.375rem;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+  }
   .name {
     font-size: 16px;
     font-weight: bold;
@@ -134,5 +357,16 @@ padding-bottom: 20px;
 }
 .submit-btn{
   width: 100%;
+}
+.legend-wrapper {
+  position: relative;
+  display: flex;
+  img {
+    width: 200px;
+    position: absolute;
+    z-index: 10;
+    right: 0;
+    top: -120px;
+  }
 }
 `

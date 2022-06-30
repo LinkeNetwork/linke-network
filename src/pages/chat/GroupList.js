@@ -34,6 +34,7 @@ export default function GroupList(props) {
   const path = history.location.pathname
 
   const updateChatCount = async() => {
+    if(!currentAddress?.toLowerCase()) return
     const tokensQuery = `
       query{
         groupInfo(id: "`+ currentAddress?.toLowerCase() + `"){
@@ -42,7 +43,8 @@ export default function GroupList(props) {
           name,
           avatar,
           userCount,
-          chatCount
+          chatCount,
+          style
         }
       }
     `
@@ -268,7 +270,6 @@ export default function GroupList(props) {
       const publicRooms = account ? account['publicRooms'] : []
       const privateRooms = account ? account['privateRooms'] : []
       let chatListInfo = res ? res : {}
-      debugger
       if(!account && currNetwork) {
         const list = Object.keys(chatListInfo)
         chatListInfo[currNetwork] = list.length ? chatListInfo[currNetwork] : {}
@@ -293,16 +294,16 @@ export default function GroupList(props) {
     })
   }
   useEffect(() => {
+    console.log(currentNetwork?.name, '00000===>>>')
     if(getLocal('isConnect') && currentNetwork?.name) {
       const currNetwork = currentNetwork.name
       localForage.getItem('chatListInfo').then(res => {
         console.log(res, 'res===>>')
-        // debugger
         const account = res ? res[currNetwork][getLocal('account')] : null
         const publicRooms = account ? account['publicRooms'] : []
         const privateRooms = account ? account['privateRooms'] : []
         if(currentTabIndex === 0) {
-          if(!publicRooms?.length) {
+          if(!publicRooms?.length || hasCreateRoom) {
             getGroupList()
           } else {
             console.log(publicRooms, currentAddress, 'publicRooms====1111')
@@ -323,6 +324,8 @@ export default function GroupList(props) {
             })
           }
         }
+      }).catch(error => {
+        console.log(error, 'error===')
       })
       updateChatCount()
     }

@@ -403,6 +403,7 @@ export default function Chat() {
     setMemberCount(memberListInfo?.length)
   }
   const showChatList = (e, item, list) => {
+    setChatList([])
     clearInterval(timer.current)
     clearInterval(allTimer.current)
     setRoomAvatar(item.avatar)
@@ -634,7 +635,11 @@ export default function Chat() {
       // debugger
       if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
         console.log(res, 'getInitChatList=====>>>')
-        setChatList(res)
+        if(chatList.length) {
+          setChatList(chatList)
+        } else {
+          setChatList(res)
+        }
       }
       setShowMask(false)
     }
@@ -1084,7 +1089,7 @@ export default function Chat() {
         }
         {
           showCreateNewRoom &&
-          <Modal title="Create New RoomName" visible={showCreateNewRoom} onClose={() => {setShowCreateNewRoom(false)}}>
+          <Modal title="Create New Room" visible={showCreateNewRoom} onClose={() => {setShowCreateNewRoom(false)}}>
             <CreateNewRoom createNewRoom={(address, name) => createNewRoom(address, name)}  hiddenCreateInfo={() => {setShowCreateNewRoom(false)}}/>
           </Modal>
         }
@@ -1107,6 +1112,7 @@ export default function Chat() {
             isPc={detectMobile()}
             shareTextInfo={shareTextInfo}
             currentAddress={currentAddress}
+            currentGroupType={currentGroupType}
             closeShareInfo={() => handleClick()}>
           </ShareInfo>
         }
@@ -1206,7 +1212,7 @@ export default function Chat() {
                           </div>
                       </div>
                       {
-                        (( hasAccess || hasCreateRoom || currentTabIndex === 1) && (canSendText || currentGroupTypeRef.current != 2)) &&
+                        (( hasAccess || hasCreateRoom || currentTabIndex === 1) || (canSendText && currentGroupTypeRef.current == 3)) &&
                         <ChatInputBox
                         startChat={(text) => startChat(text)}
                         clearChatInput={clearChatInput}
