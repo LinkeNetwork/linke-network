@@ -356,6 +356,7 @@ export default function Chat() {
     isRoom(roomAddress)
   }
   const createNewRoom = async (address, name) => {
+    getJoinRoomAccess(address)
     setCurrentAddress(address)
     setChatList([])
     setChatListStatus(new Map())

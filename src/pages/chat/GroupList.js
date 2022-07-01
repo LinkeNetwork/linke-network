@@ -77,7 +77,7 @@ export default function GroupList(props) {
     
   }
   const getGroupList = async () => {
-    showMask()
+    // showMask()
     const address = getLocal('account')
     if(!address) {
       hiddenMask()
@@ -115,7 +115,6 @@ export default function GroupList(props) {
       groupLists: [...groupInfos],
       hasGetGroupLists: true
     })
-
     console.log(res.data?.groupUser?.groupInfos, 'groupInfos====')
     setGroupList(groupInfos || [])
     setChatListInfo(groupInfos, 1)
@@ -279,20 +278,19 @@ export default function GroupList(props) {
         }
       }
       if(type === 1) {
-        if(!publicRooms?.length) {
-          chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...groupInfos]
-          localForage.setItem('chatListInfo', chatListInfo)
-        }
+        chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...groupInfos]
+        localForage.setItem('chatListInfo', chatListInfo)
       } else {
-        if(!privateRooms?.length) {
-          chatListInfo[currNetwork][getLocal('account')]['privateRooms'] = [...groupInfos]
-          localForage.setItem('chatListInfo', chatListInfo)
-        }
+        chatListInfo[currNetwork][getLocal('account')]['privateRooms'] = [...groupInfos]
+        localForage.setItem('chatListInfo', chatListInfo)
       }
     }).catch(error => {
       console.log(error, '=====error')
     })
   }
+  useEffect(() => {
+    updateChatCount()
+  }, [newGroupList, hasChatCount])
   useEffect(() => {
     console.log(currentNetwork?.name, '00000===>>>')
     if(getLocal('isConnect') && currentNetwork?.name) {
@@ -327,8 +325,8 @@ export default function GroupList(props) {
       }).catch(error => {
         console.log(error, 'error===')
       })
-      updateChatCount()
     }
+    console.log(hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, '777====')
   }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount])
   return (
     <ListGroupContainer>

@@ -9,6 +9,7 @@ import Loading from '../../component/Loading'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
 import { ethers } from "ethers";
 import Select from 'react-select'
+import Message from "../../component/Message"
 const client = create('https://ipfs.infura.io:5001')
 export default function CreateNewRoom(props) {
   const { setState } = useGlobal()
@@ -16,22 +17,25 @@ export default function CreateNewRoom(props) {
   const { getChainInfo } = useChain()
   const [name, setName] = useState()
   const [shoMask, setShoMask] = useState(false)
-  const [describe, setDescribe] = useState()
+  const [describe, setDescribe] = useState('')
   const [currentGroup, setCurrentGroup] = useState()
   const [currentGroupType, setCurrentGroupType] = useState()
-  const [groupLogo, setGroupLogo] = useState()
+  const [groupLogo, setGroupLogo] = useState('')
   const [showLoading, setShowLoading] = useState(false)
   const [showSubLoading, setShowSubLoading] = useState(false)
   const [currentColor, setCurrentColor] = useState('#ffffff')
-  const [subTitle, setSubTitle] = useState()
-  const [footerTitle, setFooterTitle] = useState()
-  const [footerTips, setFooterTips] = useState()
-  const [qrCodeBg, setQrCodeBg] = useState()
+  const [subTitle, setSubTitle] = useState('')
+  const [footerTitle, setFooterTitle] = useState('')
+  const [footerTips, setFooterTips] = useState('')
+  const [qrCodeBg, setQrCodeBg] = useState('')
   const [contentHeight, setContentHeight] = useState('auto')
   const [showExplain1, setShowExplain1] = useState(false)
   const [showExplain2, setShowExplain2] = useState(false)
   const [showExplain3, setShowExplain3] = useState(false)
-  const [showExplain4, setShowExplain4] = useState(false)
+  const [showTypeError, setShowTypeError] = useState(false)
+  const [showNameError, setShowNameError] = useState(false)
+  const [showMessage, setShowMessage] = useState(false)
+  const [messageText, setMessageText] = useState('')
   const typeList = [
     {
       label: 'Public Group',
@@ -62,15 +66,18 @@ export default function CreateNewRoom(props) {
           setShowExplain3(false)
         }, 2000);
         break;
-      case 4:
-        setShowExplain4(true)
-        setTimeout(() => {
-          setShowExplain4(false)
-        }, 2000);
-         break;
     }
   }
   const handleCreate = async () => {
+    console.log(handleBlur(), handleSelectBlur(), '88888')
+    if(handleBlur() || handleSelectBlur()) {
+      setMessageText('Please fill in the required fields')
+      setShowMessage(true)
+      setTimeout(() => {
+        setShowMessage(false)
+      }, 2000)
+      return
+    }
     setShoMask(true)
     const avatar = getLocal('account') + name
     const info = await client.add(multiavatar(avatar))
@@ -88,8 +95,11 @@ export default function CreateNewRoom(props) {
     console.log(style, JSON.stringify(style), 'style======')
     const name_ = 'group'
     const symbol_ = 'GROUP'
-    const params = ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, JSON.stringify(style), name_, symbol_]);
+    debugger
+    const styleList = JSON.stringify(style)
     try {
+      debugger
+      const params = ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, styleList, name_, symbol_]);
       const tx = await getDaiWithSigner(network?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
       let callback = await tx.wait()
       hiddenCreateInfo()
@@ -112,6 +122,7 @@ export default function CreateNewRoom(props) {
     }
     setCurrentGroup(val)
     setCurrentGroupType(val.value)
+    setShowTypeError(false)
   }
   const uploadLogo = async (e, type) => {
     const file = e.target.files[0]
@@ -130,8 +141,30 @@ export default function CreateNewRoom(props) {
       console.log('Error uploading file: ', error)
     }
   }
+  const handleBlur = () => {
+    if(!name) {
+      setShowNameError(true)
+      return true
+    } else {
+      setShowNameError(false)
+      return false
+    }
+  }
+  const handleSelectBlur = () => {
+    if(!currentGroupType) {
+      setShowTypeError(true)
+      return true
+    } else {
+      setShowTypeError(false)
+      return false
+    }
+  }
   return (
     <CreateNewRoomContainer>
+      {
+        showMessage &&
+        <Message messageText={messageText}/>
+      }
       <div className="form-content" style={{ height: `${contentHeight}` }}>
         <div className="form-wrap">
           <legend className="name">Room Type
@@ -140,6 +173,7 @@ export default function CreateNewRoom(props) {
           <Select
             value={currentGroup}
             onChange={handleSelectChange}
+            onBlur={handleSelectBlur}
             options={typeList}
             theme={(theme) => ({
               ...theme,
@@ -150,6 +184,10 @@ export default function CreateNewRoom(props) {
               },
             })}
           />
+          {
+            showTypeError &&
+            <div className="error-tip">Name Can't be empty</div>
+          }
         </div>
         <div className="form-wrap">
           <legend className="name">Name
@@ -161,7 +199,12 @@ export default function CreateNewRoom(props) {
             className="form-control form-control-lg"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            onBlur={handleBlur}
           />
+          {
+            showNameError && 
+            <div className="error-tip">Name Can't be empty</div>
+          }
         </div>
         {
           currentGroupType == 3 &&
@@ -252,39 +295,10 @@ export default function CreateNewRoom(props) {
                 onChange={(e) => setFooterTips(e.target.value)}
               />
             </div>
-            <div className="form-wrap">
-              <div className="legend-wrapper">
-                <legend className="name">Qr code Background
-                </legend>
-                <span className="iconfont icon-prompt" onClick={() => handleShowExplain(4)}></span>
-                {
-                  showExplain4 &&
-                  <img src="https://infura-ipfs.io/ipfs/Qmb2avAMxRCwbd7w6fuMGabWGXFnXYer79TCbUGPBqd9AG" />
-                }
-              </div>
-              {
-                showSubLoading && <div className="iconfont icon-loading"></div>
-              }
-              <div style={{ position: 'relative' }}>
-                {
-                  !qrCodeBg && !showSubLoading && <div className="iconfont icon-shangchuan">Upload</div>
-                }
-                <input
-                  type="file"
-                  className="upload-logo"
-                  onChange={(e) => uploadLogo(e, 2)}
-                />
-                {
-                  qrCodeBg &&
-                  <img src={qrCodeBg} style={{ width: '100%' }} />
-                }
-              </div>
-            </div>
           </div>
         }
         <div className="form-wrap">
           <legend className="name">Describe
-            <span>Required</span>
           </legend>
           <textarea
             type="text"
@@ -368,5 +382,10 @@ padding-bottom: 20px;
     right: 0;
     top: -120px;
   }
+}
+.error-tip {
+  font-size: 12px;
+  color: red;
+  margin-top: 5px;
 }
 `
