@@ -635,12 +635,8 @@ export default function Chat() {
     } else {
       // debugger
       if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-        console.log(res, 'getInitChatList=====>>>')
-        if(chatList.length) {
-          setChatList(chatList)
-        } else {
-          setChatList(res)
-        }
+        console.log(res, chatList, 'getInitChatList=====>>>')
+        setChatList(res)
       }
       setShowMask(false)
     }
