@@ -12,7 +12,7 @@ import Modal from '../../component/Modal'
 import FollowerList from './FollowerList'
 export default function ProfileInfo(props) {
   const { getChainInfo } = useChain()
-  const { hasCreateProfile, setState, profileId, profileAvatar } = useGlobal()
+  const { hasCreateProfile, setState, profileId, profileAvatar, currentNetwork } = useGlobal()
   const { urlParams } = props
   const history = useHistory()
   const [address, setAddress] = useState()
@@ -30,11 +30,11 @@ export default function ProfileInfo(props) {
 
   }
   const getPrivateChatStatus = async (pathname) => {
-    const networkInfo = await getChainInfo()
-    const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(pathname)
+    // const networkInfo = await getChainInfo()
+    const res = await getDaiWithSigner(currentNetwork?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(pathname)
     setShowPrivateChat(Boolean(res))
     setPrivateKey(res)
-    console.log(res, 'getPrivateChatStatus=====')
+    console.log(res, currentNetwork, 'getPrivateChatStatus=====')
   }
   const getFollowStatus = async (client) => {
     const tokensQuery = `

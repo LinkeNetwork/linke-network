@@ -12,7 +12,7 @@ import useGroupMember from '../../hooks/useGroupMember'
 import useGlobal from "../../hooks/useGlobal"
 export default function GroupMember(props) {
   const {currentAddress, closeGroupMember} = props
-  const { setState } = useGlobal()
+  const { setState, currentNetwork } = useGlobal()
   const {getGroupMember} = useGroupMember()
   const [memberList, setMemberList] = useState([])
   const [manager,setManager] = useState()
@@ -50,6 +50,9 @@ export default function GroupMember(props) {
       pathname: `/profile/${item.id}`,
       state: item.id
     })
+  }
+  const handleChat = (item) => {
+    // const res = await getDaiWithSigner(currentNetwork?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(getLocal('account'))
   }
   const groupInfoList = () => {
     return (
@@ -126,6 +129,7 @@ export default function GroupMember(props) {
                       }
                     <div className='name'>{formatAddress(item.id)}</div>
                     <div className="view-btn" onClick={() => viewProfile(item)}>View</div>
+                    {/* <div className="view-btn" onClick={() => handleChat(item)}>Chat</div> */}
                     {showOperate && <span></span>}
                   </div>
                 }

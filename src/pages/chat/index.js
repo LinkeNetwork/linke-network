@@ -230,13 +230,31 @@ export default function Chat() {
       setRoomList(groupList)
     }
   }
+  const getGroupType = async(roomAddress) => {
+    const tokensQuery = `
+      query{
+        groupInfo(id: "`+ roomAddress?.toLowerCase() + `"){
+          id,
+          _type
+        }
+      }
+    `
+    const client = createClient({
+      url: getLocal('currentGraphqlApi')
+    })
+    const res = await client.query(tokensQuery).toPromise()
+    return res?.data?.groupInfo?._type
+  }
   const isRoom = async (roomAddress) => {
     try {
-      console.log(groupLists, roomListRef.current, roomAddress, '999')
       const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
       if(index > 0) return
-      const {name} = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
-      console.log(name, 'name=====')
+      const groupType = await getGroupType(roomAddress)
+      if(groupType == 3) {
+        var { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
+      } else {
+        var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
+      }
       updateGroupList(name, roomAddress)
       getJoinRoomAccess(roomAddress)
       setCurrentRoomName(name)
