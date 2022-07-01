@@ -214,6 +214,12 @@ z-index: 31;
     border-radius: 2px;
     align-items: center;
     padding: 0 20px;
+    position: relative;
+    &:nth-child(1), &:nth-child(2) {
+      .user-profile-wrap {
+        margin-top: 140px;
+      }
+    }
   }
   .avatar-image {
     width: 60px;
