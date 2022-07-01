@@ -108,7 +108,7 @@ export default function ShareInfo(props) {
             <div className='qrcode-dom' style={{backgroundImage: `url(${shareInfoStyle?.qrCodeBg})`}}>
               <QRCode
                 renderAs="svg"
-                value={`https://www.linke.network/${currentAddress}`}
+                value={`https://www.linke.network/chat/${currentAddress}`}
                 size={60}
                 fgColor="#000"
               />
