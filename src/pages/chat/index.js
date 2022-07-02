@@ -108,7 +108,7 @@ export default function Chat() {
       startInterval(item.id)
     })
     console.log(groupLists, 'groupLists===>>.')
-  }, [groupLists, currentTabIndex])
+  }, [currentTabIndex])
   useEffect(() => {
     if(currentTabIndex === 1) {
       getMyAvatar()
@@ -314,11 +314,15 @@ export default function Chat() {
     })
     // debugger
     const data = await client.query(tokensQuery).toPromise()
+    const db = await setDataBase()
+    const collection = db.collection('chatInfos')
+    const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
     const chatList = data?.data?.chatInfos || []
-    console.log(chatList, 'chatList=====>>>')
+    console.log(chatList, res, 'chatList=====>>>')
     const result = formateData(chatList)
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-      setChatList(result)
+      debugger
+      setChatList(res || result)
     }
     insertData(result)
     getMemberList(roomAddress, result)
@@ -513,6 +517,7 @@ export default function Chat() {
       console.log(newfetchData, 'newfetchData===')
       console.log(fetchData, list, memberListInfo, '====fetchData')
       const result = list.concat(newfetchData)
+      debugger
       setChatList(result)
     }
     console.log(fetchData, 'chatList.length')
@@ -669,6 +674,7 @@ export default function Chat() {
       // debugger
       if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
         console.log(res, chatList, 'getInitChatList=====>>>')
+        debugger
         setChatList(res)
       }
       setShowMask(false)
@@ -709,7 +715,8 @@ export default function Chat() {
         var tx = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       }
       if(currentTabIndex === 0 ) {
-        const abi = currentGroupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
+        const groupType = await getGroupType(currentAddress)
+        const abi = groupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
         debugger
         var tx = await getDaiWithSigner(currentAddress, abi).send(chatText, 'msg')
       }
@@ -727,10 +734,6 @@ export default function Chat() {
         showProfile: false,
         showOperate: false,
         avatar: myAvatar
-      }
-
-      if (!chatList) {
-        setChatList({})
       }
 
       chatList.unshift(newChat)
@@ -777,6 +780,7 @@ export default function Chat() {
           chatListStatus.set(k, v)
         })
         const chatLists = hasScroll ? chatList : [...chatListStatus.values()]
+        debugger
         setChatList(chatLists)
       }
     }
@@ -922,6 +926,7 @@ export default function Chat() {
         if (error) { throw error; }
       })
       if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
+        debugger
         setChatList(formatList.concat(list))
       }
       console.log(roomAddress, newList, groupLists, 'newList====')
@@ -1016,7 +1021,8 @@ export default function Chat() {
       })
     })
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-      // insertData(result)
+      debugger
+      insertData(result)
       setChatList(result)
     }
     setShowMask(false)
