@@ -1,12 +1,14 @@
 import Modal from  '../../component/Modal'
 import styled from "styled-components"
 import { useState } from 'react'
-import { PUBLIC_GROUP_ABI } from '../../abi'
+import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI } from '../../abi'
 import { getDaiWithSigner } from '../../utils'
+import useGroup from '../../hooks/useGroup'
 import useGlobal from '../../hooks/useGlobal'
 import Loading from '../../component/Loading'
 export default function JoinGroupButton(props) {
   const { setState } = useGlobal()
+  const { getGroupType } = useGroup()
   const { currentAddress, changeJoinStatus } = props
   const [showJoinRoom, setShowJoinRoom] = useState(false)
   const [showLoading, setShowLoading] = useState(false)
@@ -15,15 +17,19 @@ export default function JoinGroupButton(props) {
     setName(e.target.value)
   }
   const handleJoinRoom = async() => {
+    const groupType = await getGroupType(currentAddress)
     setShowLoading(true)
-    const tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).joinRoom(name)
-    console.log(tx, 'tx====')
-    await tx.wait()
-    setState({
-      hasCreateRoom: true
-    })
-    setShowLoading(false)
-    changeJoinStatus()
+    if(groupType) {
+      const abi = groupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
+      const tx = await getDaiWithSigner(currentAddress, abi).joinRoom(name)
+      console.log(tx, 'tx====')
+      await tx.wait()
+      setState({
+        hasCreateRoom: true
+      })
+      setShowLoading(false)
+      changeJoinStatus(groupType)
+    }
   }
   return (
     <JoinGroupButtonContainer>

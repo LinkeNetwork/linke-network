@@ -186,6 +186,7 @@ export default function Chat() {
     })
   }
   const getManager = async(id) => {
+    debugger
     const tx = await getDaiWithSigner(id, PUBLIC_GROUP_ABI).profile()
     setManager(tx.manager)
     setCanSendText(tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase())
@@ -218,7 +219,7 @@ export default function Chat() {
     }
   }
   const updateGroupList = (name, roomAddress) => {
-    // debugger
+    debugger
     if(!hasGetGroupLists) return
     const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
     const groupList = [...groupLists]
@@ -247,6 +248,7 @@ export default function Chat() {
   }
   const isRoom = async (roomAddress) => {
     try {
+      debugger
       const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
       if(index > 0) return
       const groupType = await getGroupType(roomAddress)
@@ -255,6 +257,7 @@ export default function Chat() {
       } else {
         var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
       }
+      console.log(name, '====....')
       updateGroupList(name, roomAddress)
       getJoinRoomAccess(roomAddress)
       setCurrentRoomName(name)
@@ -274,10 +277,21 @@ export default function Chat() {
     setShowMask(false)
   }
   const getJoinRoomAccess = async(roomAddress) => {
-    const res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
-    const hasAccess= ethers.BigNumber.from(res) > 0
-    setHasAccess(hasAccess)
-    console.log(hasAccess, Boolean(hasAccess), 'hasAccess======')
+    try {
+      const groupType = await getGroupType(roomAddress)
+      debugger
+      if(groupType == 1) {
+        var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
+      } else {
+        var res = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
+        console.log(res, '=getDaiWithSigner==')
+      }
+      const hasAccess= ethers.BigNumber.from(res) > 0
+      setHasAccess(hasAccess)
+      console.log(hasAccess, Boolean(hasAccess), 'hasAccess======')
+    } catch(error) {
+      console.log(error, '===error==')
+    }
   }
   const fetchPublicChatList = async(roomAddress) => {
     const networkInfo = await getChainInfo()
@@ -455,6 +469,7 @@ export default function Chat() {
     }
   }
   const loadingGroupData = async() => {
+    debugger
     const firstBlock = chatList && chatList[chatList.length-1]?.block
     if(!firstBlock) return
     const client = createClient({
@@ -813,6 +828,7 @@ export default function Chat() {
     let list = []
     const ids = newList?.map(item => item.sender)
     console.log(ids, '=====>>>>ids')
+    if(!ids) return
     const networkInfo = await getChainInfo()
     const idsList = '"' + ids.join('","')+ '"'
     const tokensQuery = `
@@ -827,7 +843,6 @@ export default function Chat() {
     const client = createClient({
       url: networkInfo?.APIURL
     })
-    if(!ids || !idsList) return
     const res = await client.query(tokensQuery).toPromise()
     console.log(res, 'memberListInfo=====')
     newList?.map(item => {
@@ -1043,6 +1058,14 @@ export default function Chat() {
     )
     .catch((error) => console.log(error.message));
   }
+  const changeJoinStatus = (groupType) => {
+    debugger
+    if(groupType === 1) {
+      setHasAccess(true)
+    } else {
+      getManager(currentAddress)
+    }
+  }
   const handleDecryptedMessage = (id, text) => {
     getDecryptedMessage(id, text)
   }
@@ -1238,8 +1261,8 @@ export default function Chat() {
                       ></ChatInputBox> 
                       }
                       {
-                        (!hasAccess) &&
-                        <JoinGroupButton currentAddress={currentAddress} changeJoinStatus={() => {setHasAccess(true)}} />
+                        (!hasAccess) && currentGroupTypeRef.current != 3 &&
+                        <JoinGroupButton currentAddress={currentAddress} changeJoinStatus={(groupType) => changeJoinStatus(groupType)} />
                       }
                     </div>
                   }

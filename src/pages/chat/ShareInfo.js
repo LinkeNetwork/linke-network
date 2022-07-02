@@ -118,10 +118,6 @@ export default function ShareInfo(props) {
             shareInfoStyle?.footerTips &&
             <div className='share-tips'>{shareInfoStyle?.footerTips}</div>
           }
-          {
-            currentGroupType != 3 && <div className='share-tips'>投资有风险，入市需谨慎。本资讯不作为投资理财建议。</div>
-          }
-          
         </div>
         <div onClick={() => canvasToHtml()} className="save-image-btn">保存图片</div>
       </div>
