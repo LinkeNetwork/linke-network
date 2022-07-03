@@ -36,7 +36,7 @@ export default function ShareInfo(props) {
   }
   const canvasToHtml = () => {
     html2canvas(document.querySelector("#shareText"), {
-      backgroundColor: '#fff',
+      backgroundColor: shareInfoStyle.backgroundColor,
       scale: 2,
       useCORS: true,
     })
