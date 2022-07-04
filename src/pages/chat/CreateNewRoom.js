@@ -36,6 +36,7 @@ export default function CreateNewRoom(props) {
   const [showNameError, setShowNameError] = useState(false)
   const [showMessage, setShowMessage] = useState(false)
   const [messageText, setMessageText] = useState('')
+  const [transactionHash, setTransactionHash] = useState()
   const typeList = [
     {
       label: 'Public Group',
@@ -101,6 +102,7 @@ export default function CreateNewRoom(props) {
       debugger
       const params = ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, styleList, name_, symbol_]);
       const tx = await getDaiWithSigner(network?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
+      setTransactionHash(tx.hash)
       let callback = await tx.wait()
       hiddenCreateInfo()
       setState({
@@ -110,6 +112,18 @@ export default function CreateNewRoom(props) {
       console.log('callback', callback, callback.logs[0].address)
       console.log(tx)
     } catch (error) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      const receipt = await provider.getTransactionReceipt(transactionHash)
+      console.log(receipt, 'receipt======')
+      const hash = receipt?.logs[1]?.transactionHash
+      debugger
+      if(hash) {
+        hiddenCreateInfo()
+        setState({
+          hasCreateRoom: true
+        })
+        createNewRoom(receipt?.logs[1]?.address, name)
+      }
       console.log(error, '==error===')
       setShoMask(false)
     }
