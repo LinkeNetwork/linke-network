@@ -12,7 +12,7 @@ import localForage from "localforage"
 import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 export default function GroupList(props) {
-  const { hasCreateRoom, setState, currentNetwork } = useGlobal()
+  const { hasCreateRoom, setState, currentNetwork, hasQuitRoom } = useGlobal()
   const { getChainInfo } = useChain()
   const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead} = props
   const [groupList, setGroupList] = useState([])
@@ -327,7 +327,7 @@ export default function GroupList(props) {
       })
     }
     console.log(hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, '777====')
-  }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount])
+  }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, hasQuitRoom])
   return (
     <ListGroupContainer>
       {

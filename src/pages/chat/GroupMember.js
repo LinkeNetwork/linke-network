@@ -6,12 +6,16 @@ import { useHistory } from 'react-router-dom'
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
 import { createClient } from 'urql'
-import { PUBLIC_GROUP_ABI } from '../../abi'
+import Modal from '../../component/Modal'
+import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI } from '../../abi'
 import { detectMobile, formatAddress, getLocal, getDaiWithSigner} from "../../utils"
 import useGroupMember from '../../hooks/useGroupMember'
 import useGlobal from "../../hooks/useGlobal"
+import useGroup from "../../hooks/useGroup"
+import Loading from '../../component/Loading'
 export default function GroupMember(props) {
-  const {currentAddress, closeGroupMember} = props
+  const {currentAddress, closeGroupMember, hiddenGroupMember} = props
+  const { getGroupType } = useGroup()
   const { setState, currentNetwork } = useGlobal()
   const {getGroupMember} = useGroupMember()
   const [memberList, setMemberList] = useState([])
@@ -20,7 +24,9 @@ export default function GroupMember(props) {
   const [showOperate, setShowOperate] = useState()
   const [index, setIndex] = useState(-1)
   const [groupInfo, setGroupInfo] = useState()
+  const [showQuitRoomConfirm, setShowQuitRoomConfirm] = useState(false)
   const { getChainInfo } = useChain()
+  const [showLoading, setShowLoading] = useState(false)
   const getMemberList = async() => {
     const data = await getGroupMember(currentAddress)
     const memberListInfo = data?.users.map((item) => {
@@ -53,6 +59,46 @@ export default function GroupMember(props) {
   }
   const handleChat = (item) => {
     // const res = await getDaiWithSigner(currentNetwork?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(getLocal('account'))
+  }
+  const confirmQuitRoom = async() => {
+    debugger
+    try {
+      const groupType = await getGroupType(currentAddress)
+      const abi = groupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
+      const tx = await getDaiWithSigner(currentAddress, abi).quitRoom()
+      setShowLoading(true)
+      closeGroupMember()
+      await tx.wait()
+      setState({
+        hasQuitRoom: true
+      })
+      setShowLoading(false)
+      history.push('/chat')
+    } catch(error) {
+      console.log(error, '====error')
+      setShowLoading(false)
+      closeGroupMember()
+    }
+  }
+  const quitRoomConfirm = () => {
+    return (
+      <Modal title="Leave Group" visible={showQuitRoomConfirm} onClose={() => setShowQuitRoomConfirm(false)}>
+      <div className='dialog-title'>Do you want to leave this group?</div>
+      <div className='btn-wrapper' style={{
+        display: 'flex',
+        margin: '20px 0 10px',
+      }}>
+        <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={confirmQuitRoom} style={{
+          marginRight: '10px'
+        }}>
+          Leave
+        </button>
+        <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={() => setShowQuitRoomConfirm(false)}>
+          Cancel
+        </button>
+      </div>
+    </Modal>
+    )
   }
   const groupInfoList = () => {
     return (
@@ -93,10 +139,16 @@ export default function GroupMember(props) {
   }, [])
   return (
     <GroupMemberContainer className={detectMobile() ? 'member-wrap-client': ''}>
+      {
+        showLoading && <div className="iconfont icon-loading"></div>
+      }
       <div className="title">
         <span>Group Info</span>
         <span className="iconfont icon-close" onClick={closeGroupMember}></span>
       </div>
+      {
+        quitRoomConfirm()
+      }
       {
         groupInfoList()
       }
@@ -152,6 +204,7 @@ export default function GroupMember(props) {
 
           })
         }
+        <div className="btn btn-lg btn-primary" onClick={() => setShowQuitRoomConfirm(true)}>Quit Room</div>
       </div>
     </GroupMemberContainer>
   )
@@ -169,6 +222,11 @@ z-index: 31;
   .title {
     left: 0
   }
+}
+.btn {
+  display: flex;
+  margin: 10px;
+  justify-content: center;
 }
 .title {
   height: 60px;
@@ -208,7 +266,7 @@ z-index: 31;
   height: 40px
 }
 .member-list {
-  height: calc(100vh - 310px);
+  height: calc(100vh - 320px);
   overflow: auto;
   .item {
     display: flex;
@@ -233,6 +291,10 @@ z-index: 31;
     font-weight: bold;
     font-size: 16px;
     margin-left: 16px;
+    max-width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
   .address{
     margin-left: 4px;

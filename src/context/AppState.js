@@ -14,6 +14,7 @@ const state = {
   showShareContent: false,
   hasClickPlace: false,
   currentTabIndex: '',
+  hasQuitRoom: false
 }
 
 export default state
