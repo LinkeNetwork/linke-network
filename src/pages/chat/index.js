@@ -196,8 +196,9 @@ export default function Chat() {
       console.log(result, 'getMyKey=====')
     })
   }
-  const getManager = async(id) => {
+  const getManager = async(id, type) => {
     debugger
+    if(type == 3) return
     const tx = await getDaiWithSigner(id, PUBLIC_GROUP_ABI).profile()
     const canSendText = tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase()
     setManager(tx.manager)
@@ -488,7 +489,7 @@ export default function Chat() {
     setCurrentAddress(item.id)
     if(currentTabIndex === 0) {
       // getMemberCount(item.id)
-      getManager(item.id)
+      getManager(item.id, item._type)
     }
     setCurrentRoomName(item.name)
     setShowChat(true)
@@ -749,6 +750,7 @@ export default function Chat() {
       if(currentTabIndex === 0 ) {
         const groupInfo = await getGroupMember(currentAddress)
         const groupType = groupInfo?._type
+        setGroupType(groupType)
         const abi = groupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
         debugger
         var tx = await getDaiWithSigner(currentAddress, abi).send(chatText, 'msg')
@@ -1102,7 +1104,7 @@ export default function Chat() {
     if(groupType == 1) {
       setHasAccess(true)
     } else {
-      getManager(currentAddress)
+      getManager(currentAddress, groupType)
     }
   }
   const handleDecryptedMessage = (id, text) => {
