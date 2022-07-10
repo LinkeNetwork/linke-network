@@ -43,7 +43,7 @@ export default function Chat() {
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
-  const {groupLists, hasGetGroupLists, hasCreateRoom, setState, hasClickPlace, currentNetwork} = useGlobal()
+  const {groupLists, hasGetGroupLists, hasCreateRoom, setState, hasClickPlace, currentNetwork, hasQuitRoom} = useGlobal()
   const [balance, setBalance] = useState()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentGraphApi, setCurrentGraphApi] = useState()
@@ -55,6 +55,7 @@ export default function Chat() {
   const [currentRoomName, setCurrentRoomName] = useState()
   const [hasAccess, setHasAccess] = useState()
   const [chatList, setChatList] = useState([])
+  const [showJoinGroupButton, setShowJoinGroupButton] = useState()
   const chatListRef = useRef()
   const [hasScroll, setHasScroll] = useState(false)
   const hasScrollRef = useRef(null)
@@ -93,15 +94,25 @@ export default function Chat() {
   const [currentGroupType, setCurrentGroupType] = useState()
   const [manager, setManager] = useState()
   const [canSendText, setCanSendText] = useState()
+  const [groupType, setGroupType] = useState()
   const currentGroupTypeRef = useRef()
+  const hasAccessRef = useRef()
+  const showJoinGroupButtonRef = useRef()
+  useEffect(() => {
+    if(hasQuitRoom) {
+      setShowMask(false)
+      setCurrentAddress()
+    }
+  }, [hasQuitRoom])
   useEffect(()=>{
     currentAddressRef.current = currentAddress
     hasScrollRef.current = hasScroll
     roomListRef.current = roomList
     chatListRef.current = chatList
     currentGroupTypeRef.current = currentGroupType
-    currentAddress && getMemberCount(currentAddress)
-  }, [currentAddress, hasScroll, roomList, chatList, currentGroupType])
+    hasAccessRef.current = hasAccess
+    showJoinGroupButtonRef.current = showJoinGroupButton
+  }, [currentAddress, hasScroll, roomList, chatList, currentGroupType, hasAccess, showJoinGroupButton])
   useEffect(() => {
     groupLists?.map(item => {
       getInitChatList(item.id, item.avatar)
@@ -188,8 +199,15 @@ export default function Chat() {
   const getManager = async(id) => {
     debugger
     const tx = await getDaiWithSigner(id, PUBLIC_GROUP_ABI).profile()
+    const canSendText = tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase()
     setManager(tx.manager)
-    setCanSendText(tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase())
+    setCanSendText(canSendText)
+    debugger
+    if(!canSendText || !hasAccess) {
+      setShowJoinGroupButton(true)
+    } else {
+      setShowJoinGroupButton(false)
+    }
     console.log(tx, manager?.toLowerCase() == getLocal('account')?.toLowerCase(), 'tx===manager')
   }
   const getPrivateChatStatus = async (id) => {
@@ -232,11 +250,13 @@ export default function Chat() {
     }
   }
   const getGroupType = async(roomAddress) => {
+    debugger
     const tokensQuery = `
       query{
         groupInfo(id: "`+ roomAddress?.toLowerCase() + `"){
           id,
-          _type
+          _type,
+          userCount
         }
       }
     `
@@ -244,14 +264,20 @@ export default function Chat() {
       url: getLocal('currentGraphqlApi')
     })
     const res = await client.query(tokensQuery).toPromise()
-    return res?.data?.groupInfo?._type
+    const groupInfo = res?.data?.groupInfo
+    debugger
+    setMemberCount(groupInfo?.userCount)
+    return groupInfo?._type
   }
   const isRoom = async (roomAddress) => {
     try {
       debugger
       const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
       if(index > 0) return
-      const groupType = await getGroupType(roomAddress)
+      debugger
+      const groupInfo = await getGroupMember(roomAddress)
+      const groupType = groupInfo?._type
+      setGroupType(groupType)
       if(groupType == 3) {
         var { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
       } else {
@@ -259,7 +285,7 @@ export default function Chat() {
       }
       console.log(name, '====....')
       updateGroupList(name, roomAddress)
-      getJoinRoomAccess(roomAddress)
+      getJoinRoomAccess(roomAddress, groupType)
       setCurrentRoomName(name)
       getInitChatList(roomAddress)
       initCurrentAddress(roomAddress)
@@ -276,19 +302,22 @@ export default function Chat() {
     }
     setShowMask(false)
   }
-  const getJoinRoomAccess = async(roomAddress) => {
+  const getJoinRoomAccess = async(roomAddress, groupType) => {
     try {
-      const groupType = await getGroupType(roomAddress)
       debugger
       if(groupType == 1) {
         var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
-      } else {
+      } 
+      if(groupType == 3) {
         var res = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
         console.log(res, '=getDaiWithSigner==')
       }
       const hasAccess= ethers.BigNumber.from(res) > 0
       setHasAccess(hasAccess)
-      console.log(hasAccess, Boolean(hasAccess), 'hasAccess======')
+      if(!Boolean(hasAccess)) {
+        setShowJoinGroupButton(true)
+      }
+      console.log(hasAccess,  hasAccessRef.current, showJoinGroupButton, showJoinGroupButtonRef.current, Boolean(hasAccess), 'hasAccess======')
     } catch(error) {
       console.log(error, '===error==')
     }
@@ -335,6 +364,8 @@ export default function Chat() {
     for (let i = 0; i < datas?.length; i++) {
       datas[i].block = parseInt(datas[i].block)
       collection.findOne({id:datas[i].id}).then((doc) => {
+        debugger
+        console.log(doc, 'doc====')
         if (doc) {
           collection.update({id:datas[i].id}, {$set: datas[i]})
         } else {
@@ -391,8 +422,8 @@ export default function Chat() {
     setShowMask(true)
     isRoom(roomAddress)
   }
-  const createNewRoom = async (address, name) => {
-    getJoinRoomAccess(address)
+  const createNewRoom = async (address, name, currentGroupType) => {
+    getJoinRoomAccess(address, currentGroupType)
     setCurrentAddress(address)
     setChatList([])
     setChatListStatus(new Map())
@@ -433,12 +464,12 @@ export default function Chat() {
     setShowJoinRoom(id === 'new')
     setShowSettingList(false)
   }
-  const getMemberCount = async(id) => {
-    if(currentTabIndex === 1) return
-    const data = await getGroupMember(id)
-    const memberListInfo = data?.users
-    setMemberCount(memberListInfo?.length)
-  }
+  // const getMemberCount = async(id) => {
+  //   if(currentTabIndex === 1) return
+  //   const data = await getGroupMember(id)
+  //   const memberListInfo = data?.users
+  //   setMemberCount(memberListInfo?.length)
+  // }
   const showChatList = (e, item, list) => {
     setChatList([])
     clearInterval(timer.current)
@@ -456,14 +487,14 @@ export default function Chat() {
     history.push(`/chat/${item.id}`)
     setCurrentAddress(item.id)
     if(currentTabIndex === 0) {
-      getMemberCount(item.id)
+      // getMemberCount(item.id)
       getManager(item.id)
     }
     setCurrentRoomName(item.name)
     setShowChat(true)
     setShowMask(true)
     setHasScroll(false)
-    getJoinRoomAccess(item.id)
+    getJoinRoomAccess(item.id, item._type)
   }
 
   const scrollToBottom = () => {
@@ -665,9 +696,10 @@ export default function Chat() {
     const res = await collection?.find({room: toAddress}).project({}).sort({ block: -1 }).toArray()
     if(!res || res?.length === 0) {
       // debugger
-      if(currentTabIndex === 0) {
+      if(currentTabIndex == 0) {
         fetchPublicChatList(toAddress)
-      } else {
+      } 
+      if(currentTabIndex == 1) {
         fetchPrivateChatList(toAddress, avatar)
       }
     } else {
@@ -715,7 +747,8 @@ export default function Chat() {
         var tx = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       }
       if(currentTabIndex === 0 ) {
-        const groupType = await getGroupType(currentAddress)
+        const groupInfo = await getGroupMember(currentAddress)
+        const groupType = groupInfo?._type
         const abi = groupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
         debugger
         var tx = await getDaiWithSigner(currentAddress, abi).send(chatText, 'msg')
@@ -1066,7 +1099,7 @@ export default function Chat() {
   }
   const changeJoinStatus = (groupType) => {
     debugger
-    if(groupType === 1) {
+    if(groupType == 1) {
       setHasAccess(true)
     } else {
       getManager(currentAddress)
@@ -1117,7 +1150,7 @@ export default function Chat() {
           showGroupMember &&
           <div className='group-member-wrap'>
             <div className='mask' onClick={() => { setShowGroupMember(false)}}></div>
-            <GroupMember currentAddress={currentAddress} closeGroupMember={() => { setShowGroupMember(false)}}/>
+            <GroupMember currentAddress={currentAddress} closeGroupMember={() =>  setShowGroupMember(false)} groupType={groupType} handleShowMask={() => setShowMask(true)} handleHiddenMask={() => setShowMask(false)}/>
           </div>
         }
         {
@@ -1136,7 +1169,7 @@ export default function Chat() {
         {
           showCreateNewRoom &&
           <Modal title="Create New Room" visible={showCreateNewRoom} onClose={() => {setShowCreateNewRoom(false)}}>
-            <CreateNewRoom createNewRoom={(address, name) => createNewRoom(address, name)}  hiddenCreateInfo={() => {setShowCreateNewRoom(false)}}/>
+            <CreateNewRoom createNewRoom={(address, name, currentGroupType) => createNewRoom(address, name, currentGroupType)}  hiddenCreateInfo={() => {setShowCreateNewRoom(false)}}/>
           </Modal>
         }
         {
@@ -1258,7 +1291,7 @@ export default function Chat() {
                           </div>
                       </div>
                       {
-                        (( hasAccess || hasCreateRoom || currentTabIndex === 1) || (canSendText && currentGroupTypeRef.current == 3)) &&
+                        (( hasAccess || currentTabIndex == 1) || (canSendText && currentGroupTypeRef.current == 3)) &&
                         <ChatInputBox
                         startChat={(text) => startChat(text)}
                         clearChatInput={clearChatInput}
@@ -1267,7 +1300,7 @@ export default function Chat() {
                       ></ChatInputBox> 
                       }
                       {
-                        (!hasAccess) && currentGroupTypeRef.current != 3 &&
+                        (!hasAccess) && currentGroupTypeRef.current != 3 && currentTabIndex != 1 &&
                         <JoinGroupButton currentAddress={currentAddress} changeJoinStatus={(groupType) => changeJoinStatus(groupType)} />
                       }
                     </div>

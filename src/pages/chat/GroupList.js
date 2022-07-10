@@ -35,6 +35,7 @@ export default function GroupList(props) {
 
   const updateChatCount = async() => {
     if(!currentAddress?.toLowerCase()) return
+    // debugger
     const tokensQuery = `
       query{
         groupInfo(id: "`+ currentAddress?.toLowerCase() + `"){
@@ -104,7 +105,7 @@ export default function GroupList(props) {
     const roomAddress = path.split('/chat/')[1]?.toLowerCase()
     if(roomAddress) {
       const index = groupInfos?.findIndex((item) => item.id === roomAddress)
-      if(index === -1) {
+      if(index === -1 && !hasQuitRoom) {
         groupInfos.push({
           id: roomAddress,
           name: currentRoomName
@@ -300,8 +301,9 @@ export default function GroupList(props) {
         const account = res ? res[currNetwork][getLocal('account')] : null
         const publicRooms = account ? account['publicRooms'] : []
         const privateRooms = account ? account['privateRooms'] : []
+        // debugger
         if(currentTabIndex === 0) {
-          if(!publicRooms?.length || hasCreateRoom) {
+          if(!publicRooms?.length || hasCreateRoom || hasQuitRoom) {
             getGroupList()
           } else {
             console.log(publicRooms, currentAddress, 'publicRooms====1111')

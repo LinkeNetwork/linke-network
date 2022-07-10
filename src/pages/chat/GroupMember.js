@@ -1,23 +1,20 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import styled from "styled-components"
 import useChain from '../../hooks/useChain'
 import Image from '../../component/Image'
 import { useHistory } from 'react-router-dom'
 import { Jazzicon } from '@ukstv/jazzicon-react'
-import multiavatar from '@beeprotocol/beemultiavatar/esm'
-import { createClient } from 'urql'
 import Modal from '../../component/Modal'
 import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI } from '../../abi'
 import { detectMobile, formatAddress, getLocal, getDaiWithSigner} from "../../utils"
 import useGroupMember from '../../hooks/useGroupMember'
 import useGlobal from "../../hooks/useGlobal"
-import useGroup from "../../hooks/useGroup"
 import Loading from '../../component/Loading'
 export default function GroupMember(props) {
-  const {currentAddress, closeGroupMember, hiddenGroupMember} = props
-  const { getGroupType } = useGroup()
-  const { setState, currentNetwork } = useGlobal()
+  const {currentAddress, closeGroupMember, hiddenGroupMember, groupType, handleShowMask, handleHiddenMask} = props
+  const { setState, currentNetwork, hasCreateRoom } = useGlobal()
   const {getGroupMember} = useGroupMember()
+  const [canQuitRoom, setCanQuitRoom] = useState()
   const [memberList, setMemberList] = useState([])
   const [manager,setManager] = useState()
   const history = useHistory()
@@ -37,7 +34,7 @@ export default function GroupMember(props) {
     })
     setMemberList(memberListInfo)
     setGroupInfo(data)
-    console.log(memberList, memberListInfo, 'memberList====')
+    console.log(data, memberList, memberListInfo, 'memberList====')
   }
   const handleViewProfile = (item, index) => {
     // setIndex(index)
@@ -63,21 +60,20 @@ export default function GroupMember(props) {
   const confirmQuitRoom = async() => {
     debugger
     try {
-      const groupType = await getGroupType(currentAddress)
       const abi = groupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
       const tx = await getDaiWithSigner(currentAddress, abi).quitRoom()
-      setShowLoading(true)
+      handleShowMask()
       closeGroupMember()
       await tx.wait()
       setState({
         hasQuitRoom: true
       })
-      setShowLoading(false)
+      closeGroupMember()
       history.push('/chat')
     } catch(error) {
       console.log(error, '====error')
-      setShowLoading(false)
       closeGroupMember()
+      handleHiddenMask()
     }
   }
   const quitRoomConfirm = () => {
@@ -127,6 +123,9 @@ export default function GroupMember(props) {
   const getManager = async() => {
     const tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
     setManager(tx.manager)
+    debugger
+    const canQuitRoom = tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase()
+    setCanQuitRoom(canQuitRoom)
     console.log(tx, 'tx===manager')
   }
   useEffect(() => {
@@ -136,11 +135,12 @@ export default function GroupMember(props) {
     return () => {
       document.removeEventListener("click", handleClick)
     }
-  }, [])
+  }, [hasCreateRoom])
   return (
     <GroupMemberContainer className={detectMobile() ? 'member-wrap-client': ''}>
       {
-        showLoading && <div className="iconfont icon-loading"></div>
+        showLoading && 
+        <Loading />
       }
       <div className="title">
         <span>Group Info</span>
@@ -154,8 +154,8 @@ export default function GroupMember(props) {
       }
       <div className="sub-title">
         Members {
-          groupInfo?.userCount &&
-          <span>({groupInfo?.userCount})</span>
+          groupInfo?.users?.length &&
+          <span>({groupInfo?.users?.length})</span>
         }
       </div>
       <div className='search-wrap'>
@@ -204,7 +204,10 @@ export default function GroupMember(props) {
 
           })
         }
-        <div className="btn btn-lg btn-primary" onClick={() => setShowQuitRoomConfirm(true)}>Quit Room</div>
+        {
+          !canQuitRoom &&
+          <div className="btn btn-lg btn-primary" onClick={() => setShowQuitRoomConfirm(true)}>Quit Room</div>
+        }
       </div>
     </GroupMemberContainer>
   )

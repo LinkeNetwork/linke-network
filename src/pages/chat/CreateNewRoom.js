@@ -108,7 +108,7 @@ export default function CreateNewRoom(props) {
       setState({
         hasCreateRoom: true
       })
-      createNewRoom(callback.logs[0].address, name)
+      createNewRoom(callback.logs[0].address, name, currentGroupType)
       console.log('callback', callback, callback.logs[0].address)
       console.log(tx)
     } catch (error) {
