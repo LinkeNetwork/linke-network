@@ -101,6 +101,9 @@ export default function Chat() {
   useEffect(() => {
     if(hasQuitRoom) {
       setShowMask(false)
+      setState({
+        currentAddress: ''
+      })
       setCurrentAddress()
     }
   }, [hasQuitRoom])
@@ -115,11 +118,11 @@ export default function Chat() {
   }, [currentAddress, hasScroll, roomList, chatList, currentGroupType, hasAccess, showJoinGroupButton])
   useEffect(() => {
     groupLists?.map(item => {
-      getInitChatList(item.id, item.avatar)
+      // getInitChatList(item.id, item.avatar)
       startInterval(item.id)
     })
     console.log(groupLists, 'groupLists===>>.')
-  }, [currentTabIndex])
+  }, [currentTabIndex, groupLists])
   useEffect(() => {
     if(currentTabIndex === 1) {
       getMyAvatar()
@@ -130,6 +133,9 @@ export default function Chat() {
         }
       })
     }
+    setState({
+      currentAddress: ''
+    })
     setCurrentAddress()
   }, [currentTabIndex])
   const getCurrentNetwork = async() => {
@@ -142,7 +148,6 @@ export default function Chat() {
     console.log(networkInfo, currentNetwork, 'networkInfo=====')
   }
   const getMyAvatar = async () => {
-    const networkInfo = await getChainInfo()
     const tokensQuery = `
     query{
       profile(id: "`+ getLocal('account').toLowerCase() + `"){
@@ -152,7 +157,7 @@ export default function Chat() {
     }
     `
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     const res = await client.query(tokensQuery).toPromise()
     setMyAvatar(res.data?.profile?.avatar)
@@ -163,7 +168,8 @@ export default function Chat() {
     history.push('/chat')
     setCurrentTabIndex(index)
     setState({
-      currentTabIndex: index
+      currentTabIndex: index,
+      currentAddress: ''
     })
   }
   const getBalance = async() => {
@@ -224,6 +230,9 @@ export default function Chat() {
       const {currentIndex, address, name , avatar, privateKey} = data
       setCurrentTabIndex(currentIndex)
       setCurrentAddress(address)
+      setState({
+        currentAddress: address
+      })
       setPrivateKey(privateKey)
       setCurrentRoomName(name)
       setRoomAvatar(avatar)
@@ -234,41 +243,39 @@ export default function Chat() {
     const address = history.location.pathname.split('/chat/')[1]
     if (address) {
       setCurrentAddress(address)
+      setState({
+        currentAddress: address
+      })
       isRoom(address)
     }
   }
-  const updateGroupList = (name, roomAddress) => {
+  const updateGroupList = (name, roomAddress, type) => {
     debugger
-    if(!hasGetGroupLists) return
+    // if(!hasGetGroupLists) return
     const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
     const groupList = [...groupLists]
-    if(index === -1 && hasGetGroupLists) {
+    if(index === -1) {
       groupList.push({
         id: roomAddress,
-        name: name
+        name: name,
+        chatCount: 0,
+        newChatCount: 0,
+        _type: type
+      })
+      localForage.getItem('chatListInfo').then(res => {
+        debugger
+        let chatListInfo = res ? res : {}
+        const list = Object.keys(chatListInfo)
+        chatListInfo[currNetwork] = list.length ? chatListInfo[currNetwork] : {}
+        chatListInfo[currNetwork][getLocal('account')] = chatListInfo[currNetwork][getLocal('account')] ? chatListInfo[currNetwork][getLocal('account')] : {}
+        chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...groupList]
+        localForage.setItem('chatListInfo', chatListInfo)
       })
       setRoomList(groupList)
+      setState({
+        groupLists: groupList
+      })
     }
-  }
-  const getGroupType = async(roomAddress) => {
-    debugger
-    const tokensQuery = `
-      query{
-        groupInfo(id: "`+ roomAddress?.toLowerCase() + `"){
-          id,
-          _type,
-          userCount
-        }
-      }
-    `
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const res = await client.query(tokensQuery).toPromise()
-    const groupInfo = res?.data?.groupInfo
-    debugger
-    setMemberCount(groupInfo?.userCount)
-    return groupInfo?._type
   }
   const isRoom = async (roomAddress) => {
     try {
@@ -284,8 +291,11 @@ export default function Chat() {
       } else {
         var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
       }
+      setState({
+        hasGetGroupLists: true
+      })
       console.log(name, '====....')
-      updateGroupList(name, roomAddress)
+      updateGroupList(name, roomAddress, groupType)
       getJoinRoomAccess(roomAddress, groupType)
       setCurrentRoomName(name)
       getInitChatList(roomAddress)
@@ -306,7 +316,7 @@ export default function Chat() {
   const getJoinRoomAccess = async(roomAddress, groupType) => {
     try {
       debugger
-      if(groupType == 1) {
+      if(groupType == 1 || groupType == 2) {
         var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
       } 
       if(groupType == 3) {
@@ -324,7 +334,6 @@ export default function Chat() {
     }
   }
   const fetchPublicChatList = async(roomAddress) => {
-    const networkInfo = await getChainInfo()
     const tokensQuery = `
     query{
       chatInfos(orderBy:block,orderDirection:desc, first:20, where:{room: "`+ roomAddress?.toLowerCase() + `"}){
@@ -340,7 +349,7 @@ export default function Chat() {
     `
 
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     // debugger
     const data = await client.query(tokensQuery).toPromise()
@@ -361,12 +370,9 @@ export default function Chat() {
   const insertData = async(datas) =>{
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
-    console.log(collection, '======')
     for (let i = 0; i < datas?.length; i++) {
       datas[i].block = parseInt(datas[i].block)
       collection.findOne({id:datas[i].id}).then((doc) => {
-        debugger
-        console.log(doc, 'doc====')
         if (doc) {
           collection.update({id:datas[i].id}, {$set: datas[i]})
         } else {
@@ -381,6 +387,9 @@ export default function Chat() {
     clearInterval(allTimer.current)
     history.push(`/chat/${list}`)
     setCurrentAddress(list)
+    setState({
+      currentAddress: list
+    })
     setChatList([])
   }
 
@@ -426,6 +435,9 @@ export default function Chat() {
   const createNewRoom = async (address, name, currentGroupType) => {
     getJoinRoomAccess(address, currentGroupType)
     setCurrentAddress(address)
+    setState({
+      currentAddress: address
+    })
     setChatList([])
     setChatListStatus(new Map())
     setShowMask(false)
@@ -487,6 +499,9 @@ export default function Chat() {
     setHasMore(true)
     history.push(`/chat/${item.id}`)
     setCurrentAddress(item.id)
+    setState({
+      currentAddress: item.id
+    })
     if(currentTabIndex === 0) {
       // getMemberCount(item.id)
       getManager(item.id, item._type)
@@ -679,9 +694,8 @@ export default function Chat() {
     }
   }
   const formateCurrentPrivateList = async(tokensSenderQuery, tokensReceivedrQuery, toAddress, avatar) => {
-    const networkInfo = await getChainInfo()
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     const resSender = await client.query(tokensSenderQuery).toPromise()
     const resReceived = await client.query(tokensReceivedrQuery).toPromise()
@@ -707,7 +721,7 @@ export default function Chat() {
       // debugger
       if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
         console.log(res, chatList, 'getInitChatList=====>>>')
-        debugger
+        // debugger
         setChatList(res)
       }
       setShowMask(false)
@@ -751,7 +765,7 @@ export default function Chat() {
         const groupInfo = await getGroupMember(currentAddress)
         const groupType = groupInfo?._type
         setGroupType(groupType)
-        const abi = groupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
+        const abi = groupType == 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
         debugger
         var tx = await getDaiWithSigner(currentAddress, abi).send(chatText, 'msg')
       }
@@ -828,6 +842,9 @@ export default function Chat() {
   }
   const resetData = () => {
     setCurrentAddress()
+    setState({
+      currentAddress: ''
+    })
     setRoomAvatar()
     setCurrentTabIndex(0)
     setCurrentRoomName()
@@ -854,11 +871,9 @@ export default function Chat() {
     const groupList = [...groupLists]
     let newRoomList = groupList.splice(index, 1)
     groupList.unshift(newRoomList[0])
-    console.log(groupList, 'roomList========')
     clearInterval(allTimer.current)
     allTimer.current = setInterval(() => {
       for (let i = 0; i < groupList.length; i++) {
-        console.log(groupList, 'groupList====>>>>')
         getCurrentChatList(groupList && groupList[i]?.id)
       }
     }, 20000)
@@ -867,8 +882,7 @@ export default function Chat() {
     let list = []
     const ids = newList?.map(item => item.sender)
     console.log(ids, '=====>>>>ids')
-    if(!ids) return
-    const networkInfo = await getChainInfo()
+    if(!ids?.length) return
     const idsList = '"' + ids.join('","')+ '"'
     const tokensQuery = `
     query{
@@ -880,7 +894,7 @@ export default function Chat() {
       }
     }`
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     const res = await client.query(tokensQuery).toPromise()
     console.log(res, 'memberListInfo=====')
@@ -1101,7 +1115,7 @@ export default function Chat() {
   }
   const changeJoinStatus = (groupType) => {
     debugger
-    if(groupType == 1) {
+    if(groupType == 1 || groupType == 2) {
       setHasAccess(true)
     } else {
       getManager(currentAddress, groupType)

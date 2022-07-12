@@ -13,7 +13,6 @@ import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 export default function GroupList(props) {
   const { hasCreateRoom, setState, currentNetwork, hasQuitRoom } = useGlobal()
-  const { getChainInfo } = useChain()
   const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead} = props
   const [groupList, setGroupList] = useState([])
   const [timeOutEvent, setTimeOutEvent] = useState()
@@ -61,7 +60,7 @@ export default function GroupList(props) {
         const publicRooms = account ? account['publicRooms'] : []
         const privateRooms = account ? account['privateRooms'] : []
         const groupList = currentTabIndex === 0 ? publicRooms : privateRooms
-        console.log(currNetwork, 'currNetwork===<<<')
+        console.log(currNetwork,newGroupList,'currNetwork===<<<')
         const index = groupList?.findIndex(item => item.id == currentAddress?.toLowerCase())
         if(index > -1) {
           groupList[index]['chatCount'] = +fetchData?.chatCount || 0
@@ -72,7 +71,10 @@ export default function GroupList(props) {
         account[roomType] = [...groupList]
         localForage.setItem('chatListInfo', res)
         setGroupList(groupList)
-        console.log(res, '===>>1')
+        setState({
+          groupLists: groupList
+        })
+        console.log(account, res, '===>>1')
       }
     })
     
@@ -306,7 +308,7 @@ export default function GroupList(props) {
           if(!publicRooms?.length || hasCreateRoom || hasQuitRoom) {
             getGroupList()
           } else {
-            console.log(publicRooms, currentAddress, 'publicRooms====1111')
+            console.log(publicRooms, newGroupList, currentAddress, 'publicRooms====1111')
             const groupList = [...publicRooms]
             setGroupList(groupList)
             setState({

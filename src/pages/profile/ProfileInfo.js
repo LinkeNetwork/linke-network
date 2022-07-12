@@ -30,7 +30,6 @@ export default function ProfileInfo(props) {
 
   }
   const getPrivateChatStatus = async (pathname) => {
-    // const networkInfo = await getChainInfo()
     const res = await getDaiWithSigner(currentNetwork?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(pathname)
     setShowPrivateChat(Boolean(res))
     setPrivateKey(res)
@@ -57,8 +56,6 @@ export default function ProfileInfo(props) {
   }
   const getMyprofileInfo = async (address) => {
     // debugger
-    const networkInfo = await getChainInfo()
-
     const tokensQuery = `
     query{
       profile(id: "`+ address.toLowerCase() + `"){
@@ -74,7 +71,7 @@ export default function ProfileInfo(props) {
     }
     `
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     const res = await client.query(tokensQuery).toPromise()
     getFollowStatus(client)

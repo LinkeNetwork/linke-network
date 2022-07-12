@@ -23,7 +23,6 @@ export default function GroupMember(props) {
   const [index, setIndex] = useState(-1)
   const [groupInfo, setGroupInfo] = useState()
   const [showQuitRoomConfirm, setShowQuitRoomConfirm] = useState(false)
-  const { getChainInfo } = useChain()
   const [groupType, setGroupType] = useState()
   const [showLoading, setShowLoading] = useState(false)
   const getMemberList = async() => {
@@ -65,7 +64,7 @@ export default function GroupMember(props) {
   const confirmQuitRoom = async() => {
     debugger
     try {
-      const abi = groupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
+      const abi = groupType == 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
       const tx = await getDaiWithSigner(currentAddress, abi).quitRoom()
       handleShowMask()
       closeGroupMember()
@@ -126,7 +125,7 @@ export default function GroupMember(props) {
     // console.log(e.target, memberList, 'handleClick===')
   }
   const getManager = async(groupType) => {
-    if(groupType == 1) {
+    if(groupType == 1 || groupType == 2) {
       debugger
       const tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
       setManager(tx.manager)
@@ -209,9 +208,9 @@ export default function GroupMember(props) {
                 <div className="address">
                   {formatAddress(item.id)}
                 </div>
-                { groupType == 1 && getLocal('account') == item.id && manager?.toLowerCase() !== item.id.toLowerCase() && <div>(You)</div>} 
+                { (groupType == 1 || groupType == 2) && getLocal('account') == item.id && manager?.toLowerCase() !== item.id.toLowerCase() && <div>(You)</div>} 
                 {
-                  groupType == 1 && manager?.toLowerCase() == item.id.toLowerCase() && <div>(Owner)</div>
+                  (groupType == 1 || groupType == 2) && manager?.toLowerCase() == item.id.toLowerCase() && <div>(Owner)</div>
                 }
                 { 
                   // groupType == 3 && canQuitRoom && <div>(Owner)</div>

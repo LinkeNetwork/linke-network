@@ -2,20 +2,18 @@ import { useEffect, useState } from "react"
 import styled from "styled-components"
 import { createClient } from 'urql'
 import { formatAddress } from "../../utils";
-import useChain from '../../hooks/useChain'
 import { useHistory } from 'react-router-dom'
 import useGlobal from "../../hooks/useGlobal"
 import Image from '../../component/Image'
 import { Jazzicon } from '@ukstv/jazzicon-react'
+import { getLocal } from '../../utils/index'
 export default function FollowerList(props) {
   const { urlParams, followType, hiddenFollowerList } = props
   const { setState } = useGlobal()
   const history = useHistory()
-  const { getChainInfo } = useChain()
   const [followerList, setFollowerList] = useState([])
   const [followerCount, setFollowerCount] = useState()
   const getAvatar = async(ids, list) => {
-    const networkInfo = await getChainInfo()
     const idsList = '"' + ids.join('","')+ '"'
     if(!ids) return
     const tokensQuery = `
@@ -28,7 +26,7 @@ export default function FollowerList(props) {
       }
     }`
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     const res = await client.query(tokensQuery).toPromise()
     let profiles = res?.data?.profiles
@@ -44,7 +42,6 @@ export default function FollowerList(props) {
     console.log(noProfiles, profiles, 'noProfiles==')
   }
   const geFollowerList = async () => {
-    const networkInfo = await getChainInfo()
     let tokensQuery = ''
     if(followType === 1) {
       tokensQuery = `
@@ -68,7 +65,7 @@ export default function FollowerList(props) {
         `
     }
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     const res = await client.query(tokensQuery).toPromise()
     const data = res?.data?.followers

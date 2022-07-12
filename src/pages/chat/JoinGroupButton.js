@@ -24,7 +24,7 @@ export default function JoinGroupButton(props) {
     setShowLoading(true)
     try {
       if(groupType) {
-        const abi = groupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
+        const abi = groupType == 3 ?  PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
         const tx = await getDaiWithSigner(currentAddress, abi).joinRoom(name)
         setTransactionHash(tx.hash)
         console.log(tx, 'tx====')
