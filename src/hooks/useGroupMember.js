@@ -1,22 +1,21 @@
-import useChain from "./useChain"
 import { createClient } from 'urql'
 import useGlobal from "./useGlobal"
+import { getLocal } from '../utils/index'
+import { useCallback } from 'react'
 export default function useGroupMember() {
-  const { getChainInfo } = useChain()
-  const { currentTabIndex } = useGlobal()
-  const getGroupMember = async(currentAddress) => {
-    console.log(currentTabIndex, 'currentTabIndex====>>.')
-    if(currentTabIndex === 1) return
-    const networkInfo = await getChainInfo()
+  const { currentTabIndex, currentAddress } = useGlobal()
+  const getGroupMember = useCallback(async(address) => {
+    if(currentTabIndex === 1 || !address) return
     const tokensQuery = `
     query{
-      groupInfo(id: "`+ currentAddress?.toLowerCase() + `"){
+      groupInfo(id: "`+ address?.toLowerCase() + `"){
         id,
         description,
         name,
         avatar,
         userCount,
         chatCount,
+        _type,
         users {
           id,
           name,
@@ -32,14 +31,14 @@ export default function useGroupMember() {
     }
     `
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
 
     const res = await client.query(tokensQuery).toPromise()
     console.log(res, 'getGroupMember=====res')
     const data = res?.data?.groupInfo
     return data
-  }
+  }, [currentAddress])
 
   return { getGroupMember}
 }

@@ -10,7 +10,7 @@ export default function FindUs(props) {
   const { type } = props
   return (
     <FindUsContainer>
-      <a href="https://twitter.com/linkenetwork" target="_blank" rel="noreferrer">
+      <a href="https://twitter.com/LinkeNetwork" target="_blank" rel="noreferrer">
         <Image size={type === 'footer' ? 50 : 40} src={type === 'footer' ? twitterImage : twitterImage1} />
       </a>
       <a href="https://www.linke.network/chat/0xb114927a3df6085bc7c808c07e87b8447a6e9469" target="_blank" rel="noreferrer">

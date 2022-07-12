@@ -6,13 +6,11 @@ import './index.scss'
 import Image from '../../component/Image'
 import homeIcon from '../../assets/images/linke.svg'
 import { useEffect, useState } from 'react'
-import useChain from '../../hooks/useChain'
 import useGlobal from '../../hooks/useGlobal'
 export default function Nav(props) {
   const { setState , hasCreateProfile, currentProfileAddress} = useGlobal()
   const { hiddenMenuList, showMenulist, reloadViewProfile } = props
   const [account, setAccount] = useState()
-  const { getChainInfo, getPathName } = useChain()
   const history = useHistory()
   const path = history.location.pathname
   const navList = [

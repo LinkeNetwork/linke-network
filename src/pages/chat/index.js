@@ -43,7 +43,7 @@ export default function Chat() {
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
-  const {groupLists, hasGetGroupLists, hasCreateRoom, setState, hasClickPlace, currentNetwork} = useGlobal()
+  const {groupLists, hasGetGroupLists, hasCreateRoom, setState, hasClickPlace, currentNetwork, hasQuitRoom} = useGlobal()
   const [balance, setBalance] = useState()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentGraphApi, setCurrentGraphApi] = useState()
@@ -55,6 +55,7 @@ export default function Chat() {
   const [currentRoomName, setCurrentRoomName] = useState()
   const [hasAccess, setHasAccess] = useState()
   const [chatList, setChatList] = useState([])
+  const [showJoinGroupButton, setShowJoinGroupButton] = useState()
   const chatListRef = useRef()
   const [hasScroll, setHasScroll] = useState(false)
   const hasScrollRef = useRef(null)
@@ -93,22 +94,35 @@ export default function Chat() {
   const [currentGroupType, setCurrentGroupType] = useState()
   const [manager, setManager] = useState()
   const [canSendText, setCanSendText] = useState()
+  const [groupType, setGroupType] = useState()
   const currentGroupTypeRef = useRef()
+  const hasAccessRef = useRef()
+  const showJoinGroupButtonRef = useRef()
+  useEffect(() => {
+    if(hasQuitRoom) {
+      setShowMask(false)
+      setState({
+        currentAddress: ''
+      })
+      setCurrentAddress()
+    }
+  }, [hasQuitRoom])
   useEffect(()=>{
     currentAddressRef.current = currentAddress
     hasScrollRef.current = hasScroll
     roomListRef.current = roomList
     chatListRef.current = chatList
     currentGroupTypeRef.current = currentGroupType
-    currentAddress && getMemberCount(currentAddress)
-  }, [currentAddress, hasScroll, roomList, chatList, currentGroupType])
+    hasAccessRef.current = hasAccess
+    showJoinGroupButtonRef.current = showJoinGroupButton
+  }, [currentAddress, hasScroll, roomList, chatList, currentGroupType, hasAccess, showJoinGroupButton])
   useEffect(() => {
     groupLists?.map(item => {
-      getInitChatList(item.id, item.avatar)
+      // getInitChatList(item.id, item.avatar)
       startInterval(item.id)
     })
     console.log(groupLists, 'groupLists===>>.')
-  }, [groupLists, currentTabIndex])
+  }, [currentTabIndex, groupLists])
   useEffect(() => {
     if(currentTabIndex === 1) {
       getMyAvatar()
@@ -119,6 +133,9 @@ export default function Chat() {
         }
       })
     }
+    setState({
+      currentAddress: ''
+    })
     setCurrentAddress()
   }, [currentTabIndex])
   const getCurrentNetwork = async() => {
@@ -131,7 +148,6 @@ export default function Chat() {
     console.log(networkInfo, currentNetwork, 'networkInfo=====')
   }
   const getMyAvatar = async () => {
-    const networkInfo = await getChainInfo()
     const tokensQuery = `
     query{
       profile(id: "`+ getLocal('account').toLowerCase() + `"){
@@ -141,7 +157,7 @@ export default function Chat() {
     }
     `
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     const res = await client.query(tokensQuery).toPromise()
     setMyAvatar(res.data?.profile?.avatar)
@@ -152,7 +168,8 @@ export default function Chat() {
     history.push('/chat')
     setCurrentTabIndex(index)
     setState({
-      currentTabIndex: index
+      currentTabIndex: index,
+      currentAddress: ''
     })
   }
   const getBalance = async() => {
@@ -185,10 +202,19 @@ export default function Chat() {
       console.log(result, 'getMyKey=====')
     })
   }
-  const getManager = async(id) => {
+  const getManager = async(id, type) => {
+    debugger
+    if(type == 3) return
     const tx = await getDaiWithSigner(id, PUBLIC_GROUP_ABI).profile()
+    const canSendText = tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase()
     setManager(tx.manager)
-    setCanSendText(tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase())
+    setCanSendText(canSendText)
+    debugger
+    if(!canSendText || !hasAccess) {
+      setShowJoinGroupButton(true)
+    } else {
+      setShowJoinGroupButton(false)
+    }
     console.log(tx, manager?.toLowerCase() == getLocal('account')?.toLowerCase(), 'tx===manager')
   }
   const getPrivateChatStatus = async (id) => {
@@ -204,6 +230,9 @@ export default function Chat() {
       const {currentIndex, address, name , avatar, privateKey} = data
       setCurrentTabIndex(currentIndex)
       setCurrentAddress(address)
+      setState({
+        currentAddress: address
+      })
       setPrivateKey(privateKey)
       setCurrentRoomName(name)
       setRoomAvatar(avatar)
@@ -214,31 +243,60 @@ export default function Chat() {
     const address = history.location.pathname.split('/chat/')[1]
     if (address) {
       setCurrentAddress(address)
+      setState({
+        currentAddress: address
+      })
       isRoom(address)
     }
   }
-  const updateGroupList = (name, roomAddress) => {
-    // debugger
-    if(!hasGetGroupLists) return
+  const updateGroupList = (name, roomAddress, type) => {
+    debugger
+    // if(!hasGetGroupLists) return
     const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
     const groupList = [...groupLists]
-    if(index === -1 && hasGetGroupLists) {
+    if(index === -1) {
       groupList.push({
         id: roomAddress,
-        name: name
+        name: name,
+        chatCount: 0,
+        newChatCount: 0,
+        _type: type
+      })
+      localForage.getItem('chatListInfo').then(res => {
+        debugger
+        let chatListInfo = res ? res : {}
+        const list = Object.keys(chatListInfo)
+        chatListInfo[currNetwork] = list.length ? chatListInfo[currNetwork] : {}
+        chatListInfo[currNetwork][getLocal('account')] = chatListInfo[currNetwork][getLocal('account')] ? chatListInfo[currNetwork][getLocal('account')] : {}
+        chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...groupList]
+        localForage.setItem('chatListInfo', chatListInfo)
       })
       setRoomList(groupList)
+      setState({
+        groupLists: groupList
+      })
     }
   }
   const isRoom = async (roomAddress) => {
     try {
-      console.log(groupLists, roomListRef.current, roomAddress, '999')
+      debugger
       const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
       if(index > 0) return
-      const {name} = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
-      console.log(name, 'name=====')
-      updateGroupList(name, roomAddress)
-      getJoinRoomAccess(roomAddress)
+      debugger
+      const groupInfo = await getGroupMember(roomAddress)
+      const groupType = groupInfo?._type
+      setGroupType(groupType)
+      if(groupType == 3) {
+        var { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
+      } else {
+        var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
+      }
+      setState({
+        hasGetGroupLists: true
+      })
+      console.log(name, '====....')
+      updateGroupList(name, roomAddress, groupType)
+      getJoinRoomAccess(roomAddress, groupType)
       setCurrentRoomName(name)
       getInitChatList(roomAddress)
       initCurrentAddress(roomAddress)
@@ -255,14 +313,27 @@ export default function Chat() {
     }
     setShowMask(false)
   }
-  const getJoinRoomAccess = async(roomAddress) => {
-    const res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
-    const hasAccess= ethers.BigNumber.from(res) > 0
-    setHasAccess(hasAccess)
-    console.log(hasAccess, Boolean(hasAccess), 'hasAccess======')
+  const getJoinRoomAccess = async(roomAddress, groupType) => {
+    try {
+      debugger
+      if(groupType == 1 || groupType == 2) {
+        var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
+      } 
+      if(groupType == 3) {
+        var res = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
+        console.log(res, '=getDaiWithSigner==')
+      }
+      const hasAccess= ethers.BigNumber.from(res) > 0
+      setHasAccess(hasAccess)
+      if(!Boolean(hasAccess)) {
+        setShowJoinGroupButton(true)
+      }
+      console.log(hasAccess,  hasAccessRef.current, showJoinGroupButton, showJoinGroupButtonRef.current, Boolean(hasAccess), 'hasAccess======')
+    } catch(error) {
+      console.log(error, '===error==')
+    }
   }
   const fetchPublicChatList = async(roomAddress) => {
-    const networkInfo = await getChainInfo()
     const tokensQuery = `
     query{
       chatInfos(orderBy:block,orderDirection:desc, first:20, where:{room: "`+ roomAddress?.toLowerCase() + `"}){
@@ -278,15 +349,19 @@ export default function Chat() {
     `
 
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     // debugger
     const data = await client.query(tokensQuery).toPromise()
+    const db = await setDataBase()
+    const collection = db.collection('chatInfos')
+    const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
     const chatList = data?.data?.chatInfos || []
-    console.log(chatList, 'chatList=====>>>')
+    console.log(chatList, res, 'chatList=====>>>')
     const result = formateData(chatList)
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-      setChatList(result)
+      debugger
+      setChatList(res || result)
     }
     insertData(result)
     getMemberList(roomAddress, result)
@@ -295,7 +370,6 @@ export default function Chat() {
   const insertData = async(datas) =>{
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
-    console.log(collection, '======')
     for (let i = 0; i < datas?.length; i++) {
       datas[i].block = parseInt(datas[i].block)
       collection.findOne({id:datas[i].id}).then((doc) => {
@@ -313,6 +387,9 @@ export default function Chat() {
     clearInterval(allTimer.current)
     history.push(`/chat/${list}`)
     setCurrentAddress(list)
+    setState({
+      currentAddress: list
+    })
     setChatList([])
   }
 
@@ -355,9 +432,12 @@ export default function Chat() {
     setShowMask(true)
     isRoom(roomAddress)
   }
-  const createNewRoom = async (address, name) => {
-    getJoinRoomAccess(address)
+  const createNewRoom = async (address, name, currentGroupType) => {
+    getJoinRoomAccess(address, currentGroupType)
     setCurrentAddress(address)
+    setState({
+      currentAddress: address
+    })
     setChatList([])
     setChatListStatus(new Map())
     setShowMask(false)
@@ -397,12 +477,12 @@ export default function Chat() {
     setShowJoinRoom(id === 'new')
     setShowSettingList(false)
   }
-  const getMemberCount = async(id) => {
-    if(currentTabIndex === 1) return
-    const data = await getGroupMember(id)
-    const memberListInfo = data?.users
-    setMemberCount(memberListInfo?.length)
-  }
+  // const getMemberCount = async(id) => {
+  //   if(currentTabIndex === 1) return
+  //   const data = await getGroupMember(id)
+  //   const memberListInfo = data?.users
+  //   setMemberCount(memberListInfo?.length)
+  // }
   const showChatList = (e, item, list) => {
     setChatList([])
     clearInterval(timer.current)
@@ -419,15 +499,18 @@ export default function Chat() {
     setHasMore(true)
     history.push(`/chat/${item.id}`)
     setCurrentAddress(item.id)
+    setState({
+      currentAddress: item.id
+    })
     if(currentTabIndex === 0) {
-      getMemberCount(item.id)
-      getManager(item.id)
+      // getMemberCount(item.id)
+      getManager(item.id, item._type)
     }
     setCurrentRoomName(item.name)
     setShowChat(true)
     setShowMask(true)
     setHasScroll(false)
-    getJoinRoomAccess(item.id)
+    getJoinRoomAccess(item.id, item._type)
   }
 
   const scrollToBottom = () => {
@@ -437,6 +520,7 @@ export default function Chat() {
     }
   }
   const loadingGroupData = async() => {
+    debugger
     const firstBlock = chatList && chatList[chatList.length-1]?.block
     if(!firstBlock) return
     const client = createClient({
@@ -480,6 +564,7 @@ export default function Chat() {
       console.log(newfetchData, 'newfetchData===')
       console.log(fetchData, list, memberListInfo, '====fetchData')
       const result = list.concat(newfetchData)
+      debugger
       setChatList(result)
     }
     console.log(fetchData, 'chatList.length')
@@ -609,9 +694,8 @@ export default function Chat() {
     }
   }
   const formateCurrentPrivateList = async(tokensSenderQuery, tokensReceivedrQuery, toAddress, avatar) => {
-    const networkInfo = await getChainInfo()
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
     const resSender = await client.query(tokensSenderQuery).toPromise()
     const resReceived = await client.query(tokensReceivedrQuery).toPromise()
@@ -627,20 +711,18 @@ export default function Chat() {
     const res = await collection?.find({room: toAddress}).project({}).sort({ block: -1 }).toArray()
     if(!res || res?.length === 0) {
       // debugger
-      if(currentTabIndex === 0) {
+      if(currentTabIndex == 0) {
         fetchPublicChatList(toAddress)
-      } else {
+      } 
+      if(currentTabIndex == 1) {
         fetchPrivateChatList(toAddress, avatar)
       }
     } else {
       // debugger
       if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-        console.log(res, 'getInitChatList=====>>>')
-        if(chatList.length) {
-          setChatList(chatList)
-        } else {
-          setChatList(res)
-        }
+        console.log(res, chatList, 'getInitChatList=====>>>')
+        // debugger
+        setChatList(res)
       }
       setShowMask(false)
     }
@@ -680,7 +762,10 @@ export default function Chat() {
         var tx = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       }
       if(currentTabIndex === 0 ) {
-        const abi = currentGroupType == 1 ? PUBLIC_GROUP_ABI : PUBLIC_SUBSCRIBE_GROUP_ABI
+        const groupInfo = await getGroupMember(currentAddress)
+        const groupType = groupInfo?._type
+        setGroupType(groupType)
+        const abi = groupType == 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
         debugger
         var tx = await getDaiWithSigner(currentAddress, abi).send(chatText, 'msg')
       }
@@ -698,10 +783,6 @@ export default function Chat() {
         showProfile: false,
         showOperate: false,
         avatar: myAvatar
-      }
-
-      if (!chatList) {
-        setChatList({})
       }
 
       chatList.unshift(newChat)
@@ -748,6 +829,7 @@ export default function Chat() {
           chatListStatus.set(k, v)
         })
         const chatLists = hasScroll ? chatList : [...chatListStatus.values()]
+        debugger
         setChatList(chatLists)
       }
     }
@@ -760,6 +842,9 @@ export default function Chat() {
   }
   const resetData = () => {
     setCurrentAddress()
+    setState({
+      currentAddress: ''
+    })
     setRoomAvatar()
     setCurrentTabIndex(0)
     setCurrentRoomName()
@@ -786,11 +871,9 @@ export default function Chat() {
     const groupList = [...groupLists]
     let newRoomList = groupList.splice(index, 1)
     groupList.unshift(newRoomList[0])
-    console.log(groupList, 'roomList========')
     clearInterval(allTimer.current)
     allTimer.current = setInterval(() => {
       for (let i = 0; i < groupList.length; i++) {
-        console.log(groupList, 'groupList====>>>>')
         getCurrentChatList(groupList && groupList[i]?.id)
       }
     }, 20000)
@@ -799,7 +882,7 @@ export default function Chat() {
     let list = []
     const ids = newList?.map(item => item.sender)
     console.log(ids, '=====>>>>ids')
-    const networkInfo = await getChainInfo()
+    if(!ids?.length) return
     const idsList = '"' + ids.join('","')+ '"'
     const tokensQuery = `
     query{
@@ -811,9 +894,8 @@ export default function Chat() {
       }
     }`
     const client = createClient({
-      url: networkInfo?.APIURL
+      url: getLocal('currentGraphqlApi')
     })
-    if(!ids || !idsList) return
     const res = await client.query(tokensQuery).toPromise()
     console.log(res, 'memberListInfo=====')
     newList?.map(item => {
@@ -893,6 +975,7 @@ export default function Chat() {
         if (error) { throw error; }
       })
       if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
+        debugger
         setChatList(formatList.concat(list))
       }
       console.log(roomAddress, newList, groupLists, 'newList====')
@@ -987,7 +1070,8 @@ export default function Chat() {
       })
     })
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-      // insertData(result)
+      debugger
+      insertData(result)
       setChatList(result)
     }
     setShowMask(false)
@@ -1029,6 +1113,14 @@ export default function Chat() {
     )
     .catch((error) => console.log(error.message));
   }
+  const changeJoinStatus = (groupType) => {
+    debugger
+    if(groupType == 1 || groupType == 2) {
+      setHasAccess(true)
+    } else {
+      getManager(currentAddress, groupType)
+    }
+  }
   const handleDecryptedMessage = (id, text) => {
     getDecryptedMessage(id, text)
   }
@@ -1064,7 +1156,7 @@ export default function Chat() {
         showPlaceWrapper &&
         <div className='place-wrapper'>
           <span className='iconfont icon-guanbi' onClick={() => {setShowPlaceWrapper(false)}}></span>
-          <iframe src="https://place.beeprotocol.xyz/" frameBorder="0" width="100%" height="100%" scrolling="no">
+          <iframe src="https://place.linke.network/" frameBorder="0" width="100%" height="100%" scrolling="no">
           </iframe>
         </div>
       }
@@ -1074,7 +1166,7 @@ export default function Chat() {
           showGroupMember &&
           <div className='group-member-wrap'>
             <div className='mask' onClick={() => { setShowGroupMember(false)}}></div>
-            <GroupMember currentAddress={currentAddress} closeGroupMember={() => { setShowGroupMember(false)}}/>
+            <GroupMember currentAddress={currentAddress} closeGroupMember={() =>  setShowGroupMember(false)} groupType={groupType} handleShowMask={() => setShowMask(true)} handleHiddenMask={() => setShowMask(false)}/>
           </div>
         }
         {
@@ -1093,7 +1185,7 @@ export default function Chat() {
         {
           showCreateNewRoom &&
           <Modal title="Create New Room" visible={showCreateNewRoom} onClose={() => {setShowCreateNewRoom(false)}}>
-            <CreateNewRoom createNewRoom={(address, name) => createNewRoom(address, name)}  hiddenCreateInfo={() => {setShowCreateNewRoom(false)}}/>
+            <CreateNewRoom createNewRoom={(address, name, currentGroupType) => createNewRoom(address, name, currentGroupType)}  hiddenCreateInfo={() => {setShowCreateNewRoom(false)}}/>
           </Modal>
         }
         {
@@ -1215,7 +1307,7 @@ export default function Chat() {
                           </div>
                       </div>
                       {
-                        (( hasAccess || hasCreateRoom || currentTabIndex === 1) || (canSendText && currentGroupTypeRef.current == 3)) &&
+                        (( hasAccess || currentTabIndex == 1) || (canSendText && currentGroupTypeRef.current == 3)) &&
                         <ChatInputBox
                         startChat={(text) => startChat(text)}
                         clearChatInput={clearChatInput}
@@ -1224,8 +1316,8 @@ export default function Chat() {
                       ></ChatInputBox> 
                       }
                       {
-                        (!hasAccess) &&
-                        <JoinGroupButton currentAddress={currentAddress} changeJoinStatus={() => {setHasAccess(true)}} />
+                        (!hasAccess) && currentGroupTypeRef.current != 3 && currentTabIndex != 1 &&
+                        <JoinGroupButton currentAddress={currentAddress} changeJoinStatus={(groupType) => changeJoinStatus(groupType)} />
                       }
                     </div>
                   }

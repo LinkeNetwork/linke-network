@@ -36,7 +36,7 @@ export default function ShareInfo(props) {
   }
   const canvasToHtml = () => {
     html2canvas(document.querySelector("#shareText"), {
-      backgroundColor: '#fff',
+      backgroundColor: shareInfoStyle.backgroundColor,
       scale: 2,
       useCORS: true,
     })
@@ -108,7 +108,7 @@ export default function ShareInfo(props) {
             <div className='qrcode-dom' style={{backgroundImage: `url(${shareInfoStyle?.qrCodeBg})`}}>
               <QRCode
                 renderAs="svg"
-                value={`https://www.linke.network/${currentAddress}`}
+                value={`https://www.linke.network/chat/${currentAddress}`}
                 size={60}
                 fgColor="#000"
               />
@@ -118,10 +118,6 @@ export default function ShareInfo(props) {
             shareInfoStyle?.footerTips &&
             <div className='share-tips'>{shareInfoStyle?.footerTips}</div>
           }
-          {
-            currentGroupType != 3 && <div className='share-tips'>投资有风险，入市需谨慎。本资讯不作为投资理财建议。</div>
-          }
-          
         </div>
         <div onClick={() => canvasToHtml()} className="save-image-btn">保存图片</div>
       </div>

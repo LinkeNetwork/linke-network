@@ -1,26 +1,30 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import styled from "styled-components"
 import useChain from '../../hooks/useChain'
 import Image from '../../component/Image'
 import { useHistory } from 'react-router-dom'
 import { Jazzicon } from '@ukstv/jazzicon-react'
-import multiavatar from '@beeprotocol/beemultiavatar/esm'
-import { createClient } from 'urql'
-import { PUBLIC_GROUP_ABI } from '../../abi'
+import Modal from '../../component/Modal'
+import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI } from '../../abi'
 import { detectMobile, formatAddress, getLocal, getDaiWithSigner} from "../../utils"
 import useGroupMember from '../../hooks/useGroupMember'
 import useGlobal from "../../hooks/useGlobal"
+import Loading from '../../component/Loading'
+import { ethers } from "ethers"
 export default function GroupMember(props) {
-  const {currentAddress, closeGroupMember} = props
-  const { setState } = useGlobal()
+  const {currentAddress, closeGroupMember, hiddenGroupMember, handleShowMask, handleHiddenMask} = props
+  const { setState, currentNetwork, hasCreateRoom } = useGlobal()
   const {getGroupMember} = useGroupMember()
+  const [canQuitRoom, setCanQuitRoom] = useState()
   const [memberList, setMemberList] = useState([])
   const [manager,setManager] = useState()
   const history = useHistory()
   const [showOperate, setShowOperate] = useState()
   const [index, setIndex] = useState(-1)
   const [groupInfo, setGroupInfo] = useState()
-  const { getChainInfo } = useChain()
+  const [showQuitRoomConfirm, setShowQuitRoomConfirm] = useState(false)
+  const [groupType, setGroupType] = useState()
+  const [showLoading, setShowLoading] = useState(false)
   const getMemberList = async() => {
     const data = await getGroupMember(currentAddress)
     const memberListInfo = data?.users.map((item) => {
@@ -29,9 +33,12 @@ export default function GroupMember(props) {
         showProfile: false
       }
     })
+    const groupType = data?._type
+    setGroupType(groupType)
+    getManager(groupType)
     setMemberList(memberListInfo)
     setGroupInfo(data)
-    console.log(memberList, memberListInfo, 'memberList====')
+    console.log(data, memberList, memberListInfo, 'memberList====')
   }
   const handleViewProfile = (item, index) => {
     // setIndex(index)
@@ -50,6 +57,48 @@ export default function GroupMember(props) {
       pathname: `/profile/${item.id}`,
       state: item.id
     })
+  }
+  const handleChat = (item) => {
+    // const res = await getDaiWithSigner(currentNetwork?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(getLocal('account'))
+  }
+  const confirmQuitRoom = async() => {
+    debugger
+    try {
+      const abi = groupType == 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
+      const tx = await getDaiWithSigner(currentAddress, abi).quitRoom()
+      handleShowMask()
+      closeGroupMember()
+      await tx.wait()
+      setState({
+        hasQuitRoom: true
+      })
+      closeGroupMember()
+      history.push('/chat')
+    } catch(error) {
+      console.log(error, '====error')
+      closeGroupMember()
+      handleHiddenMask()
+    }
+  }
+  const quitRoomConfirm = () => {
+    return (
+      <Modal title="Leave Group" visible={showQuitRoomConfirm} onClose={() => setShowQuitRoomConfirm(false)}>
+      <div className='dialog-title'>Do you want to leave this group?</div>
+      <div className='btn-wrapper' style={{
+        display: 'flex',
+        margin: '20px 0 10px',
+      }}>
+        <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={confirmQuitRoom} style={{
+          marginRight: '10px'
+        }}>
+          Leave
+        </button>
+        <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={() => setShowQuitRoomConfirm(false)}>
+          Cancel
+        </button>
+      </div>
+    </Modal>
+    )
   }
   const groupInfoList = () => {
     return (
@@ -75,13 +124,23 @@ export default function GroupMember(props) {
     }
     // console.log(e.target, memberList, 'handleClick===')
   }
-  const getManager = async() => {
-    const tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
-    setManager(tx.manager)
-    console.log(tx, 'tx===manager')
+  const getManager = async(groupType) => {
+    if(groupType == 1 || groupType == 2) {
+      debugger
+      const tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
+      setManager(tx.manager)
+      const canQuitRoom = tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase()
+      setCanQuitRoom(canQuitRoom)
+      console.log(tx, 'tx===manager')
+    }
+    if(groupType == 3) {
+      debugger
+      var res = await getDaiWithSigner(currentAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
+      const isMaster = ethers.BigNumber.from(res) > 0
+      setCanQuitRoom(isMaster)
+    }
   }
   useEffect(() => {
-    getManager()
     getMemberList()
     document.addEventListener('click', handleClick)
     return () => {
@@ -90,17 +149,24 @@ export default function GroupMember(props) {
   }, [])
   return (
     <GroupMemberContainer className={detectMobile() ? 'member-wrap-client': ''}>
+      {
+        showLoading && 
+        <Loading />
+      }
       <div className="title">
         <span>Group Info</span>
         <span className="iconfont icon-close" onClick={closeGroupMember}></span>
       </div>
       {
+        quitRoomConfirm()
+      }
+      {
         groupInfoList()
       }
       <div className="sub-title">
         Members {
-          groupInfo?.userCount &&
-          <span>({groupInfo?.userCount})</span>
+          groupInfo?.users?.length &&
+          <span>({groupInfo?.users?.length})</span>
         }
       </div>
       <div className='search-wrap'>
@@ -126,6 +192,7 @@ export default function GroupMember(props) {
                       }
                     <div className='name'>{formatAddress(item.id)}</div>
                     <div className="view-btn" onClick={() => viewProfile(item)}>View</div>
+                    {/* <div className="view-btn" onClick={() => handleChat(item)}>Chat</div> */}
                     {showOperate && <span></span>}
                   </div>
                 }
@@ -141,12 +208,21 @@ export default function GroupMember(props) {
                 <div className="address">
                   {formatAddress(item.id)}
                 </div>
-                { getLocal('account') == item.id && manager?.toLowerCase() !== item.id.toLowerCase() && <div>(You)</div>} 
-                { manager?.toLowerCase() == item.id.toLowerCase() && <div>(Owner)</div>} 
+                { (groupType == 1 || groupType == 2) && getLocal('account') == item.id && manager?.toLowerCase() !== item.id.toLowerCase() && <div>(You)</div>} 
+                {
+                  (groupType == 1 || groupType == 2) && manager?.toLowerCase() == item.id.toLowerCase() && <div>(Owner)</div>
+                }
+                { 
+                  // groupType == 3 && canQuitRoom && <div>(Owner)</div>
+                } 
               </div>
             )
 
           })
+        }
+        {
+          !canQuitRoom &&
+          <div className="btn btn-lg btn-primary" onClick={() => setShowQuitRoomConfirm(true)}>Quit Room</div>
         }
       </div>
     </GroupMemberContainer>
@@ -165,6 +241,11 @@ z-index: 31;
   .title {
     left: 0
   }
+}
+.btn {
+  display: flex;
+  margin: 10px;
+  justify-content: center;
 }
 .title {
   height: 60px;
@@ -204,7 +285,7 @@ z-index: 31;
   height: 40px
 }
 .member-list {
-  height: calc(100vh - 310px);
+  height: calc(100vh - 320px);
   overflow: auto;
   .item {
     display: flex;
@@ -214,6 +295,12 @@ z-index: 31;
     border-radius: 2px;
     align-items: center;
     padding: 0 20px;
+    position: relative;
+    &:nth-child(1), &:nth-child(2) {
+      .user-profile-wrap {
+        margin-top: 140px;
+      }
+    }
   }
   .avatar-image {
     width: 60px;
@@ -223,6 +310,10 @@ z-index: 31;
     font-weight: bold;
     font-size: 16px;
     margin-left: 16px;
+    max-width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
   .address{
     margin-left: 4px;
