@@ -13,6 +13,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-duihuan:before {
+  content: "\e65b";
+}
+
+.icon-trading:before {
+  content: "\e638";
+}
+
+.icon-jiaoyijilu:before {
+  content: "\e694";
+}
+
 .icon-suoding:before {
   content: "\e602";
 }

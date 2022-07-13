@@ -9,6 +9,7 @@ import ChatInputBox from './ChatInputBox'
 import Introduction from './Introduction'
 import ConnectWallet from '../layout/ConnectWallet'
 import ChatTab from './ChatTab'
+import Trade from '../trade/index'
 import ShareInfo from './ShareInfo'
 import CreateNewRoom from './CreateNewRoom'
 import JoinRooom from './JoinRoom'
@@ -77,6 +78,7 @@ export default function Chat() {
   const [currentIndex, setCurrentIndex] = useState()
   const [roomList, setRoomList] = useState([])
   const roomListRef = useRef()
+  const [showTradeInfo, setShowTradeInfo] = useState(false)
   const [clearChatInput, setClearChatInput] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [chatListStatus, setChatListStatus] = useState(new Map())
@@ -121,6 +123,9 @@ export default function Chat() {
       // getInitChatList(item.id, item.avatar)
       startInterval(item.id)
     })
+    if(groupLists.length) {
+      setRoomList([...groupLists])
+    }
     console.log(groupLists, 'groupLists===>>.')
   }, [currentTabIndex, groupLists])
   useEffect(() => {
@@ -251,9 +256,10 @@ export default function Chat() {
   }
   const updateGroupList = (name, roomAddress, type) => {
     debugger
+    console.log(groupLists, roomList, roomListRef.current, '==updateGroupList==')
     // if(!hasGetGroupLists) return
-    const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
-    const groupList = [...groupLists]
+    const index = roomListRef.current.findIndex(item => item.id.toLowerCase() == roomAddress)
+    const groupList = [...roomListRef.current]
     if(index === -1) {
       groupList.push({
         id: roomAddress,
@@ -266,9 +272,10 @@ export default function Chat() {
         debugger
         let chatListInfo = res ? res : {}
         const list = Object.keys(chatListInfo)
-        chatListInfo[currNetwork] = list.length ? chatListInfo[currNetwork] : {}
-        chatListInfo[currNetwork][getLocal('account')] = chatListInfo[currNetwork][getLocal('account')] ? chatListInfo[currNetwork][getLocal('account')] : {}
-        chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...groupList]
+        const currentNetwork = getLocal('currentNetwork')
+        chatListInfo[currentNetwork] = list.length ? chatListInfo[currentNetwork] : {}
+        chatListInfo[currentNetwork][getLocal('account')] =  chatListInfo[currentNetwork][getLocal('account')] ? chatListInfo[currentNetwork][getLocal('account')] : {}
+        chatListInfo[currentNetwork][getLocal('account')]['publicRooms'] = [...groupList]
         localForage.setItem('chatListInfo', chatListInfo)
       })
       setRoomList(groupList)
@@ -1176,6 +1183,12 @@ export default function Chat() {
           </Modal>
         }
         {
+          showTradeInfo &&
+          <Modal title="Trade Coin" visible={showTradeInfo} onClose={() => { setShowTradeInfo(false) }}>
+            <Trade />
+          </Modal>
+        }
+        {
 
           showJoinRoom &&
           <Modal title="Start New Chat" visible={showJoinRoom} onClose={() => {setShowJoinRoom(false)}}>
@@ -1312,6 +1325,7 @@ export default function Chat() {
                         startChat={(text) => startChat(text)}
                         clearChatInput={clearChatInput}
                         handleShowPlace={() => {setShowPlaceWrapper(true)}}
+                        handleTrade={() => {setShowTradeInfo(true)}}
                         resetChatInputStatus={() => {setClearChatInput(false)}}
                       ></ChatInputBox> 
                       }

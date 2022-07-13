@@ -10,13 +10,10 @@ import Image from "../../component/Image"
 import InfiniteScroll from 'react-infinite-scroll-component'
 import useGlobal from "../../hooks/useGlobal"
 export default function ChatContext(props) {
-  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom, currentTabIndex, handleDecryptedMessage, hasDecrypted } = props
-  // const [chatLists, setChatLists] = useState(chatList)
+  const { hasMore, chatList, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom, currentTabIndex, handleDecryptedMessage } = props
   const { setState } = useGlobal()
-  const [showViewBtn, setShowViewBtn] = useState(false)
   const [showOperate, setShowOperate] = useState(false)
   const [selectText, setSelectText] = useState('')
-  const [messagesEnd, setMessagesEnd] = useState(null)
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
   const [profileId, setProfileId] = useState()
@@ -31,7 +28,6 @@ export default function ChatContext(props) {
     setTimeout(() => {
       v.showProfile = false
       setShowOperate(false)
-      console.log(111111, v)
     }, 4000)
   }
   const handleLeaveProfile = (e, v) => {
