@@ -94,6 +94,8 @@ export default function Chat() {
   const [hasDecrypted, setHasDecrypted] = useState(false)
   const [hasChatCount, setHasChatCount] = useState(false)
   const [currentGroupType, setCurrentGroupType] = useState()
+  const [groupList, setGroupLists] = useState()
+  const groupListRef = useRef()
   const [manager, setManager] = useState()
   const [canSendText, setCanSendText] = useState()
   const [groupType, setGroupType] = useState()
@@ -123,10 +125,7 @@ export default function Chat() {
       // getInitChatList(item.id, item.avatar)
       startInterval(item.id)
     })
-    if(groupLists.length) {
-      setRoomList([...groupLists])
-    }
-    console.log(groupLists, 'groupLists===>>.')
+    groupListRef.current = groupLists
   }, [currentTabIndex, groupLists])
   useEffect(() => {
     if(currentTabIndex === 1) {
@@ -256,10 +255,10 @@ export default function Chat() {
   }
   const updateGroupList = (name, roomAddress, type) => {
     debugger
-    console.log(groupLists, roomList, roomListRef.current, '==updateGroupList==')
+    console.log(groupLists, groupListRef.current,'==updateGroupList==')
     // if(!hasGetGroupLists) return
-    const index = roomListRef.current.findIndex(item => item.id.toLowerCase() == roomAddress)
-    const groupList = [...roomListRef.current]
+    const index = groupListRef.current?.findIndex(item => item.id.toLowerCase() == roomAddress.toLowerCase())
+    const groupList = [...groupListRef.current]
     if(index === -1) {
       groupList.push({
         id: roomAddress,
@@ -287,6 +286,7 @@ export default function Chat() {
   const isRoom = async (roomAddress) => {
     try {
       debugger
+      console.log(groupListRef.current, 'groupListRef.current======')
       const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
       if(index > 0) return
       debugger
@@ -940,7 +940,7 @@ export default function Chat() {
       const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
       const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
       if(index > -1) {
-        publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount - 1 || 0
+        publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount || 0
         const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
         res[currNetwork][getLocal('account')][roomType] = [...publicRooms]
         setRoomList(publicRooms)
