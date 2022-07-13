@@ -1327,6 +1327,7 @@ export default function Chat() {
                         handleShowPlace={() => {setShowPlaceWrapper(true)}}
                         handleTrade={() => {setShowTradeInfo(true)}}
                         resetChatInputStatus={() => {setClearChatInput(false)}}
+                        currentTabIndex={currentTabIndex}
                       ></ChatInputBox> 
                       }
                       {

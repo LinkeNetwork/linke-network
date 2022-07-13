@@ -5,7 +5,7 @@ import emoji from 'emoji-mart/dist-es/components/emoji/emoji'
 import { detectMobile } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleTrade } = props
+  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleTrade, currentTabIndex } = props
   const { setState } = useGlobal()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
@@ -221,9 +221,13 @@ export default function ChatInputBox(props) {
           <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handlePlaceClick}>
             <span className='iconfont icon-yanse'></span>
           </div>
-          <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleTrade}>
-            <span className='iconfont icon-duihuan'></span>
+          {
+            currentTabIndex == 0 &&
+            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleTrade}>
+              <span className='iconfont icon-duihuan'></span>
           </div>
+          }
+         
         </div>
         
         <div className={`rich-editor chat-input ${!detectMobile() ? 'chat-input-pc' : 'chat-input-client'}`}>

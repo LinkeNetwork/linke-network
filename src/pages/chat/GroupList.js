@@ -330,7 +330,6 @@ export default function GroupList(props) {
         console.log(error, 'error===')
       })
     }
-    console.log(hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, '777====')
   }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, hasQuitRoom])
   return (
     <ListGroupContainer>
