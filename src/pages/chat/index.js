@@ -92,6 +92,8 @@ export default function Chat() {
   const [hasDecrypted, setHasDecrypted] = useState(false)
   const [hasChatCount, setHasChatCount] = useState(false)
   const [currentGroupType, setCurrentGroupType] = useState()
+  const [groupList, setGroupLists] = useState()
+  const groupListRef = useRef()
   const [manager, setManager] = useState()
   const [canSendText, setCanSendText] = useState()
   const [groupType, setGroupType] = useState()
@@ -121,7 +123,11 @@ export default function Chat() {
       // getInitChatList(item.id, item.avatar)
       startInterval(item.id)
     })
-    console.log(groupLists, 'groupLists===>>.')
+   
+    if(groupLists?.length) {
+      setGroupLists([...groupLists])
+    }
+    groupListRef.current = groupLists
   }, [currentTabIndex, groupLists])
   useEffect(() => {
     if(currentTabIndex === 1) {
@@ -251,9 +257,10 @@ export default function Chat() {
   }
   const updateGroupList = (name, roomAddress, type) => {
     debugger
+    console.log(groupLists, groupListRef.current,'==updateGroupList==')
     // if(!hasGetGroupLists) return
-    const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
-    const groupList = [...groupLists]
+    const index = groupListRef.current?.findIndex(item => item.id.toLowerCase() == roomAddress.toLowerCase())
+    const groupList = [...groupListRef.current]
     if(index === -1) {
       groupList.push({
         id: roomAddress,
@@ -266,9 +273,10 @@ export default function Chat() {
         debugger
         let chatListInfo = res ? res : {}
         const list = Object.keys(chatListInfo)
-        chatListInfo[currNetwork] = list.length ? chatListInfo[currNetwork] : {}
-        chatListInfo[currNetwork][getLocal('account')] = chatListInfo[currNetwork][getLocal('account')] ? chatListInfo[currNetwork][getLocal('account')] : {}
-        chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...groupList]
+        const currentNetwork = getLocal('currentNetwork')
+        chatListInfo[currentNetwork] = list.length ? chatListInfo[currentNetwork] : {}
+        chatListInfo[currentNetwork][getLocal('account')] =  chatListInfo[currentNetwork][getLocal('account')] ? chatListInfo[currentNetwork][getLocal('account')] : {}
+        chatListInfo[currentNetwork][getLocal('account')]['publicRooms'] = [...groupList]
         localForage.setItem('chatListInfo', chatListInfo)
       })
       setRoomList(groupList)
@@ -280,6 +288,7 @@ export default function Chat() {
   const isRoom = async (roomAddress) => {
     try {
       debugger
+      console.log(groupListRef.current, 'groupListRef.current======')
       const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
       if(index > 0) return
       debugger
@@ -933,7 +942,7 @@ export default function Chat() {
       const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
       const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
       if(index > -1) {
-        publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount - 1 || 0
+        publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount || 0
         const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
         res[currNetwork][getLocal('account')][roomType] = [...publicRooms]
         setRoomList(publicRooms)
