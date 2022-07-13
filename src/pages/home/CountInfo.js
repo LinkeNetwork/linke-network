@@ -6,7 +6,7 @@ import {createClient} from 'urql'
 import {useEffect, useState} from "react"
 
 const REIAPIURL = 'https://beeprotocol.xyz/subgraphs/name/Bee-Protocol/bee-subgraph'
-const CZZAPIURL = 'https://node.classzz.com/subgraphs/name/Bee-Protocol/bee-subgraph'
+const CZZAPIURL = 'https://node.classzz.com/subgraphs/name/LinkeNetwork/linke-network-subgraph'
 export default function CountInfo() {
     const [countInfo, setCountInfo] = useState()
     const countList = [
