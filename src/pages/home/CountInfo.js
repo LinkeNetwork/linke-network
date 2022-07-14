@@ -56,24 +56,25 @@ export default function CountInfo() {
             sendCount: 0,
             followCount: 0
         }
-
+        var list = []
         url.map(async (item) => {
             const client = createClient({
-                url: item
+              url: item
             })
             const res = await client.query(countInfoQuery).toPromise()
 
             if (!res.data) return
             const {groupCount, groupProfileCount, profileCount, sendCount, followCount} = res?.data.statisticalData
+            list.push(res?.data.statisticalData)
             obj.groupCount += Number(groupCount)
             obj.groupProfileCount += Number(groupProfileCount)
             obj.profileCount += Number(profileCount)
             obj.sendCount += Number(sendCount)
             obj.followCount += Number(followCount)
+            if(list?.length == url.length) {
+              setCountInfo(obj)
+            }
         })
-        setTimeout(() => {
-            setCountInfo(obj)
-        }, 1000)
     }
     return (
         <CountInfoContanier>
