@@ -514,6 +514,7 @@ export default function Chat() {
     if(currentTabIndex === 0) {
       // getMemberCount(item.id)
       getManager(item.id, item._type)
+      handleReadMessage(item.id)
     }
     setCurrentRoomName(item.name)
     setShowChat(true)
@@ -887,6 +888,19 @@ export default function Chat() {
       }
     }, 20000)
   }
+  const handleReadMessage = (roomAddress) => {
+    localForage.getItem('chatListInfo').then(res => {
+      console.log(res, 'res===>>updateUnreadNum')
+      const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
+      const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
+      if(index > -1) {
+        publicRooms[index]['newChatCount'] = 0
+        res[currNetwork][getLocal('account')]['publicRooms'] = [...publicRooms]
+        localForage.setItem('chatListInfo', res)
+        setRoomList(publicRooms)
+      }
+    })
+  }
   const getUserAvatar = async(newList) => {
     let list = []
     const ids = newList?.map(item => item.sender)
@@ -945,8 +959,8 @@ export default function Chat() {
         publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount || 0
         const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
         res[currNetwork][getLocal('account')][roomType] = [...publicRooms]
-        setRoomList(publicRooms)
         localForage.setItem('chatListInfo', res)
+        setRoomList(publicRooms)
         console.log(publicRooms, res, 'publicRooms====')
       }
     })
@@ -992,12 +1006,12 @@ export default function Chat() {
   }
   const updateNewList = async(roomAddress, collection) => {
     const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
-    const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
+    const index = groupListRef.current?.findIndex(item => item.id.toLowerCase() == roomAddress)
     console.log(res,+res[0]?.index - Number(groupLists[index]?.chatCount), roomAddress, groupLists,'1====>>.')
     if(index > -1) {
-      groupLists[index] = {
-        ...groupLists[index],
-        newChatCount: +res[0]?.index - Number(groupLists[index]?.chatCount) - 1
+      groupListRef.current[index] = {
+        ...groupListRef.current[index],
+        newChatCount: +res[0]?.index - Number(groupListRef.current[index]?.chatCount)
       }
       setHasChatCount(true)
     }
