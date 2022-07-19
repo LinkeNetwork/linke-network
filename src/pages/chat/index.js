@@ -515,12 +515,12 @@ export default function Chat() {
       // getMemberCount(item.id)
       getManager(item.id, item._type)
       handleReadMessage(item.id)
+      getJoinRoomAccess(item.id, item._type)
     }
     setCurrentRoomName(item.name)
     setShowChat(true)
     setShowMask(true)
     setHasScroll(false)
-    getJoinRoomAccess(item.id, item._type)
   }
 
   const scrollToBottom = () => {
@@ -659,14 +659,14 @@ export default function Chat() {
         showProfile: false,
         isDecrypted: false,
         room: toAddress.toLowerCase(),
-        avatar: type === 1 ? myAvatar : (roomAvatar || avatar)
+        avatar: type === 1 ? myAvatar : (avatar || roomAvatar)
       }
     })
     return data
   }
 
   const fetchPrivateChatList = async(toAddress, avatar) => {
-    setRoomAvatar(avatar)
+    // setRoomAvatar(avatar)
     const myAddress = getLocal('account')?.toLowerCase()
     const tokensSenderQuery = `
     query{
