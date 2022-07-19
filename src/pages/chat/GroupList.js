@@ -13,7 +13,7 @@ import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 export default function GroupList(props) {
   const { hasCreateRoom, setState, currentNetwork, hasQuitRoom } = useGlobal()
-  const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead} = props
+  const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead, privateChatMember} = props
   const [groupList, setGroupList] = useState([])
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
@@ -194,9 +194,7 @@ export default function GroupList(props) {
     const index =  groupInfos && groupInfos.findIndex((item) => item.id.toLowerCase() == roomAddress)
     setCurrentRoomIndex(index)
   }
-  const getPrivateGroupList = async() => {
-    console.log(history.location?.state, 'history.location?.state====')
-    showMask()
+  const initPrivateMember = () => {
     const data = history.location?.state
     var list = []
     if(data) {
@@ -207,6 +205,12 @@ export default function GroupList(props) {
         avatar: avatar
       }
     }
+    return list
+  }
+  const getPrivateGroupList = async() => {
+    console.log(history.location?.state, 'history.location?.state====')
+    showMask()
+    var list = initPrivateMember()
     const senderQuery = `
       query{
         encryptedInfos(where:{sender: "`+ getLocal('account')?.toLowerCase() +`"}){
@@ -320,9 +324,14 @@ export default function GroupList(props) {
           if(!privateRooms?.length) {
             getPrivateGroupList()
           } else {
-            setGroupList(privateRooms)
+            const list = initPrivateMember()
+            const groupList = [...privateRooms]
+            if(Object.keys(list).length !== 0) {
+              groupList.push(list)
+            }
+            setGroupList(groupList)
             setState({
-              groupLists: privateRooms
+              groupLists: groupList
             })
           }
         }

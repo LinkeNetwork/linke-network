@@ -1147,6 +1147,22 @@ export default function Chat() {
   const handleDecryptedMessage = (id, text) => {
     getDecryptedMessage(id, text)
   }
+  const handlePrivateChat = (item, res) => {
+    setCurrentTabIndex(1)
+    setShowGroupMember(false)
+    debugger
+    console.log(item)
+    if(Boolean(res)) {
+      history.push({
+        pathname: `/chat/${item.id}`,
+        state: {
+          name: item?.name ? item?.name : item?.profile?.name,
+          address: item.id,
+          avatar: item?.profile?.avatar ? item?.profile?.avatar : item.id
+        }
+      })
+    }
+  }
   useEffect(() => {
     getBalance()
     getCurrentNetwork()
@@ -1189,7 +1205,7 @@ export default function Chat() {
           showGroupMember &&
           <div className='group-member-wrap'>
             <div className='mask' onClick={() => { setShowGroupMember(false)}}></div>
-            <GroupMember currentAddress={currentAddress} closeGroupMember={() =>  setShowGroupMember(false)} groupType={groupType} handleShowMask={() => setShowMask(true)} handleHiddenMask={() => setShowMask(false)}/>
+            <GroupMember currentAddress={currentAddress} closeGroupMember={() =>  setShowGroupMember(false)} groupType={groupType} handleShowMask={() => setShowMask(true)} handleHiddenMask={() => setShowMask(false)} handlePrivateChat={(item, res) => {handlePrivateChat(item, res)}}/>
           </div>
         }
         {

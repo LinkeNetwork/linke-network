@@ -5,14 +5,14 @@ import Image from '../../component/Image'
 import { useHistory } from 'react-router-dom'
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import Modal from '../../component/Modal'
-import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI } from '../../abi'
+import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI } from '../../abi'
 import { detectMobile, formatAddress, getLocal, getDaiWithSigner} from "../../utils"
 import useGroupMember from '../../hooks/useGroupMember'
 import useGlobal from "../../hooks/useGlobal"
 import Loading from '../../component/Loading'
 import { ethers } from "ethers"
 export default function GroupMember(props) {
-  const {currentAddress, closeGroupMember, hiddenGroupMember, handleShowMask, handleHiddenMask} = props
+  const {currentAddress, closeGroupMember, hiddenGroupMember, handleShowMask, handleHiddenMask, handlePrivateChat} = props
   const { setState, currentNetwork, hasCreateRoom } = useGlobal()
   const {getGroupMember} = useGroupMember()
   const [canQuitRoom, setCanQuitRoom] = useState()
@@ -25,6 +25,8 @@ export default function GroupMember(props) {
   const [showQuitRoomConfirm, setShowQuitRoomConfirm] = useState(false)
   const [groupType, setGroupType] = useState()
   const [showLoading, setShowLoading] = useState(false)
+  const [showPrivateChat, setShowPrivateChat] = useState(false)
+  const [privateKey, setPrivateKey] = useState()
   const getMemberList = async() => {
     const data = await getGroupMember(currentAddress)
     const memberListInfo = data?.users.map((item) => {
@@ -40,7 +42,16 @@ export default function GroupMember(props) {
     setGroupInfo(data)
     console.log(data, memberList, memberListInfo, 'memberList====')
   }
+  const handleChat = (item) => {
+    handlePrivateChat(item, privateKey)
+  }
+  const getChatStatus = async(item) => {
+    const res = await getDaiWithSigner(currentNetwork?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(item.id.toLowerCase())
+    setPrivateKey(res)
+    setShowPrivateChat(Boolean(res))
+  }
   const handleViewProfile = (item, index) => {
+    getChatStatus(item)
     // setIndex(index)
     item.showProfile = true
     setShowOperate(true)
@@ -57,9 +68,6 @@ export default function GroupMember(props) {
       pathname: `/profile/${item.id}`,
       state: item.id
     })
-  }
-  const handleChat = (item) => {
-    // const res = await getDaiWithSigner(currentNetwork?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(getLocal('account'))
   }
   const confirmQuitRoom = async() => {
     debugger
@@ -191,8 +199,13 @@ export default function GroupMember(props) {
                         : <Jazzicon address={item.id} className="avatar-image"/>
                       }
                     <div className='name'>{formatAddress(item.id)}</div>
-                    <div className="view-btn" onClick={() => viewProfile(item)}>View</div>
-                    {/* <div className="view-btn" onClick={() => handleChat(item)}>Chat</div> */}
+                    <div className="button-wrapper">
+                      <div className="view-btn" onClick={() => viewProfile(item)}>View</div>
+                      {
+                        showPrivateChat &&
+                        <div className="view-btn" onClick={() => handleChat(item)}>Chat</div>
+                      }
+                    </div>
                     {showOperate && <span></span>}
                   </div>
                 }
@@ -287,6 +300,12 @@ z-index: 31;
 .member-list {
   height: calc(100vh - 320px);
   overflow: auto;
+  .button-wrapper {
+    display: flex;
+    div {
+      margin: 3px 5px;
+    }
+  }
   .item {
     display: flex;
     height: 60px;
