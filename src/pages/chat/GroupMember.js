@@ -202,7 +202,7 @@ export default function GroupMember(props) {
                     <div className="button-wrapper">
                       <div className="view-btn" onClick={() => viewProfile(item)}>View</div>
                       {
-                        showPrivateChat &&
+                        showPrivateChat && getLocal('account').toLowerCase() != item?.id.toLowerCase() &&
                         <div className="view-btn" onClick={() => handleChat(item)}>Chat</div>
                       }
                     </div>

@@ -329,6 +329,8 @@ export default function GroupList(props) {
             if(Object.keys(list).length !== 0) {
               groupList.push(list)
             }
+            res[currNetwork][getLocal('account')]['privateRooms'] = [...groupList]
+            localForage.setItem('chatListInfo', res)
             setGroupList(groupList)
             setState({
               groupLists: groupList
