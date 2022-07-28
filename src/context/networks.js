@@ -22,8 +22,8 @@ const networks =  [
     blockExplorerUrls: ["https://scan.rei.network/"],
     ProfileAddress: "0xd31481d02212bA8341EbA8caA624923A3B360151",
     GroupProfileAddress: "0xdE0c6615C559dd8c055f2345F4D8151103c09543",
-    APIURL: "https://beeprotocol.xyz/subgraphs/name/Bee-Protocol/bee-subgraph",
-    PrivateChatAddress: '0xD6425022DC33C6b5bf339AC873430b442d50D63b'
+    APIURL: "https://linke.network/subgraphs/name/LinkeNetwork/linke-network-subgraph",
+    PrivateChatAddress: '0x58Fd22715028A0365cC17e489579C6e4fD57cde4'
   }
 ]
 
