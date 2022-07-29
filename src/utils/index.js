@@ -10,7 +10,9 @@ export const setLocal = (key, value) => {
 }
 
 export const getLocal = (key) => {
-  return JSON.parse(localStorage.getItem(key))
+  if(key) {
+    return JSON.parse(localStorage.getItem(key))
+  }
 }
 
 export const delLocal = (key) => {

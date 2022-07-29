@@ -299,7 +299,6 @@ export default function GroupList(props) {
     updateChatCount()
   }, [newGroupList, hasChatCount])
   useEffect(() => {
-    console.log(currentNetwork?.name, getLocal('currentNetwork'),'00000===>>>')
     if(getLocal('isConnect') && getLocal('currentNetwork')) {
       const currNetwork = currentNetwork?.name || getLocal('currentNetwork')
       localForage.getItem('chatListInfo').then(res => {
