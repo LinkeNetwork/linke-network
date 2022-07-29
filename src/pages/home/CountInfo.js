@@ -5,7 +5,7 @@ import {detectMobile} from "../../utils"
 import {createClient} from 'urql'
 import {useEffect, useState} from "react"
 
-const REIAPIURL = 'https://beeprotocol.xyz/subgraphs/name/Bee-Protocol/bee-subgraph'
+const REIAPIURL = 'https://linke.network/subgraphs/name/LinkeNetwork/linke-network-subgraph'
 const CZZAPIURL = 'https://node.classzz.com/subgraphs/name/LinkeNetwork/linke-network-subgraph'
 export default function CountInfo() {
     const [countInfo, setCountInfo] = useState()
