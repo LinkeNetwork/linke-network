@@ -7,7 +7,6 @@ const state = {
   hasCreateRoom: false,
   groupLists: [],
   tokenId: '',
-  hasGetGroupLists: false,
   profileAvatar: '',
   profileId: '',
   currentProfileAddress: '',

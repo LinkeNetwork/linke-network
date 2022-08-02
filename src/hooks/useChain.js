@@ -12,6 +12,7 @@ export default function useChain() {
       console.log(network, 'network=========>>>')
       const item = networks.filter(i=> i.chainId === network?.chainId)[0]
       console.log(item, '===getChainInfo=')
+      setLocal('currentNetwork', item?.name)
       setState({currentNetwork:item})
       return item
     }

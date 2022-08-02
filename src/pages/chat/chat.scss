@@ -829,6 +829,18 @@ ul.dropdown-menu {
 .no-chat-image {
   width: 120px;
   margin-bottom: 20px;
+} 
+.add-manager-wrapper {
+  display: flex;
+  align-items: center;
+  .item {
+    display: flex;
+    flex: 1;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-left: 8px;
+    padding: 6px 4px;
+  }
 }
 @media (min-width: 992px){
 .d-lg-none {

@@ -43,7 +43,7 @@ export default function Chat() {
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
-  const {groupLists, hasGetGroupLists, hasCreateRoom, setState, hasClickPlace, currentNetwork, hasQuitRoom} = useGlobal()
+  const {groupLists, hasCreateRoom, setState, hasClickPlace, currentNetwork, hasQuitRoom, networks} = useGlobal()
   const [balance, setBalance] = useState()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentGraphApi, setCurrentGraphApi] = useState()
@@ -100,6 +100,7 @@ export default function Chat() {
   const currentGroupTypeRef = useRef()
   const hasAccessRef = useRef()
   const showJoinGroupButtonRef = useRef()
+  const currNetworkRef = useRef()
   useEffect(() => {
     if(hasQuitRoom) {
       setShowMask(false)
@@ -246,7 +247,14 @@ export default function Chat() {
     } else {
       setCurrentTabIndex(0)
     }
-    const address = history.location.pathname.split('/chat/')[1]
+    const path = history.location.pathname.split('/chat/')[1]
+    const address = path?.split('/')[0]
+    const network = path?.split('/')[1]
+    if(network) {
+      setState({
+        currNetwork: network
+      })
+    }
     if (address) {
       setCurrentAddress(address)
       setState({
@@ -258,7 +266,6 @@ export default function Chat() {
   const updateGroupList = (name, roomAddress, type) => {
     debugger
     console.log(groupLists, groupListRef.current,'==updateGroupList==')
-    // if(!hasGetGroupLists) return
     const index = groupListRef.current?.findIndex(item => item.id.toLowerCase() == roomAddress.toLowerCase())
     const groupList = [...groupListRef.current]
     if(index === -1) {
@@ -292,7 +299,14 @@ export default function Chat() {
       const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
       if(index > 0) return
       debugger
-      const groupInfo = await getGroupMember(roomAddress)
+      if(!getLocal('isConnect')) {
+        const path = history.location.pathname.split('/chat/')[1]
+        var currentNetwork = path?.split('/')[1]
+        var networkInfo = networks.filter(i=> i.name === currentNetwork)[0]
+        setLocal('currentGraphqlApi', networkInfo?.APIURL)
+        setLocal('currentNetwork', currentNetwork)
+      }
+      const groupInfo = await getGroupMember(roomAddress, networkInfo?.APIURL)
       const groupType = groupInfo?._type
       setGroupType(groupType)
       if(groupType == 3) {
@@ -300,9 +314,6 @@ export default function Chat() {
       } else {
         var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
       }
-      setState({
-        hasGetGroupLists: true
-      })
       console.log(name, '====....')
       updateGroupList(name, roomAddress, groupType)
       getJoinRoomAccess(roomAddress, groupType)
@@ -394,7 +405,7 @@ export default function Chat() {
   const initCurrentAddress = (list) => {
     clearInterval(timer.current)
     clearInterval(allTimer.current)
-    history.push(`/chat/${list}`)
+    // history.push(`/chat/${list}`)
     setCurrentAddress(list)
     setState({
       currentAddress: list
@@ -1165,7 +1176,9 @@ export default function Chat() {
   }
   useEffect(() => {
     getBalance()
-    getCurrentNetwork()
+    if(getLocal('isConnect')) {
+      getCurrentNetwork()
+    }
     initRoomAddress()
     setMyAddress(getLocal('account'))
     accountsChange()
@@ -1247,6 +1260,7 @@ export default function Chat() {
             shareTextInfo={shareTextInfo}
             currentAddress={currentAddress}
             currentGroupType={currentGroupType}
+            currentNetwork={currNetwork}
             closeShareInfo={() => handleClick()}>
           </ShareInfo>
         }

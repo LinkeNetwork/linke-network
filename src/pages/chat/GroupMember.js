@@ -27,6 +27,7 @@ export default function GroupMember(props) {
   const [showLoading, setShowLoading] = useState(false)
   const [showPrivateChat, setShowPrivateChat] = useState(false)
   const [privateKey, setPrivateKey] = useState()
+  const [showAddManager, setShowAddManager] = useState(false)
   const getMemberList = async() => {
     const data = await getGroupMember(currentAddress)
     const memberListInfo = data?.users.map((item) => {
@@ -132,6 +133,27 @@ export default function GroupMember(props) {
     }
     // console.log(e.target, memberList, 'handleClick===')
   }
+  const addManagerWrapper = () => {
+    return(
+      <Modal title="Add Manager" visible={showAddManager} onClose={() => { setShowAddManager(false) }}>
+        <div className="add-manager-wrapper">Manager:
+          <div className="item"><input /></div>
+        </div>
+        <div className="btn-operate" style={btnOperateStyle}>
+          <div className="btn btn-lg btn-primary" style={btnStyle}>Confirm</div>
+          <div className="btn btn-lg btn-light" style={btnStyle} onClick={() => { setShowAddManager(false) }}>Cancel</div>
+        </div>
+      </Modal>
+    )
+  }
+  const btnOperateStyle = {
+    margin: '20px 0 10px',
+    display: 'flex',
+    justifyContent: 'center'
+  }
+  const btnStyle = {
+    margin:'0 10px'
+  }
   const getManager = async(groupType) => {
     if(groupType == 1 || groupType == 2) {
       debugger
@@ -158,6 +180,10 @@ export default function GroupMember(props) {
   return (
     <GroupMemberContainer className={detectMobile() ? 'member-wrap-client': ''}>
       {
+        showAddManager &&
+        addManagerWrapper()
+      }
+      {
         showLoading && 
         <Loading />
       }
@@ -172,10 +198,16 @@ export default function GroupMember(props) {
         groupInfoList()
       }
       <div className="sub-title">
-        Members {
-          groupInfo?.users?.length &&
-          <span>({groupInfo?.users?.length})</span>
-        }
+        <div>
+          Members {
+            groupInfo?.users?.length &&
+            <span>({groupInfo?.users?.length})</span>
+          }
+        </div>
+        {/* {
+          groupType == 3 &&
+          <div className="iconfont icon-add" onClick={() => { setShowAddManager(true) }}></div>
+        } */}
       </div>
       <div className='search-wrap'>
         <div className="position-relative">
@@ -259,6 +291,20 @@ z-index: 31;
   display: flex;
   margin: 10px;
   justify-content: center;
+}
+.manager-wrapper{
+  display: flex;
+  .info-wrapper {
+    display: flex;
+    .item {
+      margin-left: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      display: flex;
+      flex: 1;
+      padding: 6px 4px;
+    }
+  }
 }
 .title {
   height: 60px;

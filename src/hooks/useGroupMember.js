@@ -4,7 +4,7 @@ import { getLocal } from '../utils/index'
 import { useCallback } from 'react'
 export default function useGroupMember() {
   const { currentTabIndex, currentAddress } = useGlobal()
-  const getGroupMember = useCallback(async(address) => {
+  const getGroupMember = useCallback(async(address, APIURL) => {
     if(currentTabIndex === 1 || !address) return
     const tokensQuery = `
     query{
@@ -31,7 +31,7 @@ export default function useGroupMember() {
     }
     `
     const client = createClient({
-      url: getLocal('currentGraphqlApi')
+      url: APIURL || getLocal('currentGraphqlApi')
     })
 
     const res = await client.query(tokensQuery).toPromise()

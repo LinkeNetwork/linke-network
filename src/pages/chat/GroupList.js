@@ -56,7 +56,7 @@ export default function GroupList(props) {
     console.log(fetchData, currNetwork, '=====>>>>updateChatCount')
     localForage.getItem('chatListInfo').then(res => {
       if(currNetwork) {
-        const account = res ? res[currNetwork][getLocal('account')] : null
+        const account = res[currNetwork] ? res[currNetwork][getLocal('account')] : null
         const publicRooms = account ? account['publicRooms'] : []
         const privateRooms = account ? account['privateRooms'] : []
         const groupList = currentTabIndex === 0 ? publicRooms : privateRooms
@@ -115,8 +115,7 @@ export default function GroupList(props) {
       }
     }
     setState({
-      groupLists: [...groupInfos],
-      hasGetGroupLists: true
+      groupLists: [...groupInfos]
     })
     console.log(res.data?.groupUser?.groupInfos, 'groupInfos====')
     setGroupList(groupInfos || [])
@@ -272,7 +271,7 @@ export default function GroupList(props) {
   const setChatListInfo = (groupInfos, type) => {
     const currNetwork = getLocal('currentNetwork')
     localForage.getItem('chatListInfo').then(res => {
-      const account = res ? res[currNetwork][getLocal('account')] : null
+      const account = res[currNetwork] ? res[currNetwork][getLocal('account')] : null
       const publicRooms = account ? account['publicRooms'] : []
       const privateRooms = account ? account['privateRooms'] : []
       let chatListInfo = res ? res : {}
@@ -302,11 +301,9 @@ export default function GroupList(props) {
     if(getLocal('isConnect') && getLocal('currentNetwork')) {
       const currNetwork = currentNetwork?.name || getLocal('currentNetwork')
       localForage.getItem('chatListInfo').then(res => {
-        console.log(res, 'res===>>')
-        const account = res ? res[currNetwork][getLocal('account')] : null
+        const account = res[currNetwork] ? res[currNetwork][getLocal('account')] : null
         const publicRooms = account ? account['publicRooms'] : []
         const privateRooms = account ? account['privateRooms'] : []
-        // debugger
         if(currentTabIndex === 0) {
           if(!publicRooms?.length || hasCreateRoom || hasQuitRoom) {
             getGroupList()
@@ -340,8 +337,11 @@ export default function GroupList(props) {
         console.log(error, 'error===')
       })
     }
-    console.log(hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, '777====')
-  }, [getLocal('account'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, hasQuitRoom])
+    if(!getLocal('isConnect')) {
+      setGroupList([])
+    }
+    console.log(getLocal('isConnect'), chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, '777====')
+  }, [getLocal('account'), getLocal('isConnect'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, hasQuitRoom])
   return (
     <ListGroupContainer>
       {

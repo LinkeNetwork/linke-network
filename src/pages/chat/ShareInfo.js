@@ -6,7 +6,7 @@ import { detectMobile, getLocal } from '../../utils';
 import useGlobal from '../../hooks/useGlobal';
 import { createClient } from 'urql'
 export default function ShareInfo(props) {
-  const { closeShareInfo, currentAddress, shareTextInfo, currentGroupType } = props
+  const { closeShareInfo, currentAddress, shareTextInfo, currentGroupType, currentNetwork } = props
   const { showShareContent } = useGlobal()
   const [canvasImage, setCanvasImage] = useState()
   const [shareInfoStyle, setShareInfoStyle] = useState({})
@@ -108,7 +108,7 @@ export default function ShareInfo(props) {
             <div className='qrcode-dom' style={{backgroundImage: `url(${shareInfoStyle?.qrCodeBg})`}}>
               <QRCode
                 renderAs="svg"
-                value={`https://www.linke.network/chat/${currentAddress}`}
+                value={`https://www.linke.network/chat/${currentAddress}/${currentNetwork}`}
                 size={60}
                 fgColor="#000"
               />
