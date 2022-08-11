@@ -21,7 +21,7 @@ export default function InputForm(props) {
     const handleSave = async() => {
     setShowLoading(true)
     const info = await client.add(multiavatar(myAddress))
-    const avatarUrl = `https://infura-ipfs.io/ipfs/${info.path}`
+    const avatarUrl = `https://linke.infura-ipfs.io/ipfs/${info.path}`
     console.log(avatarUrl, 'avatarUrl=====')
     const expandInfo = []
     console.log(expandInfo, 'expandInfo====')

@@ -88,7 +88,7 @@ export default function ProfileInfo(props) {
     const tokenrul = {
       "name": profileInfo?.name,
       "description": profileInfo?.description,
-      "image": "https://infura-ipfs.io/ipfs/"
+      "image": "https://linke.infura-ipfs.io/ipfs/"
     }
     debugger
     if (profileInfo?.selfNFT) {

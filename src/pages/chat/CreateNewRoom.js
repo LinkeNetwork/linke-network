@@ -82,7 +82,7 @@ export default function CreateNewRoom(props) {
     setShoMask(true)
     const avatar = getLocal('account') + name
     const info = await client.add(multiavatar(avatar))
-    const avatarUrl = `https://infura-ipfs.io/ipfs/${info.path}`
+    const avatarUrl = `https://linke.infura-ipfs.io/ipfs/${info.path}`
     const network = await getChainInfo()
     console.log(avatarUrl, 'avatarUrl=====')
     const style = {
@@ -143,7 +143,7 @@ export default function CreateNewRoom(props) {
     try {
       setShowLoading(true)
       const added = await client.add(file)
-      const url = `https://infura-ipfs.io/ipfs/${added.path}`
+      const url = `https://linke.infura-ipfs.io/ipfs/${added.path}`
       if (type === 1) {
         setGroupLogo(url)
         setShowLoading(false)
@@ -262,7 +262,7 @@ export default function CreateNewRoom(props) {
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(1)}></span>
                 {
                   showExplain1 &&
-                  <img src="https://infura-ipfs.io/ipfs/QmZk1Rd98aeVUCGtPe9uT5iKXFgobLjfdNBERf3msDAud1" />
+                  <img src="https://linke.infura-ipfs.io/ipfs/QmZk1Rd98aeVUCGtPe9uT5iKXFgobLjfdNBERf3msDAud1" />
                 }
               </div>
               <input
@@ -280,7 +280,7 @@ export default function CreateNewRoom(props) {
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(2)}></span>
                 {
                   showExplain2 &&
-                  <img src="https://infura-ipfs.io/ipfs/QmdJQKnqvSeDAiyyBAxExjQSPdkYL6eo4yDEAMk1m6iaEG" />
+                  <img src="https://linke.infura-ipfs.io/ipfs/QmdJQKnqvSeDAiyyBAxExjQSPdkYL6eo4yDEAMk1m6iaEG" />
                 }
               </div>
               <input
@@ -298,7 +298,7 @@ export default function CreateNewRoom(props) {
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(3)}></span>
                 {
                   showExplain3 &&
-                  <img src="https://infura-ipfs.io/ipfs/Qme2MXxFhnFRMFT6yfrz7GvVabPKkHHaQXvmbZF2g2KYET" />
+                  <img src="https://linke.infura-ipfs.io/ipfs/Qme2MXxFhnFRMFT6yfrz7GvVabPKkHHaQXvmbZF2g2KYET" />
                 }
               </div>
               <input

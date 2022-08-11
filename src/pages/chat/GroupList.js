@@ -56,7 +56,7 @@ export default function GroupList(props) {
     console.log(fetchData, currNetwork, '=====>>>>updateChatCount')
     localForage.getItem('chatListInfo').then(res => {
       if(currNetwork) {
-        const account = res[currNetwork] ? res[currNetwork][getLocal('account')] : null
+        const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
         const publicRooms = account ? account['publicRooms'] : []
         const privateRooms = account ? account['privateRooms'] : []
         const groupList = currentTabIndex === 0 ? publicRooms : privateRooms
@@ -271,7 +271,7 @@ export default function GroupList(props) {
   const setChatListInfo = (groupInfos, type) => {
     const currNetwork = getLocal('currentNetwork')
     localForage.getItem('chatListInfo').then(res => {
-      const account = res[currNetwork] ? res[currNetwork][getLocal('account')] : null
+      const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
       const publicRooms = account ? account['publicRooms'] : []
       const privateRooms = account ? account['privateRooms'] : []
       let chatListInfo = res ? res : {}
@@ -301,7 +301,7 @@ export default function GroupList(props) {
     if(getLocal('isConnect') && getLocal('currentNetwork')) {
       const currNetwork = currentNetwork?.name || getLocal('currentNetwork')
       localForage.getItem('chatListInfo').then(res => {
-        const account = res[currNetwork] ? res[currNetwork][getLocal('account')] : null
+        const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
         const publicRooms = account ? account['publicRooms'] : []
         const privateRooms = account ? account['privateRooms'] : []
         if(currentTabIndex === 0) {
