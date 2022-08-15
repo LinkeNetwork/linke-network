@@ -1175,8 +1175,8 @@ export default function Chat() {
     }
   }
   useEffect(() => {
-    getBalance()
     if(getLocal('isConnect')) {
+      getBalance()
       getCurrentNetwork()
     }
     initRoomAddress()
