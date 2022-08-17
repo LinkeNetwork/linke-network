@@ -29,8 +29,7 @@ export default function GroupList(props) {
   const [hasTransition, setHasTransition] = useState(false)
   const [moveStyle, setMoveStyle] = useState({})
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const history = useHistory()
-  const path = history.location.pathname
+  3
 
   const updateChatCount = async() => {
     if(!currentAddress?.toLowerCase()) return
