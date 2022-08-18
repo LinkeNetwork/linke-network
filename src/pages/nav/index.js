@@ -75,7 +75,7 @@ export default function Nav(props) {
                 )
               })
             }
-            <li className='home-icon-wrap'><Link to="/home">
+            <li className='home-icon-wrap'><Link to="/">
               <Image size={40} src={homeIcon} />
             </Link></li>
           </ul>

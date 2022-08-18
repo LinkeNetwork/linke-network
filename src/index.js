@@ -1,8 +1,6 @@
 import React, { Suspense, lazy} from 'react'
 import ReactDOM from 'react-dom';
 import { PageLoading } from './component'
-// import VConsole from 'vconsole';
-// const vConsole = new VConsole();
 const App = lazy(() => import('./App'))
 
 

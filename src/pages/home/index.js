@@ -1,7 +1,7 @@
 import React, { lazy } from "react"
 import './home.scss'
-import Header from "./Header"
 import { detectMobile } from "../../utils"
+const HomeHeader = lazy(() => import('./Header'))
 const CountInfo = lazy(() => import('./CountInfo'))
 const Banner = lazy(() => import('./Banner'))
 const Version = lazy(() => import('./Version'))
@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <div>
       <div className={`home-container ${detectMobile() ? 'home-container-client' : ''}`}>
-        <Header />
+        {/* <HomeHeader /> */}
         <Banner />
         <CountInfo />
         <Version />

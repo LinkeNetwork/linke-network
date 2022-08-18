@@ -1,5 +1,5 @@
 import React from 'react'
-import logo from '../assets/images/linke-logo.svg'
+import logo from '../assets/images/favicon.ico'
 import styled from 'styled-components'
 import PageContainer from './PageContainer'
 

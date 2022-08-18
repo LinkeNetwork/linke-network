@@ -3,7 +3,7 @@ import ViewProfile from './ViewProfile'
 import { getDaiWithSigner, getLocal, setLocal} from '../../utils'
 import PROFILE_ABI from '../../abi/PROFILE_ABI.json'
 import BigNumber from 'bignumber.js'
-import HeaderInfo from "../layout/HeaderInfo"
+// import HeaderInfo from "../layout/HeaderInfo"
 import useWallet from '../../hooks/useWallet'
 import Modal from '../../component/Modal'
 import Introduction from "../chat/Introduction"
@@ -95,7 +95,7 @@ export default function Profile() {
       <Modal title="Connect Wallet" visible={showWalletList} onClose={() => setShowWalletList(false)}>
         <ChangeNetwork handleChangeNetWork={(network) => handleChangeNetWork(network)} closeNetworkContainer={() => setShowWalletList(false)} />
       </Modal>
-      <HeaderInfo handleShowAccount={() => setShowAccount(true)} myAddress={newAccounts} showHeaderInfo={account} handleChangeNetWork={(network) => handleChangeNetWork(network)} handleDisconnect={() => handleDisconnect()} onCloseAccount={() => setShowAccount(false)} currNetwork={network} showWalletList={showWalletList} showAccount={showAccount} handleMenu={() => setShowMenulist(true)} chainId={chainId} balance={balance} />
+      {/* <HeaderInfo handleShowAccount={() => setShowAccount(true)} myAddress={newAccounts} showHeaderInfo={account} handleChangeNetWork={(network) => handleChangeNetWork(network)} handleDisconnect={() => handleDisconnect()} onCloseAccount={() => setShowAccount(false)} currNetwork={network} showWalletList={showWalletList} showAccount={showAccount} handleMenu={() => setShowMenulist(true)} chainId={chainId} balance={balance} /> */}
       {
         <Nav showMenulist={showMenulist} hiddenMenuList={() => setShowMenulist(false)} reloadCreateProfile={reloadCreateProfile}  reloadViewProfile={reloadViewProfile}/>
       }

@@ -1,4 +1,5 @@
 import styled from "styled-components"
+import { useLocation } from 'react-router-dom'
 import Modal from '../../component/Modal'
 import ConnectionInfo from '../chat/ConnectInfo'
 import { Jazzicon } from '@ukstv/jazzicon-react';
@@ -9,10 +10,13 @@ import LanguageSwitch from './LanguageSwitch'
 import homeIcon from '../../assets/images/linke-logo.svg'
 import ChangeNetwork from '../chat/ChangeNetwork'
 import ErrorNetwork from '../layout/ErrorNetwork'
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import HomeHeader from '../home/Header'
 export default function HeaderInfo(props) {
+  const locations = useLocation()
   const { showHeaderInfo, myAddress, currNetwork, handleMenu, handleShowAccount, handleChangeNetWork, handleDisconnect, showAccount, onCloseAccount, chainId, balance } = props
   const [showConnectWallet, setShowConnectWallet] = useState(false)
+  const [showHomeHeader, setShowHomeHeader] = useState(true)
   const selectNetwrok = (network) => {
     setShowConnectWallet(false)
     handleChangeNetWork(network)
@@ -21,6 +25,9 @@ export default function HeaderInfo(props) {
     onCloseAccount()
     handleShowAccount()
   }
+  useEffect(() => {
+    setShowHomeHeader(locations.pathname !== '/')
+  }, [locations.pathname])
   return (
     <HeaderInfoContanier>
       <Modal title="Account" visible={showAccount} onClose={() => onCloseAccount()}>
@@ -31,9 +38,14 @@ export default function HeaderInfo(props) {
       </Modal>
       <div className='header-top-wrap'>
         {
+          !showHomeHeader &&
+          <HomeHeader />
+        }
+        
+        {
           detectMobile() &&
           <div className='home-icon-header'>
-            <a href='/home'>
+            <a href='/'>
               <img src={homeIcon} alt="" />
             </a>
             <TopMenu handleMenu={() => handleMenu()} />

@@ -24,7 +24,7 @@ import Modal from '../../component/Modal'
 import Nav from '../nav'
 import SearchChat from './SearchChat'
 import AddChatRoom from './AddChatRoom'
-import HeaderInfo from '../layout/HeaderInfo'
+// import HeaderInfo from '../layout/HeaderInfo'
 import RoomHeader from './RoomHeader'
 import ChatContext from './ChatContext'
 import GroupMember from './GroupMember'
@@ -1266,7 +1266,7 @@ export default function Chat() {
         }
         <div className='chat-content-wrap'>
           <div className={`chat-ui ${detectMobile() ? 'chat-ui-client' : ''}`}>
-            {
+            {/* {
               (!showChat || !detectMobile()) &&
               <div className='header-top-wrap'>
                 <HeaderInfo
@@ -1284,7 +1284,7 @@ export default function Chat() {
                   balance={balance}
                 />
               </div>
-            }
+            } */}
 
             <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''}`}>
               <div className={`user-search-wrapper ${showChat ? 'hidden' : ''}`}>

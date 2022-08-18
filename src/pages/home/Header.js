@@ -12,7 +12,7 @@ export default function Header() {
     <HeaderContanier>
       <div className="header-content">
         <div className="header-left">
-          <a href='/home'>
+          <a href='/'>
             <img src={homeIcon} alt="" className={detectMobile()? 'icon-client' : ''}/>
           </a>
         </div>
