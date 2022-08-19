@@ -38,8 +38,7 @@ export default function Chat() {
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
-  const {groupLists, setState, hasClickPlace, currentNetwork, hasQuitRoom, networks, accounts} = useGlobal()
-  const [balance, setBalance] = useState()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentGraphApi, setCurrentGraphApi] = useState()
   const [currentAddress, setCurrentAddress] = useState()
@@ -57,8 +56,6 @@ export default function Chat() {
   const [hasNotice, setHasNotice] = useState(false)
   const [showMask, setShowMask] = useState(false)
   const [showGroupMember, setShowGroupMember] = useState(false)
-  const [showWalletList, setShowWalletList] = useState(false)
-  const [showMenulist, setShowMenulist] = useState(false)
   const [currNetwork, setCurrNetwork] = useState()
   const [showJoinRoom, setShowJoinRoom] = useState(false)
   const [showCreateNewRoom, setShowCreateNewRoom] = useState(false)
@@ -67,7 +64,6 @@ export default function Chat() {
   const [showPlaceWrapper, setShowPlaceWrapper] = useState(false)
   const [shareTextInfo, setShareTextInfo] = useState('')
   const [showChat, setShowChat] = useState(false)
-  const [showAccount, setShowAccount] = useState(false)
   const [showSettingList, setShowSettingList] = useState(false)
   const [currentIndex, setCurrentIndex] = useState()
   const [roomList, setRoomList] = useState([])
@@ -80,7 +76,6 @@ export default function Chat() {
   const [dialogType, setDialogType] = useState()
   const [currentTabIndex, setCurrentTabIndex] = useState()
   const [roomAvatar, setRoomAvatar] = useState()
-  const [encryptionChatText, setEncryptionChatText] = useState()
   const [privateKey, setPrivateKey] = useState()
   const [myPublicKey, setMyPublicKey] = useState()
   const [myAvatar, setMyAvatar] = useState()
@@ -95,7 +90,6 @@ export default function Chat() {
   const currentGroupTypeRef = useRef()
   const hasAccessRef = useRef()
   const showJoinGroupButtonRef = useRef()
-  const currNetworkRef = useRef()
   useEffect(() => {
     if(hasQuitRoom) {
       setShowMask(false)
@@ -116,7 +110,6 @@ export default function Chat() {
   }, [currentAddress, hasScroll, roomList, chatList, currentGroupType, hasAccess, showJoinGroupButton])
   useEffect(() => {
     groupLists?.map(item => {
-      // getInitChatList(item.id, item.avatar)
       startInterval(item.id)
     })
    
@@ -384,22 +377,11 @@ export default function Chat() {
   const initCurrentAddress = (list) => {
     clearInterval(timer.current)
     clearInterval(allTimer.current)
-    // history.push(`/chat/${list}`)
     setCurrentAddress(list)
     setState({
       currentAddress: list
     })
     setChatList([])
-  }
-  const getMyAccount = async () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const signer = provider.getSigner()
-    const myAddress = await signer.getAddress()
-    const currentAccount = myAddress.toLocaleLowerCase()
-    console.log(myAddress, 'myAddress====')
-    setLocal('account', currentAccount?.toLowerCase())
-    setLocal('isConnect', true)
-    setMyAddress(currentAccount)
   }
   const getCurrentRoomInfo = (roomAddress) => {
     setShowJoinRoom(false)
@@ -425,7 +407,6 @@ export default function Chat() {
     setState({
       showConnectNetwork: true
     })
-    setShowWalletList(true)
   }
   const handleClick = () => {
     document.addEventListener('click', (e) => {
@@ -444,12 +425,6 @@ export default function Chat() {
     setShowJoinRoom(id === 'new')
     setShowSettingList(false)
   }
-  // const getMemberCount = async(id) => {
-  //   if(currentTabIndex === 1) return
-  //   const data = await getGroupMember(id)
-  //   const memberListInfo = data?.users
-  //   setMemberCount(memberListInfo?.length)
-  // }
   const showChatList = (e, item, list) => {
     setChatList([])
     clearInterval(timer.current)
@@ -801,30 +776,6 @@ export default function Chat() {
     // debugger
     setHasScroll(true)
   }
-  const resetData = () => {
-    setCurrentAddress()
-    setState({
-      currentAddress: ''
-    })
-    setRoomAvatar()
-    setCurrentTabIndex(0)
-    setCurrentRoomName()
-    initRoomAddress()
-    getMyAccount()
-    history.push(`/chat`)
-  }
-  const accountsChange = () => {
-    if (window.ethereum) {
-      window.ethereum.on('accountsChanged', (chainId) => {
-        if (history.location.pathname.includes('/chat')) {
-          resetData()
-        }
-      })
-      window.ethereum.on('chainChanged', (chainId) => {
-        resetData()
-      })
-    }
-  }
   const startInterval = (currentAddress) => {
     let index = groupLists && groupLists.findIndex((item) => item.id.toLowerCase() == currentAddress.toLowerCase())
     const groupList = [...groupLists]
@@ -1119,8 +1070,6 @@ export default function Chat() {
     }
     initRoomAddress()
     setMyAddress(getLocal('account'))
-    accountsChange()
-    // window.addEventListener('scroll', throttle(handleScroll, 500), true)
     return () => {
       clearInterval(timer.current)
       clearInterval(allTimer.current)
