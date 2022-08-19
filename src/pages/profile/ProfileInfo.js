@@ -14,6 +14,7 @@ export default function ProfileInfo(props) {
   const { getChainInfo } = useChain()
   const { hasCreateProfile, setState, profileId, profileAvatar, currentNetwork } = useGlobal()
   const { urlParams } = props
+  console.log(urlParams,getLocal('account')?.toLowerCase(), 'urlParams===>>>')
   const history = useHistory()
   const [address, setAddress] = useState()
   const [hasFollow, setHasFollow] = useState()
@@ -178,10 +179,8 @@ export default function ProfileInfo(props) {
   )
   useEffect(() => {
     setAddress(getLocal('account'))
-   
     const pathname = history.location.pathname.split('/profile/')[1]
     if (pathname) {
-      // debugger
       setAddress(pathname)
       if (!getLocal('isConnect')) return
       getMyprofileInfo(pathname)

@@ -1,13 +1,11 @@
 import homeIcon from '../../assets/images/linke-logo.svg'
 import { Link } from 'react-router-dom'
-import Menu from './Menu'
 import styled from 'styled-components'
-import { useState } from "react";
 import LanguageSwitch from '../layout/LanguageSwitch'
 import { detectMobile } from '../../utils';
 
-export default function Header() {
-  const [showMenu, setShowMenu] = useState(false)
+export default function Header(props) {
+  const { handleShowMenu } = props
   return (
     <HeaderContanier>
       <div className="header-content">
@@ -20,12 +18,9 @@ export default function Header() {
           <li><Link to="/chat" target="_blank">CHAT</Link></li>
           <li onClick={() => alert('coming soon')}>DEVELOPER GARDEN</li>
         </ul>
-        <div className='right-contanier' onClick={() => setShowMenu(true)}>
+        <div className='right-contanier' onClick={() => handleShowMenu()}>
           <span className='iconfont icon-caidan'></span>
         </div>
-        {
-          showMenu && <Menu showMenu={showMenu} closeMenu={() => setShowMenu(false)}></Menu>
-        }
         <LanguageSwitch/>
       </div>
 

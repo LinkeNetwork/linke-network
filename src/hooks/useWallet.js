@@ -1,7 +1,7 @@
 import { token } from "../constant/token"
 import { ethers } from "ethers"
 import { getLocal, setLocal } from "../utils"
-import { useState, useLayoutEffect, useEffect } from "react"
+import { useState, useLayoutEffect } from "react"
 import useProfile from "./useProfile"
 import MetaMaskOnboarding from '@metamask/onboarding'
 import { useHistory } from 'react-router-dom'
@@ -14,14 +14,14 @@ const networkList = {
 }
 export default function useWallet() {
   const history = useHistory()
-  const { networks, setState } = useGlobal()
+  const path = history.location.pathname
+  const { networks, setState, updateAccounts } = useGlobal()
   const {getProfileStatus, getAccounInfos} = useProfile()
   const [newAccounts, setNewAccounts] = useState()
   const [chainId, setChainId] = useState()
   const [balance, setBalance] = useState()
   const [network, setNetwork] = useState()
   
-  // network chainchange
   const disConnect = async () => {
     if (window.ethereum.on) {
       await window.ethereum.request({
@@ -33,11 +33,27 @@ export default function useWallet() {
         ]
       })
       localStorage.removeItem('account')
+      setState({
+        accounts: null
+      })
       setLocal('isConnect', false)
+      if(path.includes('/chat')) {
+        history.push('/chat')
+      }
+      if(path.includes('/profile')) {
+        history.push('/profile')
+      }
     }
   }
-
-  const getConnect = async (network) => {
+  const changeNetwork = async (network) => {
+    setState({
+      showConnectNetwork: false
+    })
+    const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
+    handleNewAccounts(account)
+    if(path.includes('/profile')) {
+      history.push(`/profile/${account}`)
+    }
     const { name, decimals, symbol, chainId, rpcUrls, chainName, blockExplorerUrls } = token[network]
     const nativeCurrency = { name, decimals, symbol }
     let params = [{
@@ -47,12 +63,11 @@ export default function useWallet() {
       nativeCurrency,
       blockExplorerUrls
     }]
+    
     await window.ethereum?.request({ method: 'wallet_addEthereumChain', params })
-    getMyAccount(network)
+    getMyAccount()
     getCurrentNetwork()
     getAccounInfo()
-    const newAccounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    return newAccounts
   }
   const getCurrentNetwork = async() => {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
@@ -62,18 +77,22 @@ export default function useWallet() {
     setNetwork(currNetwork)
     return currNetwork
   }
-  const getMyAccount = async (network) => {
+  const getMyAccount = async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     const signer = provider.getSigner()
     const myAddress = await signer.getAddress()
     setLocal('account', myAddress)
     setLocal('isConnect', true)
   }
+  const handleNewAccounts = newAccounts => {
+    updateAccounts(newAccounts[0])
+    setLocal('account', newAccounts[0])
+  }
 
   const getAccounInfo = async() => {
-    // debugger
     if(!getLocal('isConnect')) return
     const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
+    setLocal('account', account[0])
     setNewAccounts(account[0])
     getAccounInfos()
     getProfileStatus()
@@ -81,23 +100,12 @@ export default function useWallet() {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     const balance = await provider.getBalance(account[0])
     const etherString = ethers.utils.formatEther(balance)
-    const network = await provider.getNetwork()
     const item = networks.filter(i=> i.chainId === chainId)[0]
     setState({currentNetwork:item})
-
-    // debugger
     setBalance(etherString)
-    if(getLocal('isConnect')) {
-      const currNetwork = networkList[network.chainId]
-      setLocal('network', currNetwork)
-      setNetwork(currNetwork)
-      setChainId(network.chainId)
-      setLocal('account', account[0])
-    }
     return etherString
   }
   const changeProfileUrl = async() => {
-    const path = history.location.pathname
     const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
     if(path.includes('/profile')) {
       setState({
@@ -106,11 +114,12 @@ export default function useWallet() {
       })
       history.push(`/profile/${account[0]}`)
     }
-    
   }
   const initWallet = async () => {
     // debugger
     if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined' && MetaMaskOnboarding.isMetaMaskInstalled() && getLocal('account')) {
+      const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
+      handleNewAccounts(account)
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const network = await provider.getNetwork()
       const item = networks.filter(i=> i.chainId === network.chainId)[0]
@@ -155,5 +164,5 @@ export default function useWallet() {
   useLayoutEffect(() => {
     initWallet()
   }, [getLocal('account')])
-  return { disConnect, getConnect, getCurrentNetwork, chainId, newAccounts, balance ,network, getAccounInfo}
+  return { disConnect, getCurrentNetwork, chainId, newAccounts, balance ,network, getAccounInfo, changeNetwork}
 }

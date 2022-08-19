@@ -1,13 +1,11 @@
-import React, { Component, createRef, useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import './chat.scss'
 import 'emoji-mart/css/emoji-mart.css'
 import { createClient } from 'urql'
-import { token } from '../../constant/token'
 import Loading from '../../component/Loading'
 import ListGroup from './GroupList'
 import ChatInputBox from './ChatInputBox'
 import Introduction from './Introduction'
-import ConnectWallet from '../layout/ConnectWallet'
 import ChatTab from './ChatTab'
 import ShareInfo from './ShareInfo'
 import CreateNewRoom from './CreateNewRoom'
@@ -19,12 +17,9 @@ import { detectMobile, throttle } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
 import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI} from '../../abi/index'
 import localForage from "localforage"
-import ChangeNetwork from './ChangeNetwork'
 import Modal from '../../component/Modal'
-import Nav from '../nav'
 import SearchChat from './SearchChat'
 import AddChatRoom from './AddChatRoom'
-// import HeaderInfo from '../layout/HeaderInfo'
 import RoomHeader from './RoomHeader'
 import ChatContext from './ChatContext'
 import GroupMember from './GroupMember'
@@ -43,7 +38,7 @@ export default function Chat() {
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
-  const {groupLists, hasCreateRoom, setState, hasClickPlace, currentNetwork, hasQuitRoom, networks} = useGlobal()
+  const {groupLists, setState, hasClickPlace, currentNetwork, hasQuitRoom, networks, accounts} = useGlobal()
   const [balance, setBalance] = useState()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentGraphApi, setCurrentGraphApi] = useState()
@@ -412,29 +407,6 @@ export default function Chat() {
     })
     setChatList([])
   }
-
-  const handleChangeNetWork = async (network) => {
-    setShowMenulist(false)
-    const { name, decimals, symbol, chainId, rpcUrls, chainName, blockExplorerUrls } = token[network]
-    const nativeCurrency = { name, decimals, symbol }
-    let params = [{
-      chainId,
-      rpcUrls,
-      chainName,
-      nativeCurrency,
-      blockExplorerUrls
-    }]
-    await window.ethereum?.request({ method: 'wallet_addEthereumChain', params })
-    getSign(name)
-    setCurrNetwork(name)
-    setShowWalletList(false)
-  }
-  const getSign = async (network) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    await provider.send("eth_requestAccounts", [])
-    getCurrentNetwork()
-    getMyAccount()
-  }
   const getMyAccount = async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     const signer = provider.getSigner()
@@ -466,6 +438,9 @@ export default function Chat() {
     initCurrentAddress(address)
   }
   const connectWallet = () => {
+    setState({
+      showConnectNetwork: true
+    })
     setShowWalletList(true)
   }
   const handleClick = () => {
@@ -478,18 +453,6 @@ export default function Chat() {
         setShowInfo(false)
       }
     })
-  }
-  const handleMenu = () => {
-    setShowMenulist(true)
-    setShowChat(false)
-  }
-  const handleDisconnect = () => {
-    setMyAddress('')
-    setShowMask(false)
-    setShowAccount(false)
-    setRoomList([])
-    setLocal('isConnect', false)
-    history.push(`/chat`)
   }
   const onClickSelect = (e) => {
     const id = e.target.id.slice(0, -4)
@@ -532,13 +495,6 @@ export default function Chat() {
     setShowChat(true)
     setShowMask(true)
     setHasScroll(false)
-  }
-
-  const scrollToBottom = () => {
-    if (messagesEnd && messagesEnd.current) {
-      messagesEnd.current.scrollIntoView(false)
-      console.log(messagesEnd, 'messagesEnd====')
-    }
   }
   const loadingGroupData = async() => {
     debugger
@@ -1175,6 +1131,10 @@ export default function Chat() {
     }
   }
   useEffect(() => {
+    console.log(accounts, 'accounts====')
+    if(accounts) {
+      setMyAddress(accounts)
+    }
     if(getLocal('isConnect')) {
       getBalance()
       getCurrentNetwork()
@@ -1188,7 +1148,7 @@ export default function Chat() {
       clearInterval(allTimer.current)
       window.removeEventListener('scroll', throttle(handleScroll, 500), true)
     }
-  }, [getLocal('account')])
+  }, [getLocal('account'), accounts])
   useEffect(() => {
     if(showPlaceWrapper) {
       setTimeout(() => {
@@ -1222,12 +1182,6 @@ export default function Chat() {
           </div>
         }
         {
-          showWalletList &&
-          <Modal title="Connect Wallet" visible={showWalletList} onClose={() => { setShowWalletList(false) }}>
-            <ChangeNetwork handleChangeNetWork={(network) => handleChangeNetWork(network)} closeNetworkContainer={() => { setShowWalletList(false) }}/>
-          </Modal>
-        }
-        {
 
           showJoinRoom &&
           <Modal title="Start New Chat" visible={showJoinRoom} onClose={() => {setShowJoinRoom(false)}}>
@@ -1240,14 +1194,6 @@ export default function Chat() {
             <CreateNewRoom createNewRoom={(address, name, currentGroupType) => createNewRoom(address, name, currentGroupType)}  hiddenCreateInfo={() => {setShowCreateNewRoom(false)}}/>
           </Modal>
         }
-        {
-          !myAddress && detectMobile() &&
-          <ConnectWallet connectWallet={() => connectWallet()} />
-        }
-
-
-        <Nav showMenulist={showMenulist} hiddenMenuList={() => { setShowMenulist(false) }} />
-
         {
           showMask &&
           <Loading></Loading>
@@ -1266,26 +1212,6 @@ export default function Chat() {
         }
         <div className='chat-content-wrap'>
           <div className={`chat-ui ${detectMobile() ? 'chat-ui-client' : ''}`}>
-            {/* {
-              (!showChat || !detectMobile()) &&
-              <div className='header-top-wrap'>
-                <HeaderInfo
-                  connectWallet={() => connectWallet()}
-                  handleMenu={() => handleMenu()}
-                  handleShowAccount={() => {setShowAccount(true)}}
-                  handleChangeNetWork={(network) => handleChangeNetWork(network)}
-                  handleDisconnect={() => handleDisconnect()}
-                  onCloseAccount={() => {setShowAccount(false)}}
-                  myAddress={myAddress}
-                  showHeaderInfo={getLocal('account')}
-                  currNetwork={currNetwork}
-                  showAccount={showAccount}
-                  chainId={currentChainId}
-                  balance={balance}
-                />
-              </div>
-            } */}
-
             <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''}`}>
               <div className={`user-search-wrapper ${showChat ? 'hidden' : ''}`}>
                 <div className='chat-ui-offcanvas' id='chatOffcanvas'>

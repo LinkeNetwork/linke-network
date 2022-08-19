@@ -1,13 +1,9 @@
+import styled from 'styled-components';
 import ConnectButton from './ConnectButton'
 export default function Introduction(props) {
   const { onClickDialog, connectWallet } = props
   return (
-    <div className="conversation-tips">
-      {/* <div className="d-block d-lg-none text-center mb-3 mt-2">
-        <button className="btn p-0" type="button" >
-          <i className="bi bi-arrow-left-circle"></i> Show chat window
-        </button>
-      </div> */}
+    <IntroductionWrapper className="conversation-tips">
       <div className="row justify-content-center my-auto">
         <div className="col-md-8">
           <img className="d-block mx-auto my-4 no-chat-image" src="https://chat.blockscan.com/assets/svg/message.svg" alt="Message" />
@@ -21,7 +17,6 @@ export default function Introduction(props) {
               <div className='connect-btn-wrap'>
                 <ConnectButton connectWallet={() => connectWallet()}></ConnectButton>
               </div>
-
             }
             {
               props.myAddress &&
@@ -40,6 +35,35 @@ export default function Introduction(props) {
 
         </div>
       </div>
-    </div>
+    </IntroductionWrapper>
   )
 }
+const IntroductionWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  overflow-y: auto;
+  height: 100%;
+  padding: 5.5rem 1.5rem 0;
+.no-chat-image {
+  width: 120px;
+  margin-bottom: 20px;
+} 
+.connect-btn-wrap{
+  display: flex;
+  justify-content: center;
+  margin: 15px 0 -1px;
+}
+.card {
+  position: relative;
+  display: flex;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  border: 1px solid rgba(0,0,0,.125);
+  border-radius: 1rem;
+  text-align: left;
+}
+`

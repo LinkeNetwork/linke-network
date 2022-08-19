@@ -341,9 +341,12 @@ img, svg {
 .conversation-tips {
   visibility: hidden;
 }
-.tab-content {
-  display: none;
+.chat-ui {
+  .tab-content {
+    display: none;
+  }
 }
+
 .translate-tab {
   display: block;
   width: 100%;
@@ -372,6 +375,7 @@ img, svg {
     width: 100%;
     border-left: 1px solid #dee2e6;
   }
+  
   .icon-arrow-left-circle {
     display: none;
   }

@@ -12,7 +12,7 @@ import localForage from "localforage"
 import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 export default function GroupList(props) {
-  const { hasCreateRoom, setState, currentNetwork, hasQuitRoom } = useGlobal()
+  const { hasCreateRoom, setState, currentNetwork, hasQuitRoom, accounts } = useGlobal()
   const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead, privateChatMember} = props
   const [groupList, setGroupList] = useState([])
   const [timeOutEvent, setTimeOutEvent] = useState()
@@ -29,7 +29,8 @@ export default function GroupList(props) {
   const [hasTransition, setHasTransition] = useState(false)
   const [moveStyle, setMoveStyle] = useState({})
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  3
+  const history = useHistory()
+  const path = history.location.pathname
 
   const updateChatCount = async() => {
     if(!currentAddress?.toLowerCase()) return
@@ -297,7 +298,7 @@ export default function GroupList(props) {
     updateChatCount()
   }, [newGroupList, hasChatCount])
   useEffect(() => {
-    if(getLocal('isConnect') && getLocal('currentNetwork')) {
+    if(accounts) {
       const currNetwork = currentNetwork?.name || getLocal('currentNetwork')
       localForage.getItem('chatListInfo').then(res => {
         const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
@@ -340,7 +341,7 @@ export default function GroupList(props) {
       setGroupList([])
     }
     console.log(getLocal('isConnect'), chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, '777====')
-  }, [getLocal('account'), getLocal('isConnect'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, hasQuitRoom])
+  }, [getLocal('account'), getLocal('isConnect'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, hasQuitRoom, accounts])
   return (
     <ListGroupContainer>
       {

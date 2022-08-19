@@ -15,6 +15,9 @@ const state = {
   currentTabIndex: '',
   hasQuitRoom: false,
   currentAddress: '',
+  showConnectNetwork: false,
+  accounts: null,
+  isJumpToProfile: false
 }
 
 export default state
