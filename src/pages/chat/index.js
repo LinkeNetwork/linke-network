@@ -140,15 +140,6 @@ export default function Chat() {
     })
     setCurrentAddress()
   }, [currentTabIndex])
-  const getCurrentNetwork = async() => {
-    const networkInfo = await getChainInfo()
-    setCurrentGraphApi(networkInfo?.APIURL)
-    setChainId(networkInfo?.chainId)
-    setCurrNetwork(networkInfo?.name)
-    setLocal('currentNetwork', networkInfo?.name)
-    setLocal('currentGraphqlApi', networkInfo?.APIURL)
-    console.log(networkInfo, currentNetwork, 'networkInfo=====')
-  }
   const getMyAvatar = async () => {
     const tokensQuery = `
     query{
@@ -173,13 +164,6 @@ export default function Chat() {
       currentTabIndex: index,
       currentAddress: ''
     })
-  }
-  const getBalance = async() => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const balance = await provider.getBalance(getLocal('account'))
-    const etherString = ethers.utils.formatEther(balance)
-    setBalance(etherString)
-    console.log(etherString, 'balance===')
   }
   const getMyPublicKey = () => {
     debugger
@@ -825,8 +809,6 @@ export default function Chat() {
     setRoomAvatar()
     setCurrentTabIndex(0)
     setCurrentRoomName()
-    getBalance()
-    getCurrentNetwork()
     initRoomAddress()
     getMyAccount()
     history.push(`/chat`)
@@ -1134,10 +1116,6 @@ export default function Chat() {
     console.log(accounts, 'accounts====')
     if(accounts) {
       setMyAddress(accounts)
-    }
-    if(getLocal('isConnect')) {
-      getBalance()
-      getCurrentNetwork()
     }
     initRoomAddress()
     setMyAddress(getLocal('account'))

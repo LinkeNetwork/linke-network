@@ -16,7 +16,7 @@ export default function useWallet() {
   const history = useHistory()
   const path = history.location.pathname
   const { networks, setState, updateAccounts } = useGlobal()
-  const {getProfileStatus, getAccounInfos} = useProfile()
+  const {getProfileStatus} = useProfile()
   const [newAccounts, setNewAccounts] = useState()
   const [chainId, setChainId] = useState()
   const [balance, setBalance] = useState()
@@ -66,16 +66,7 @@ export default function useWallet() {
     
     await window.ethereum?.request({ method: 'wallet_addEthereumChain', params })
     getMyAccount()
-    getCurrentNetwork()
     getAccounInfo()
-  }
-  const getCurrentNetwork = async() => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const network = await provider.getNetwork()
-    const currNetwork = networkList[network.chainId]
-    setLocal('network', currNetwork)
-    setNetwork(currNetwork)
-    return currNetwork
   }
   const getMyAccount = async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
@@ -94,8 +85,9 @@ export default function useWallet() {
     const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
     setLocal('account', account[0])
     setNewAccounts(account[0])
-    getAccounInfos()
-    getProfileStatus()
+    if(path.includes('/profile')) {
+      getProfileStatus()
+    }
     setLocal('isConnect', true)
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     const balance = await provider.getBalance(account[0])
@@ -124,8 +116,7 @@ export default function useWallet() {
       const network = await provider.getNetwork()
       const item = networks.filter(i=> i.chainId === network.chainId)[0]
       setState({currentNetwork:item})
-      console.log(item, network, 'network111==')
-      if(getLocal('isConnect')) {
+      if(account) {
           const currNetwork = networkList[network.chainId]
           setLocal('network', currNetwork)
           setNetwork(currNetwork)
@@ -157,12 +148,12 @@ export default function useWallet() {
         console.log('wallet notification', message)
       })
       return () => {
-        // window.ethereum.off('accountsChanged', getBalance)
+        window.ethereum.off('accountsChanged', handleNewAccounts)
       }
     }
   }
   useLayoutEffect(() => {
     initWallet()
   }, [getLocal('account')])
-  return { disConnect, getCurrentNetwork, chainId, newAccounts, balance ,network, getAccounInfo, changeNetwork}
+  return { disConnect, chainId, newAccounts, balance ,network, changeNetwork}
 }

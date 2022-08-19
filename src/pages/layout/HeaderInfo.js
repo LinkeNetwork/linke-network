@@ -17,10 +17,12 @@ import HomeHeader from '../home/Header'
 import useWallet from "../../hooks/useWallet";
 import useGlobal from "../../hooks/useGlobal";
 export default function HeaderInfo() {
-  const { balance, chainId, network, newAccounts, changeNetwork, disConnect } = useWallet()
+  const { balance, chainId, network, changeNetwork, disConnect } = useWallet()
+  console.log(chainId, 'chainId====>>')
   const locations = useLocation()
   const [showMenu, setShowMenu] = useState(false)
   const { setState, showConnectNetwork, accounts } = useGlobal()
+  console.log(accounts, 'accounts===')
   const [showAccount, setShowAccount] = useState(false)
   const [showConnectWallet, setShowConnectWallet] = useState(false)
   const [showHomeHeader, setShowHomeHeader] = useState(true)
@@ -48,7 +50,7 @@ export default function HeaderInfo() {
         showMenu && <Menu showMenu={showMenu} closeMenu={() => setShowMenu(false)}></Menu>
       }
       <Modal title="Account" visible={showAccount} onClose={() => setShowAccount(false)}>
-        <ConnectionInfo account={newAccounts} handleDisconnect={() => handleDisconnect()} />
+        <ConnectionInfo account={accounts} handleDisconnect={() => handleDisconnect()} />
       </Modal>
       <Modal title="Connect Wallet" visible={showConnectWallet} onClose={() => setShowConnectWallet(false)}>
         <ChangeNetwork handleChangeNetWork={(network) => selectNetwrok(network)} closeNetworkContainer={() => setShowConnectWallet(false)} />
@@ -84,10 +86,10 @@ export default function HeaderInfo() {
               <span style={{ marginRight: '4px' }}>{Number(balance).toFixed(4)}</span><span>{network}</span>
             </div>
             {
-              (chainId === 47805 || chainId === 2019) && newAccounts &&
+              (chainId === 47805 || chainId === 2019) && accounts &&
               <span className='header-top' onClick={() => setShowAccount(true)}>
-                <Jazzicon address={newAccounts} className="account-icon" />
-                {formatAddress(newAccounts)}
+                <Jazzicon address={accounts} className="account-icon" />
+                {formatAddress(accounts)}
               </span>
             }
           </div>

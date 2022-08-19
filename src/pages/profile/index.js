@@ -54,9 +54,6 @@ export default function Profile() {
         connectWallet={() =>connectWallet()}></Introduction>
       }
       {
-        !hasCreate && <div>111111sjsjsjj</div>
-      }
-      {
         (!hasCreate && hasCreate !== undefined && accounts && pathName !== undefined && urlParams!== undefined && pathName?.toLowerCase() === accounts?.toLowerCase())  && <CreateProfile newAccounts={urlParams}/>
       }
       {

@@ -29,7 +29,7 @@ export default function Nav(props) {
         isJumpToProfile: true
       })
       debugger
-      if(getLocal('isConnect')) {
+      if(accounts) {
         history.push(`/profile/${accounts}`)
       } else {
         history.push(path)
