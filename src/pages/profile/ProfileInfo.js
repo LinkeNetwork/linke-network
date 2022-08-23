@@ -1,16 +1,14 @@
 import styled from 'styled-components'
-import { getDaiWithSigner, getLocal } from '../../utils'
+import { getDaiWithSigner } from '../../utils'
 import CopyButton from '../../component/Copy'
 import { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
 import { FOLLOW_ABI, ENCRYPTED_COMMUNICATION_ABI } from '../../abi'
-import useChain from '../../hooks/useChain'
 import useGlobal from '../../hooks/useGlobal'
 import Loading from '../../component/Loading'
 import Modal from '../../component/Modal'
 import FollowerList from './FollowerList'
 export default function ProfileInfo(props) {
-  const { getChainInfo } = useChain()
   const { hasCreateProfile, setState, profileId, profileAvatar, currentNetworkInfo, accounts, clientInfo } = useGlobal()
   const { urlParams } = props
   const history = useHistory()
@@ -119,8 +117,7 @@ export default function ProfileInfo(props) {
     })
     .then(async(result) => {
       setShoMask(true)
-      const networkInfo = await getChainInfo()
-      const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).register(result)
+      const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).register(result)
       await res.wait()
       showOpenPrivateChatTips(true)
       setShoMask(false)
@@ -140,8 +137,7 @@ export default function ProfileInfo(props) {
     })
   }
   const jupmToChat = async() => {
-    const networkInfo = await getChainInfo()
-    const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(accounts)
+    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(accounts)
     if(Boolean(res)) {
       history.push({
         pathname: `/chat/${address}`,

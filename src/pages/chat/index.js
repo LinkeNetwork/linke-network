@@ -23,14 +23,12 @@ import RoomHeader from './RoomHeader'
 import ChatContext from './ChatContext'
 import GroupMember from './GroupMember'
 import JoinGroupButton from './JoinGroupButton'
-import useChain from '../../hooks/useChain'
 import { useHistory } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
 import * as zango from "zangodb";
 
 
 export default function Chat() {
-  const { getChainInfo } = useChain()
   const { collection, setDataBase } = useDataBase()
   const history = useHistory()
   const { getGroupMember } = useGroupMember()
@@ -191,10 +189,9 @@ export default function Chat() {
     console.log(tx, manager?.toLowerCase() == getLocal('account')?.toLowerCase(), 'tx===manager')
   }
   const getPrivateChatStatus = async (id) => {
-    const networkInfo = await getChainInfo()
-    const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(id)
+    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(id)
     setPrivateKey(res)
-    console.log(res, 'getPrivateChatStatus=====')
+    console.log(res, currentNetworkInfo, 'getPrivateChatStatus=====')
   }
   const initRoomAddress = () => {
     let data = history.location?.state
@@ -670,7 +667,6 @@ export default function Chat() {
     try {
       if(currentTabIndex === 1) {
         debugger
-        const networkInfo = await getChainInfo()
         const myPublicKey = await localForage.getItem('publicKeyList').then(res => {
           return res[myAddress]
         })
@@ -678,7 +674,7 @@ export default function Chat() {
         const encryptedSenderMessage = getencryptedMessage(chatText, myPublicKey)
         console.log(encryptedSenderMessage, encryptedMessage, 'encryptedMessage====')
         console.log(privateKey, myPublicKey)
-        var tx = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
+        var tx = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       }
       if(currentTabIndex === 0 ) {
         const groupInfo = await getGroupMember(currentAddress)
@@ -963,7 +959,8 @@ export default function Chat() {
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
       debugger
       insertData(result)
-      setChatList(result)
+      setChatList(chatList.concat(result))
+      // setChatList(result)
     }
     setShowMask(false)
     console.log(hasScrollRef.current, 'hasScrollRef.current====')

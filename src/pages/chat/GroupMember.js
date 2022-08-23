@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import styled from "styled-components"
-import useChain from '../../hooks/useChain'
 import Image from '../../component/Image'
 import { useHistory } from 'react-router-dom'
 import { Jazzicon } from '@ukstv/jazzicon-react'

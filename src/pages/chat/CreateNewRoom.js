@@ -2,7 +2,6 @@ import { useState } from "react"
 import { create } from 'ipfs-http-client'
 import styled from "styled-components"
 import useGlobal from '../../hooks/useGlobal'
-import useChain from '../../hooks/useChain'
 import { getDaiWithSigner, getLocal } from '../../utils'
 import { GROUP_FACTORY_ABI } from '../../abi'
 import Loading from '../../component/Loading'
@@ -12,9 +11,8 @@ import Select from 'react-select'
 import Message from "../../component/Message"
 const client = create('https://ipfs.infura.io:5001')
 export default function CreateNewRoom(props) {
-  const { setState } = useGlobal()
+  const { setState, currentNetworkInfo } = useGlobal()
   const { createNewRoom, hiddenCreateInfo } = props
-  const { getChainInfo } = useChain()
   const [name, setName] = useState()
   const [shoMask, setShoMask] = useState(false)
   const [describe, setDescribe] = useState('')
@@ -70,7 +68,7 @@ export default function CreateNewRoom(props) {
     }
   }
   const handleCreate = async () => {
-    console.log(handleBlur(), handleSelectBlur(), '88888')
+    console.log(currentNetworkInfo, handleSelectBlur(), 'handleCreate===')
     if(handleBlur() || handleSelectBlur()) {
       setMessageText('Please fill in the required fields')
       setShowMessage(true)
@@ -83,7 +81,6 @@ export default function CreateNewRoom(props) {
     const avatar = getLocal('account') + name
     const info = await client.add(multiavatar(avatar))
     const avatarUrl = `https://linke.infura-ipfs.io/ipfs/${info.path}`
-    const network = await getChainInfo()
     console.log(avatarUrl, 'avatarUrl=====')
     const style = {
       avatar: groupLogo,
@@ -101,7 +98,7 @@ export default function CreateNewRoom(props) {
     try {
       debugger
       const params = ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, styleList, name_, symbol_]);
-      const tx = await getDaiWithSigner(network?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
+      const tx = await getDaiWithSigner(currentNetworkInfo?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
       setTransactionHash(tx.hash)
       let callback = await tx.wait()
       hiddenCreateInfo()

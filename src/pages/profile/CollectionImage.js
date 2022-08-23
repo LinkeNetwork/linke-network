@@ -4,23 +4,19 @@ import moreImage from '../../assets/images/more.svg'
 import hoverImage from '../../assets/images/hover-more.svg'
 import { detectMobile, getDaiWithSigner } from '../../utils'
 import { PROFILE_ABI } from '../../abi'
-import useChain from "../../hooks/useChain"
 import useGlobal from '../../hooks/useGlobal'
 import { PhotoProvider, PhotoView } from 'react-photo-view'
 import React, { useState, useEffect } from 'react'
 import 'react-photo-view/dist/react-photo-view.css'
 
 export default function CollectionImage() {
-  const { getChainInfo } = useChain()
-  const {tokenId} = useGlobal()
+  const {tokenId, currentNetworkInfo} = useGlobal()
   const [isHover, setIsHover] = useState(false)
   const [avatarUrl, setAvatar] = useState()
-  const elementSize = 400
   const collectionList = [1, 2, 3]
   const getProfileBaseUrl = async (profileId) => {
-    const network = await getChainInfo()
     if(!profileId) return
-    const res = await getDaiWithSigner(network?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)
+    const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)
     const {image} = JSON.parse(res)
     setAvatar(image)
   }

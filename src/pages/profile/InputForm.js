@@ -7,16 +7,16 @@ import { useState } from "react"
 import UserInfo from './UserInfo'
 import Loading from '../../component/Loading'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
-import { getDaiWithSigner, getLocal } from '../../utils'
-import useChain from "../../hooks/useChain";
+import { getDaiWithSigner } from '../../utils'
+import useGlobal from "../../hooks/useGlobal"
 const client = create('https://ipfs.infura.io:5001')
 
 export default function InputForm(props) {
     const { myAddress } = props
+    const { currentNetworkInfo } = useGlobal()
     const history = useHistory()
     const [bgImage, setBgImage] = useState()
     const [showLoading, setShowLoading] = useState(false)
-    const { getChainInfo } = useChain()
 
     const handleSave = async() => {
     setShowLoading(true)
@@ -26,8 +26,7 @@ export default function InputForm(props) {
     const expandInfo = []
     console.log(expandInfo, 'expandInfo====')
     try {
-        const networkInfo = await getChainInfo()
-        const address = networkInfo.ProfileAddress
+        const address = currentNetworkInfo?.ProfileAddress
         debugger
        // string memory name, string memory description, string memory image, MapInfo[] memory attribute, string memory avatar, string memory name_, string memory symbol_
         const tx = await getDaiWithSigner(address, PROFILE_ABI).register(name, describe, expandInfo, avatarUrl, "FOLLOW", "FOLLOW")

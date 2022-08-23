@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react"
 import styled from "styled-components"
-import { createClient } from 'urql'
 import { formatAddress } from "../../utils";
 import { useHistory } from 'react-router-dom'
 import useGlobal from "../../hooks/useGlobal"
 import Image from '../../component/Image'
 import { Jazzicon } from '@ukstv/jazzicon-react'
-import { getLocal } from '../../utils/index'
 export default function FollowerList(props) {
   const { urlParams, followType, hiddenFollowerList } = props
   const { setState, clientInfo } = useGlobal()
