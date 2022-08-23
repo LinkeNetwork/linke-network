@@ -38,9 +38,8 @@ export default function Chat() {
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts} = useGlobal()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
-  const [currentGraphApi, setCurrentGraphApi] = useState()
   const [currentAddress, setCurrentAddress] = useState()
   const currentAddressRef = useRef(null)
   const [memberCount, setMemberCount] = useState()
@@ -142,7 +141,7 @@ export default function Chat() {
     }
     `
     const client = createClient({
-      url: getLocal('currentGraphqlApi')
+      url: currentNetworkInfo?.APIURL
     })
     const res = await client.query(tokensQuery).toPromise()
     setMyAvatar(res.data?.profile?.avatar)
@@ -340,7 +339,7 @@ export default function Chat() {
     `
 
     const client = createClient({
-      url: getLocal('currentGraphqlApi')
+      url: currentNetworkInfo?.APIURL
     })
     // debugger
     const data = await client.query(tokensQuery).toPromise()
@@ -459,7 +458,7 @@ export default function Chat() {
     const firstBlock = chatList && chatList[chatList.length-1]?.block
     if(!firstBlock) return
     const client = createClient({
-      url: currentGraphApi
+      url: currentNetworkInfo?.APIURL
     })
     const tokensQuery = `
     query{
@@ -630,7 +629,7 @@ export default function Chat() {
   }
   const formateCurrentPrivateList = async(tokensSenderQuery, tokensReceivedrQuery, toAddress, avatar) => {
     const client = createClient({
-      url: getLocal('currentGraphqlApi')
+      url: currentNetworkInfo?.APIURL
     })
     const resSender = await client.query(tokensSenderQuery).toPromise()
     const resReceived = await client.query(tokensReceivedrQuery).toPromise()
@@ -816,7 +815,7 @@ export default function Chat() {
       }
     }`
     const client = createClient({
-      url: getLocal('currentGraphqlApi')
+      url: currentNetworkInfo?.APIURL
     })
     const res = await client.query(tokensQuery).toPromise()
     console.log(res, 'memberListInfo=====')
