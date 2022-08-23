@@ -3,7 +3,7 @@ import networks from './networks'
 const state = {
   networks,
   hasCreateProflie: false,
-  currentNetwork: {},
+  currentNetworkInfo: {},
   hasCreateRoom: false,
   groupLists: [],
   tokenId: '',

@@ -10,7 +10,7 @@ import './index.scss'
 import useGlobal from '../../hooks/useGlobal'
 
 export default function Profile() {
-  const { currentNetwork, setState , profileId, currentProfileAddress, accounts, isJumpToProfile } = useGlobal()
+  const { currentNetworkInfo, setState , profileId, currentProfileAddress, accounts, isJumpToProfile } = useGlobal()
   const history = useHistory()
   const path = history.location.pathname
   const [urlParams, setUrlParams] = useState()
@@ -20,8 +20,8 @@ export default function Profile() {
     // debugger
     if(account) {
       try {
-        if(currentNetwork && currentNetwork?.ProfileAddress) {
-          const res = await getDaiWithSigner(currentNetwork?.ProfileAddress, PROFILE_ABI).defaultToken(account)
+        if(currentNetworkInfo && currentNetworkInfo?.ProfileAddress) {
+          const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
           const hasCreate = res && (new BigNumber(Number(res))).toNumber()
           setUrlParams(account)
           setState({
@@ -45,7 +45,7 @@ export default function Profile() {
     const pathname = path.split('/profile/')[1]
     setPathName(pathname)
     getProfileStatus(pathname)
-  }, [accounts, getLocal('isConnect'), hasCreate, pathName, profileId, currentProfileAddress, isJumpToProfile, currentNetwork])
+  }, [accounts, getLocal('isConnect'), hasCreate, pathName, profileId, currentProfileAddress, isJumpToProfile, currentNetworkInfo])
   return(
     <div className='profile-container'>
       {
@@ -57,7 +57,7 @@ export default function Profile() {
         (!hasCreate && hasCreate !== undefined && accounts && pathName !== undefined && urlParams!== undefined && pathName?.toLowerCase() === accounts?.toLowerCase())  && <CreateProfile newAccounts={urlParams}/>
       }
       {
-        (hasCreate && accounts && urlParams!== undefined || (pathName !== undefined && pathName?.toLowerCase() !== accounts?.toLowerCase())) && <ViewProfile urlParams={urlParams} currentNetwork={currentNetwork}/>
+        (hasCreate && accounts && urlParams!== undefined || (pathName !== undefined && pathName?.toLowerCase() !== accounts?.toLowerCase())) && <ViewProfile urlParams={urlParams} currentNetwork={currentNetworkInfo}/>
       }
     </div>
   )

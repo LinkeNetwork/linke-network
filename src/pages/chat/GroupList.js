@@ -11,10 +11,12 @@ import EmptyInfo from './EmptyInfo'
 import localForage from "localforage"
 import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
+import useWallet from "../../hooks/useWallet"
 export default function GroupList(props) {
-  const { hasCreateRoom, setState, currentNetwork, hasQuitRoom, accounts } = useGlobal()
-  const { showChatList, showMask, hiddenMask, onClickDialog, chainId, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead, privateChatMember} = props
+  const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts } = useGlobal()
+  const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead, privateChatMember} = props
   const [groupList, setGroupList] = useState([])
+  const { chainId } = useWallet()
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
   const [canCopy, setCanCopy] = useState(false)
@@ -99,6 +101,7 @@ export default function GroupList(props) {
       }
     }
     `
+    console.log(getLocal('currentGraphqlApi'), 'currentGraphqlApi===')
     const client = createClient({
       url: getLocal('currentGraphqlApi')
     })
@@ -299,7 +302,7 @@ export default function GroupList(props) {
   }, [newGroupList, hasChatCount])
   useEffect(() => {
     if(accounts) {
-      const currNetwork = currentNetwork?.name || getLocal('currentNetwork')
+      const currNetwork = currentNetworkInfo?.name || getLocal('currentNetwork')
       localForage.getItem('chatListInfo').then(res => {
         const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
         const publicRooms = account ? account['publicRooms'] : []

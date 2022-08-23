@@ -44,7 +44,6 @@ export default function Chat() {
   const [currentAddress, setCurrentAddress] = useState()
   const currentAddressRef = useRef(null)
   const [memberCount, setMemberCount] = useState()
-  const [currentChainId, setChainId] = useState()
   const [myAddress, setMyAddress] = useState()
   const [currentRoomName, setCurrentRoomName] = useState()
   const [hasAccess, setHasAccess] = useState()
@@ -1162,7 +1161,6 @@ export default function Chat() {
                   showMask={() => setShowMask(true)}
                   showChatList={(e, item, list) => showChatList(e, item, list)}
                   currentIndex={currentIndex}
-                  chainId={currentChainId}
                   newGroupList ={roomList}
                   currentRoomName={currentRoomName}
                   hasAccess={hasAccess}

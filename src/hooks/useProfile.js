@@ -6,9 +6,8 @@ import { getLocal } from '../utils'
 import { useEffect, useState } from 'react'
 
 export default function useProfile() {
-  const { currentNetwork, setState } = useGlobal()
+  const { currentNetworkInfo, setState } = useGlobal()
   const [hasCreate, setHasCreate] = useState()
-  const [currentNetworks, setCurrentNetwork] = useState()
   const [newAccounts, setNewAccounts] = useState()
   const [profileInfo, setProfileInfo] = useState()
   const [profileName, setProfileName] = useState()
@@ -18,8 +17,8 @@ export default function useProfile() {
   const getProfileStatus = async(account) => {
     if(account) {
       try{
-        if(currentNetworks && currentNetworks?.ProfileAddress) {
-          const res = await getDaiWithSigner(currentNetworks?.ProfileAddress, PROFILE_ABI).defaultToken(account)
+        if(currentNetworkInfo && currentNetworkInfo?.ProfileAddress) {
+          const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
           const hasCreate = res && (new BigNumber(Number(res))).toNumber()
           setLocal('hasCreate', Boolean(hasCreate))
           setState({
@@ -47,8 +46,8 @@ export default function useProfile() {
     if(hasCreate) {
       // debugger
       try {
-        if(currentNetworks && currentNetworks?.ProfileAddress) {
-          const res = await getDaiWithSigner(currentNetworks?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)
+        if(currentNetworkInfo && currentNetworkInfo?.ProfileAddress) {
+          const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)
           console.log(res)
           const {name, description, selfNFT}= JSON.parse(res)
           setProfileName(name)
@@ -63,9 +62,8 @@ export default function useProfile() {
     if(getLocal('isConnect')) {
       getAccounInfos()
       getProfileStatus()
-      setCurrentNetwork(currentNetwork)
     }
-  }, [getLocal('account'), newAccounts, currentNetwork])
+  }, [getLocal('account'), newAccounts, currentNetworkInfo])
   
   return { hasCreate, followers, profileInfo, profileName, ProfileDescription, profileId, getProfileStatus, getAccounInfos }
 }

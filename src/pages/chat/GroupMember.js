@@ -13,7 +13,7 @@ import Loading from '../../component/Loading'
 import { ethers } from "ethers"
 export default function GroupMember(props) {
   const {currentAddress, closeGroupMember, hiddenGroupMember, handleShowMask, handleHiddenMask, handlePrivateChat} = props
-  const { setState, currentNetwork, hasCreateRoom } = useGlobal()
+  const { setState, currentNetworkInfo, hasCreateRoom } = useGlobal()
   const {getGroupMember} = useGroupMember()
   const [canQuitRoom, setCanQuitRoom] = useState()
   const [memberList, setMemberList] = useState([])
@@ -47,7 +47,7 @@ export default function GroupMember(props) {
     handlePrivateChat(item, privateKey)
   }
   const getChatStatus = async(item) => {
-    const res = await getDaiWithSigner(currentNetwork?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(item.id.toLowerCase())
+    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(item.id.toLowerCase())
     setPrivateKey(res)
     setShowPrivateChat(Boolean(res))
   }
