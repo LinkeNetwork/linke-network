@@ -18,7 +18,6 @@ import useWallet from "../../hooks/useWallet";
 import useGlobal from "../../hooks/useGlobal";
 export default function HeaderInfo() {
   const { balance, chainId, network, changeNetwork, disConnect } = useWallet()
-  console.log(chainId, 'chainId====>>')
   const locations = useLocation()
   const [showMenu, setShowMenu] = useState(false)
   const { setState, showConnectNetwork, accounts } = useGlobal()

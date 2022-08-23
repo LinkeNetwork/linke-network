@@ -6,8 +6,8 @@ import { detectMobile, getLocal } from '../../utils';
 import useGlobal from '../../hooks/useGlobal';
 import { createClient } from 'urql'
 export default function ShareInfo(props) {
-  const { closeShareInfo, currentAddress, shareTextInfo, currentGroupType, currentNetwork } = props
-  const { showShareContent } = useGlobal()
+  const { closeShareInfo, currentAddress, shareTextInfo, currentNetwork } = props
+  const { showShareContent, clientInfo } = useGlobal()
   const [canvasImage, setCanvasImage] = useState()
   const [shareInfoStyle, setShareInfoStyle] = useState({})
   const getCanvasStyle = async () => {
@@ -25,14 +25,13 @@ export default function ShareInfo(props) {
         }
       }
     `
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const res = await client.query(tokensQuery).toPromise()
+    const res = await clientInfo.query(tokensQuery).toPromise()
     let fetchData = res?.data?.groupInfo
-    const shareInfoStyle = JSON.parse(fetchData.style)
-    setShareInfoStyle(shareInfoStyle)
     console.log(fetchData, '===fetchDatafetchData=>>>>')
+    if(fetchData?.style) {
+      const shareInfoStyle = JSON.parse(fetchData.style)
+      setShareInfoStyle(shareInfoStyle)
+    }
   }
   const canvasToHtml = () => {
     html2canvas(document.querySelector("#shareText"), {

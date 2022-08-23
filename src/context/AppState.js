@@ -17,7 +17,8 @@ const state = {
   currentAddress: '',
   showConnectNetwork: false,
   accounts: null,
-  isJumpToProfile: false
+  isJumpToProfile: false,
+  clientInfo: null,
 }
 
 export default state

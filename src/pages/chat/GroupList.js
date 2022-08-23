@@ -1,6 +1,4 @@
 import { detectMobile, getLocal, formatAddress, setLocal } from "../../utils"
-import useChain from "../../hooks/useChain"
-import { createClient } from 'urql'
 import { useEffect, useState } from "react"
 import Modal from '../../component/Modal'
 import { useHistory } from "react-router-dom"
@@ -13,7 +11,7 @@ import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 import useWallet from "../../hooks/useWallet"
 export default function GroupList(props) {
-  const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts } = useGlobal()
+  const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo } = useGlobal()
   const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead, privateChatMember} = props
   const [groupList, setGroupList] = useState([])
   const { chainId } = useWallet()
@@ -50,10 +48,7 @@ export default function GroupList(props) {
         }
       }
     `
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const res = await client.query(tokensQuery).toPromise()
+    const res = await clientInfo.query(tokensQuery).toPromise()
     let fetchData = res?.data?.groupInfo
     console.log(fetchData, currNetwork, '=====>>>>updateChatCount')
     localForage.getItem('chatListInfo').then(res => {
@@ -101,11 +96,7 @@ export default function GroupList(props) {
       }
     }
     `
-    console.log(getLocal('currentGraphqlApi'), 'currentGraphqlApi===')
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const res = await client.query(tokensQuery).toPromise()
+    const res = await clientInfo.query(tokensQuery).toPromise()
     var groupInfos = res.data?.groupUser?.groupInfos || []
     const roomAddress = path.split('/chat/')[1]?.toLowerCase()
     if(roomAddress) {
@@ -227,11 +218,8 @@ export default function GroupList(props) {
         }
       }
     `
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const list1 = await client.query(senderQuery).toPromise()
-    const list2 = await client.query(tokensQuery).toPromise()
+    const list1 = await clientInfo.query(senderQuery).toPromise()
+    const list2 = await clientInfo.query(tokensQuery).toPromise()
     const groupList = []
     list1?.data?.encryptedInfos.map(item => {
       if(!groupList.includes(item.to)) {
@@ -255,7 +243,7 @@ export default function GroupList(props) {
         avatar
       }
     }`
-    const res = await client.query(groupListQuery).toPromise()
+    const res = await clientInfo.query(groupListQuery).toPromise()
     const privateGroupList = [...res?.data?.profiles] || []
     if(list.id) {
       const index = privateGroupList?.findIndex((item) => item.id === list.id)

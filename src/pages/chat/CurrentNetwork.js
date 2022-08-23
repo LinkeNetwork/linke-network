@@ -6,17 +6,17 @@ export default function CurrentNetwork(props) {
   const { currNetwork, handleChangeNetwork } = props
   const networkList = [
     {
-      chainId: '2019',
+      chainId: 2019,
       icon: czzURL,
       name: 'CZZ'
     },
     {
-      chainId: '47805',
+      chainId: 47805,
       icon: reiURL,
       name: 'REI'
     },
     {
-      chainId: '1',
+      chainId: 1,
       icon: '',
       name: 'ETH'
     }

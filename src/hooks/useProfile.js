@@ -8,12 +8,9 @@ import { useEffect, useState } from 'react'
 export default function useProfile() {
   const { currentNetworkInfo, setState } = useGlobal()
   const [hasCreate, setHasCreate] = useState()
-  const [newAccounts, setNewAccounts] = useState()
-  const [profileInfo, setProfileInfo] = useState()
   const [profileName, setProfileName] = useState()
   const [ProfileDescription, setProfileDescription] = useState()
   const [profileId, setProfileId] = useState()
-  const [followers, setFollowers] = useState()
   const getProfileStatus = async(account) => {
     if(account) {
       try{
@@ -34,14 +31,6 @@ export default function useProfile() {
       return hasCreate
     }
   }
-
-  const getAccounInfos = async() => {
-    const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    // debugger
-    await getProfileStatus(account[0])
-    setNewAccounts(account[0])
-    
-  }
   const getMyprofileInfo = async(profileId) => {
     if(hasCreate) {
       // debugger
@@ -60,11 +49,10 @@ export default function useProfile() {
   }
   useEffect(() => {
     if(getLocal('isConnect')) {
-      getAccounInfos()
       getProfileStatus()
     }
-  }, [getLocal('account'), newAccounts, currentNetworkInfo])
+  }, [getLocal('account'), currentNetworkInfo])
   
-  return { hasCreate, followers, profileInfo, profileName, ProfileDescription, profileId, getProfileStatus, getAccounInfos }
+  return { hasCreate, profileName, ProfileDescription, profileId, getProfileStatus }
 }
 

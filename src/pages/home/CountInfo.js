@@ -2,13 +2,14 @@ import styled from "styled-components"
 import dataImage from '../../assets/images/home-acount.png'
 import dataImageClient from '../../assets/images/home-acount-client.png'
 import {detectMobile} from "../../utils"
-import {createClient} from 'urql'
 import {useEffect, useState} from "react"
+import useGlobal from "../../hooks/useGlobal"
 
 const REIAPIURL = 'https://linke.network/subgraphs/name/LinkeNetwork/linke-network-subgraph'
 const CZZAPIURL = 'https://node.classzz.com/subgraphs/name/LinkeNetwork/linke-network-subgraph'
 export default function CountInfo() {
     const [countInfo, setCountInfo] = useState()
+    const { clientInfo } = useGlobal()
     const countList = [
         {
             name: 'Group Count',
@@ -58,10 +59,7 @@ export default function CountInfo() {
         }
 
         url.map(async (item) => {
-            const client = createClient({
-                url: item
-            })
-            const res = await client.query(countInfoQuery).toPromise()
+            const res = await clientInfo.query(countInfoQuery).toPromise()
 
             if (!res.data) return
             const {groupCount, groupProfileCount, profileCount, sendCount, followCount} = res?.data.statisticalData
