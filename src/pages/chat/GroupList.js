@@ -34,7 +34,6 @@ export default function GroupList(props) {
 
   const updateChatCount = async() => {
     if(!currentAddress?.toLowerCase()) return
-    // debugger
     const tokensQuery = `
       query{
         groupInfo(id: "`+ currentAddress?.toLowerCase() + `"){
@@ -97,7 +96,7 @@ export default function GroupList(props) {
     }
     `
     const res = await clientInfo?.query(tokensQuery).toPromise()
-    var groupInfos = res.data?.groupUser?.groupInfos || []
+    var groupInfos = res?.data?.groupUser?.groupInfos || []
     const roomAddress = path.split('/chat/')[1]?.toLowerCase()
     if(roomAddress) {
       const index = groupInfos?.findIndex((item) => item.id === roomAddress)
@@ -111,7 +110,7 @@ export default function GroupList(props) {
     setState({
       groupLists: [...groupInfos]
     })
-    console.log(res.data?.groupUser?.groupInfos, 'groupInfos====')
+    console.log(res?.data?.groupUser?.groupInfos, 'groupInfos====')
     setGroupList(groupInfos || [])
     setChatListInfo(groupInfos, 1)
     getCurrentRoomIndex(groupInfos)
@@ -161,7 +160,6 @@ export default function GroupList(props) {
   const deleteChatRoom = (e, path) => {
     e.stopPropagation()
     if (!detectMobile()) {
-      debugger
       setShowDeleteConfirm(true)
     } else {
       this.handleTouchEnd(e)
@@ -260,7 +258,9 @@ export default function GroupList(props) {
     hiddenMask()
   }
   const setChatListInfo = (groupInfos, type) => {
-    const currNetwork = network || getLocal('network')
+    const currNetwork = getLocal('network')
+    if(!currNetwork) return
+    console.log(network, getLocal('network'), '===setChatListInfo=')
     localForage.getItem('chatListInfo').then(res => {
       const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
       const publicRooms = account ? account['publicRooms'] : []
@@ -268,7 +268,7 @@ export default function GroupList(props) {
       let chatListInfo = res ? res : {}
       if(!account && currNetwork) {
         const list = Object.keys(chatListInfo)
-        chatListInfo[currNetwork] = list.length ? chatListInfo[currNetwork] : {}
+        chatListInfo[currNetwork] = chatListInfo[currNetwork] && list.length ? chatListInfo[currNetwork] : {}
         chatListInfo[currNetwork][getLocal('account')] = {
           ['publicRooms']: [],
           ['privateRooms']: []
@@ -291,7 +291,7 @@ export default function GroupList(props) {
   }, [newGroupList, hasChatCount])
   useEffect(() => {
     if(accounts) {
-      const currNetwork = currentNetworkInfo?.name || getLocal('currentNetwork')
+      const currNetwork = currentNetworkInfo?.name || getLocal('network')
       localForage.getItem('chatListInfo').then(res => {
         const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
         const publicRooms = account ? account['publicRooms'] : []
@@ -333,7 +333,7 @@ export default function GroupList(props) {
       setGroupList([])
     }
     console.log(getLocal('isConnect'), chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, '777====')
-  }, [getLocal('account'), getLocal('isConnect'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, hasQuitRoom, accounts])
+  }, [getLocal('account'), getLocal('isConnect'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, hasQuitRoom, accounts, network])
   return (
     <ListGroupContainer>
       {
