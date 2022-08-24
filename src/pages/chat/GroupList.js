@@ -14,7 +14,7 @@ export default function GroupList(props) {
   const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo } = useGlobal()
   const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead, privateChatMember} = props
   const [groupList, setGroupList] = useState([])
-  const { chainId } = useWallet()
+  const { chainId, network } = useWallet()
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
   const [canCopy, setCanCopy] = useState(false)
@@ -48,7 +48,7 @@ export default function GroupList(props) {
         }
       }
     `
-    const res = await clientInfo.query(tokensQuery).toPromise()
+    const res = await clientInfo?.query(tokensQuery).toPromise()
     let fetchData = res?.data?.groupInfo
     console.log(fetchData, currNetwork, '=====>>>>updateChatCount')
     localForage.getItem('chatListInfo').then(res => {
@@ -96,7 +96,7 @@ export default function GroupList(props) {
       }
     }
     `
-    const res = await clientInfo.query(tokensQuery).toPromise()
+    const res = await clientInfo?.query(tokensQuery).toPromise()
     var groupInfos = res.data?.groupUser?.groupInfos || []
     const roomAddress = path.split('/chat/')[1]?.toLowerCase()
     if(roomAddress) {
@@ -260,7 +260,7 @@ export default function GroupList(props) {
     hiddenMask()
   }
   const setChatListInfo = (groupInfos, type) => {
-    const currNetwork = getLocal('currentNetwork')
+    const currNetwork = network || getLocal('network')
     localForage.getItem('chatListInfo').then(res => {
       const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
       const publicRooms = account ? account['publicRooms'] : []
@@ -275,6 +275,7 @@ export default function GroupList(props) {
         }
       }
       if(type === 1) {
+        console.log(network, '====')
         chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...groupInfos]
         localForage.setItem('chatListInfo', chatListInfo)
       } else {
