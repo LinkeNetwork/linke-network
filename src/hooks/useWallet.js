@@ -65,7 +65,6 @@ export default function useWallet() {
     
     await window.ethereum?.request({ method: 'wallet_addEthereumChain', params })
     getAccounInfo(account)
-    // getNetworkInfo()
   }
   const handleNewAccounts = newAccounts => {
     getCurrentBalance(newAccounts[0])
@@ -105,6 +104,10 @@ export default function useWallet() {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const network = await provider.getNetwork()
       const item = networks.filter(i=> i.chainId === network.chainId)[0]
+      if(!item) {
+        setChainId()
+        return
+      }
       const currNetwork = networkList[network.chainId]
       const client = createClient({
         url: item?.APIURL
@@ -123,6 +126,12 @@ export default function useWallet() {
   }
   const setNetworkInfo = (chainId) => {
     const item = networks.filter(i=> i.chainId === parseInt(chainId, 16))[0]
+    console.log(item, '==setNetworkInfo===111')
+    if(!item) {
+      setChainId()
+      return
+    }
+    console.log(item, '==setNetworkInfo===222')
     const client = createClient({
       url: item?.APIURL
     })
@@ -134,15 +143,20 @@ export default function useWallet() {
     setNetwork(item?.name)
     setChainId(item?.chainId)
   }
+  const handleChainChanged = async(chainId) => {
+    const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
+    setNetworkInfo(chainId)
+    getCurrentBalance(account[0])
+  }
   const initWallet = async () => {
     if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined' && MetaMaskOnboarding.isMetaMaskInstalled() && getLocal('account')) {
       const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
       handleNewAccounts(account)
       getAccounInfo(account)
+      console.log(account, 'initWallet====')
       window.ethereum.on('chainChanged', chainId => {
         console.log('chainChanged====')
-        setNetworkInfo(chainId)
-        getCurrentBalance(account[0])
+        handleChainChanged(chainId)
       })
       window.ethereum.on('accountsChanged', (account) => {
         console.log('accountsChanged====>>>')
@@ -152,9 +166,7 @@ export default function useWallet() {
         changeProfileUrl()
       })
       window.ethereum.on('connect', id => {
-        getCurrentBalance(account[0])
-        setNetworkInfo(id.chainId)
-        console.log('connect',chainId)
+        console.log('connect',id)
       })
       window.ethereum.on('disconnect', () => {
         console.log('wallet disconnect')

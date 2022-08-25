@@ -290,7 +290,7 @@ export default function GroupList(props) {
     updateChatCount()
   }, [newGroupList, hasChatCount])
   useEffect(() => {
-    if(accounts) {
+    if(accounts && chainId) {
       const currNetwork = currentNetworkInfo?.name || getLocal('network')
       localForage.getItem('chatListInfo').then(res => {
         const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
@@ -329,7 +329,8 @@ export default function GroupList(props) {
         console.log(error, 'error===')
       })
     }
-    if(!getLocal('isConnect')) {
+    
+    if(!getLocal('isConnect') || !chainId) {
       setGroupList([])
     }
     console.log(getLocal('isConnect'), chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, '777====')
