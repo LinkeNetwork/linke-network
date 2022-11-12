@@ -1,5 +1,6 @@
 import styled from "styled-components"
 import { create } from 'ipfs-http-client'
+import { Buffer } from 'buffer/';
 import { useHistory } from 'react-router-dom'
 import {PROFILE_ABI} from '../../abi'
 import UploadImage from './UploadImage'
@@ -9,7 +10,19 @@ import Loading from '../../component/Loading'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
 import { getDaiWithSigner } from '../../utils'
 import useGlobal from "../../hooks/useGlobal"
-const client = create('https://ipfs.infura.io:5001')
+
+const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
+const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
+const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
+
+const client = create({
+    host: 'ipfs.infura.io',
+    port: 5001,
+    protocol: 'https',
+    headers: {
+        authorization: auth,
+    },
+})
 
 export default function InputForm(props) {
     const { myAddress } = props
@@ -22,9 +35,7 @@ export default function InputForm(props) {
     setShowLoading(true)
     const info = await client.add(multiavatar(myAddress))
     const avatarUrl = `https://linke.infura-ipfs.io/ipfs/${info.path}`
-    console.log(avatarUrl, 'avatarUrl=====')
     const expandInfo = []
-    console.log(expandInfo, 'expandInfo====')
     try {
         const address = currentNetworkInfo?.ProfileAddress
         debugger
@@ -87,7 +98,7 @@ export default function InputForm(props) {
       {
         showLoading && <Loading />
       }
-      
+
     </InputFormContainer>
   )
 }

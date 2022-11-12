@@ -8,9 +8,10 @@ import { useHistory } from 'react-router-dom'
 import useGlobal from './useGlobal'
 import { createClient } from 'urql'
 const networkList = {
-  2019: 'CZZ',
-  47805: 'REI',
-  1: 'ETH'
+  // 2019: 'CZZ',
+  // 47805: 'REI',
+  // 1: 'ETH'
+  513100: 'ETHF'
 }
 export default function useWallet() {
   const history = useHistory()
@@ -20,7 +21,7 @@ export default function useWallet() {
   const [chainId, setChainId] = useState()
   const [balance, setBalance] = useState()
   const [network, setNetwork] = useState()
-  
+
   const disConnect = async () => {
     if (window.ethereum.on) {
       await window.ethereum.request({
@@ -62,7 +63,7 @@ export default function useWallet() {
       nativeCurrency,
       blockExplorerUrls
     }]
-    
+
     await window.ethereum?.request({ method: 'wallet_addEthereumChain', params })
     getAccounInfo(account)
   }

@@ -9,7 +9,21 @@ import multiavatar from '@beeprotocol/beemultiavatar/esm'
 import { ethers } from "ethers";
 import Select from 'react-select'
 import Message from "../../component/Message"
-const client = create('https://ipfs.infura.io:5001')
+import { Buffer } from 'buffer/';
+
+const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
+const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
+const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
+
+const client = create({
+  host: 'ipfs.infura.io',
+  port: 5001,
+  protocol: 'https',
+  headers: {
+    authorization: auth,
+  },
+})
+
 export default function CreateNewRoom(props) {
   const { setState, currentNetworkInfo } = useGlobal()
   const { createNewRoom, hiddenCreateInfo } = props
@@ -111,9 +125,7 @@ export default function CreateNewRoom(props) {
     } catch (error) {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const receipt = await provider.getTransactionReceipt(transactionHash)
-      console.log(receipt, 'receipt======')
       const hash = receipt?.logs[1]?.transactionHash
-      debugger
       if(hash) {
         hiddenCreateInfo()
         setState({
@@ -121,7 +133,6 @@ export default function CreateNewRoom(props) {
         })
         createNewRoom(receipt?.logs[1]?.address, name)
       }
-      console.log(error, '==error===')
       setShoMask(false)
     }
 
@@ -213,7 +224,7 @@ export default function CreateNewRoom(props) {
             onBlur={handleBlur}
           />
           {
-            showNameError && 
+            showNameError &&
             <div className="error-tip">Name Can't be empty</div>
           }
         </div>

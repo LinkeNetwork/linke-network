@@ -1,5 +1,4 @@
-import czzURL from '../../assets/images/czz.png';
-import reiURL from '../../assets/images/rei.svg';
+import metaURL from '../../assets/images/MetaMask_Fox.svg';
 import styled from 'styled-components'
 import { detectMobile } from '../../utils';
 import Image from '../../component/Image';
@@ -7,14 +6,9 @@ export default function ChangeNetwork(props) {
   const { handleChangeNetWork } = props
   const networkList = [
     {
-      image: czzURL,
-      name: 'ClassZZ Network',
-      network: 'CZZ',
-    },
-    {
-      image: reiURL,
-      name: 'REI Network',
-      network: 'REI',
+      image: metaURL,
+      name: 'MetaMask',
+      network: 'MetaMask',
     }
   ]
   return (

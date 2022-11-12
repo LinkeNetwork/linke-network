@@ -21,7 +21,6 @@ export default function HeaderInfo() {
   const locations = useLocation()
   const [showMenu, setShowMenu] = useState(false)
   const { setState, showConnectNetwork, accounts } = useGlobal()
-  console.log(accounts, 'accounts===')
   const [showAccount, setShowAccount] = useState(false)
   const [showConnectWallet, setShowConnectWallet] = useState(false)
   const [showHomeHeader, setShowHomeHeader] = useState(true)
@@ -57,7 +56,7 @@ export default function HeaderInfo() {
       {
         showHomeHeader && <Nav showMenulist={showMenulist} hiddenMenuList={() => { setShowMenulist(false) }} />
       }
-      
+
       <div className='header-top-wrap'>
         {
           !showHomeHeader &&
@@ -77,7 +76,7 @@ export default function HeaderInfo() {
           showHomeHeader && accounts &&
           <div className='header-top-info'>
             {
-              chainId !== 47805 && chainId !== 2019 &&
+              chainId !== 513100 &&
               <ErrorNetwork handleChangeNetwork={() => setShowConnectWallet(true)}/>
             }
             <CurrentNetwork currNetwork={network} handleChangeNetwork={() => setShowConnectWallet(true)} />
@@ -85,7 +84,7 @@ export default function HeaderInfo() {
               <span style={{ marginRight: '4px' }}>{Number(balance).toFixed(4)}</span><span>{network}</span>
             </div>
             {
-              (chainId === 47805 || chainId === 2019) && accounts &&
+              (chainId === 513100) && accounts &&
               <span className='header-top' onClick={() => setShowAccount(true)}>
                 <Jazzicon address={accounts} className="account-icon" />
                 {formatAddress(accounts)}

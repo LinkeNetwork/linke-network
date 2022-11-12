@@ -1,25 +1,14 @@
 import styled from 'styled-components';
-import czzURL from '../../assets/images/czz.png';
-import reiURL from '../../assets/images/rei.svg';
+import czzURL from '../../assets/images/ethf.svg';
 import Image from '../../component/Image'
 export default function CurrentNetwork(props) {
   const { currNetwork, handleChangeNetwork } = props
   const networkList = [
     {
-      chainId: 2019,
+      chainId: 513100,
       icon: czzURL,
-      name: 'CZZ'
+      name: 'ETHF'
     },
-    {
-      chainId: 47805,
-      icon: reiURL,
-      name: 'REI'
-    },
-    {
-      chainId: 1,
-      icon: '',
-      name: 'ETH'
-    }
   ]
   const currentNetwork = networkList.filter(
     (i) => i.name === currNetwork
