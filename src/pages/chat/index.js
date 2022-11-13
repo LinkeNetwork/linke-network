@@ -959,12 +959,12 @@ export default function Chat() {
         }
       })
     })
-    if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-      debugger
-      insertData(result)
-      setChatList(chatList.concat(result))
-      // setChatList(result)
-    }
+    // if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
+    //   debugger
+    //   insertData(result)
+    //   setChatList(chatList.concat(result))
+    //   // setChatList(result)
+    // }
     setShowMask(false)
     console.log(hasScrollRef.current, 'hasScrollRef.current====')
     // startInterval(roomAddress, list)
