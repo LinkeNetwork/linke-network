@@ -35,6 +35,7 @@ export default function Chat() {
   const { getGroupMember } = useGroupMember()
   const timer = useRef()
   const allTimer = useRef()
+  const initTimer = useRef()
   const messagesEnd = useRef(null)
   const { chainId } = useWallet()
   const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo} = useGlobal()
@@ -71,7 +72,7 @@ export default function Chat() {
   const [showOperate, setShowOperate] = useState(false)
   const [sendSuccess,setSendSuccess] = useState(false)
   const [dialogType, setDialogType] = useState()
-  const [currentTabIndex, setCurrentTabIndex] = useState()
+  const [currentTabIndex, setCurrentTabIndex] = useState(0)
   const [roomAvatar, setRoomAvatar] = useState()
   const [privateKey, setPrivateKey] = useState()
   const [myPublicKey, setMyPublicKey] = useState()
@@ -153,7 +154,7 @@ export default function Chat() {
     })
   }
   const getMyPublicKey = () => {
-    //debugger
+    //
     window.ethereum
     .request({
       method: 'eth_getEncryptionPublicKey',
@@ -194,6 +195,7 @@ export default function Chat() {
     console.log(res, currentNetworkInfo, 'getPrivateChatStatus=====')
   }
   const initRoomAddress = async() => {
+    
     let data = history.location?.state
     if(data) {
       const {currentIndex, address, name , avatar, privateKey} = data
@@ -218,6 +220,7 @@ export default function Chat() {
       })
     }
     if (address) {
+      
       setCurrentAddress(address)
       setState({
         currentAddress: address
@@ -256,7 +259,8 @@ export default function Chat() {
   }
   const isRoom = async (roomAddress) => {
     try {
-   const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
+      
+      const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
       if(index > 0) return
       if(!getLocal('isConnect')) {
         const path = history.location.pathname.split('/chat/')[1]
@@ -276,11 +280,11 @@ export default function Chat() {
       } else {
         var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
       }
+      initCurrentAddress(roomAddress)
       updateGroupList(name, roomAddress, groupType)
       await getInitChatList(roomAddress)
       getJoinRoomAccess(roomAddress, groupType)
       setCurrentRoomName(name)
-      initCurrentAddress(roomAddress)
     }
     catch (e) {
       console.log(e, 'err====')
@@ -328,6 +332,7 @@ export default function Chat() {
       }
     }
     `
+    
     const data = await clientInfo.query(tokensQuery).toPromise()
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
@@ -335,7 +340,7 @@ export default function Chat() {
     const chatList = data?.data?.chatInfos || []
     // const result = formateData(chatList, roomAddress)
     const result = await getMemberList(roomAddress, chatList)
-    insertData(result)
+    await insertData(result)
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
       if(res.length > 0) {
         setChatList(res)
@@ -351,6 +356,7 @@ export default function Chat() {
     for (let i = 0; i < datas?.length; i++) {
       datas[i].block = parseInt(datas[i].block)
       collection.findOne({id:datas[i].id}).then((doc) => {
+        console.log(doc, 'doc===')
         if (doc) {
           collection.update({id:datas[i].id}, {$set: datas[i]})
         } else {
@@ -721,14 +727,13 @@ export default function Chat() {
           chatListStatus.set(k, v)
         })
         const chatLists = hasScroll ? chatList : [...chatListStatus.values()]
-        debugger
         setChatList(chatLists)
       }
     }
     setShowMask(false)
   }
   const handleScroll = () => {
-    // //debugger
+    // //
     setHasScroll(true)
   }
   const startInterval = (currentAddress) => {
@@ -743,17 +748,16 @@ export default function Chat() {
       }
     }, 20000)
   }
-  const handleReadMessage = (roomAddress) => {
-    localForage.getItem('chatListInfo').then(res => {
-      const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
-      const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
-      if(index > -1) {
-        publicRooms[index]['newChatCount'] = 0
-        res[currNetwork][getLocal('account')]['publicRooms'] = [...publicRooms]
-        localForage.setItem('chatListInfo', res)
-        setRoomList(publicRooms)
-      }
-    })
+  const handleReadMessage = async(roomAddress) => {
+    let res = await localForage.getItem('chatListInfo')
+    const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
+    const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
+    if(index > -1) {
+      publicRooms[index]['newChatCount'] = 0
+      res[currNetwork][getLocal('account')]['publicRooms'] = [...publicRooms]
+      localForage.setItem('chatListInfo', res)
+      setRoomList(publicRooms)
+    }
   }
   const getUserAvatar = async(newList) => {
     let list = []
@@ -777,10 +781,6 @@ export default function Chat() {
              ...item,
              avatar: info?.avatar
            })
-         } else {
-          list.push({
-            ...item
-          })
          }
        })
      })
@@ -795,28 +795,23 @@ export default function Chat() {
             ...item,
             avatar: info.profile.avatar
           })
-        } else {
-          list.push({
-            ...item
-          })
         }
       })
     })
     return list
   }
-  const updateUnreadNum = (roomAddress, res) => {
+  const updateUnreadNum = async(roomAddress, res) => {
     const currentList = res
-    localForage.getItem('chatListInfo').then(res => {
-      const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
-      const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
-      if(index > -1) {
-        publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount || 0
-        const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
-        res[currNetwork][getLocal('account')][roomType] = [...publicRooms]
-        localForage.setItem('chatListInfo', res)
-        setRoomList(publicRooms)
-      }
-    })
+    let list = await localForage.getItem('chatListInfo')
+    const publicRooms = list && list[currNetwork]?.[getLocal('account')]?.['publicRooms']
+    const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
+    if(index > -1) {
+      publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount || 0
+      const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
+      list[currNetwork][getLocal('account')][roomType] = [...publicRooms]
+      localForage.setItem('chatListInfo', list)
+      setRoomList(publicRooms)
+    }
   }
   const getCurrentGroupChatList = async(client, roomAddress) => {
     const db = await setDataBase()
@@ -842,14 +837,17 @@ export default function Chat() {
       const data = await client.query(tokensQuery).toPromise()
       if(!data?.data?.chatInfos.length) return
       const newList = data?.data?.chatInfos && await getMemberList(roomAddress, data?.data?.chatInfos)
-      const formatList = await getUserAvatar(newList)
+      // const formatList = await getUserAvatar(newList)
       const list = [...chatListRef.current]
-      collection.insert(formatList,(error) => {
+      
+      collection.insert(newList,(error) => {
+        
         updateNewList(roomAddress, collection)
         if (error) { throw error; }
       })
       if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
-        setChatList(formatList.concat(list))
+        
+        setChatList(newList.concat(list))
       }
   }
   const updateNewList = async(roomAddress, collection) => {
@@ -868,10 +866,10 @@ export default function Chat() {
   const getCurrentChatList = async (roomAddress) => {
     if(!chainId) return
     if(currentTabIndex === 0) {
-      getCurrentGroupChatList(clientInfo, roomAddress)
+      await getCurrentGroupChatList(clientInfo, roomAddress)
     }
     if(currentTabIndex === 1) {
-      getCurrentPrivateChatList(roomAddress)
+      await getCurrentPrivateChatList(roomAddress)
     }
   }
   const getCurrentPrivateChatList = async(roomAddress) => {
@@ -904,6 +902,7 @@ export default function Chat() {
     const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, roomAddress)
     const list = [...chatListRef.current]
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && currentList.length) {
+      
       setChatList(currentList.concat(list))
     }
     // insertData(currentList)
@@ -913,38 +912,62 @@ export default function Chat() {
     const data = await getGroupMember(roomAddress)
     const memberListInfo = data?.users
     setMemberListInfo(memberListInfo)
-    let result = []
-    chatList.map(item => {
+    let result = [...chatList]
+    
+    result.map(item => {
      memberListInfo?.map(info => {
-        if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
-          result.push({
-            ...item,
+        if (item?.sender?.toLowerCase() == info?.id?.toLowerCase()) { 
+          let params = {
+            avatar: info.profile.avatar,
             hasDelete: false,
             isSuccess: true,
             showProfile: false,
             position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
             showOperate: false,
-            avatar: info.profile.avatar
-          })
+          }
+          Object.assign(item, params)
+          return item
         } else {
-          result.push({
-            ...item,
+          let params = {
             hasDelete: false,
             isSuccess: true,
             showProfile: false,
             position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
-            showOperate: false
-          })
+            showOperate: false,
+          }
+          Object.assign(item, params)
+          return item
         }
+        // if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
+        //   result.push({
+        //     ...item,
+        //     hasDelete: false,
+        //     isSuccess: true,
+        //     showProfile: false,
+        //     position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
+        //     showOperate: false,
+        //     avatar: info.profile.avatar
+        //   })
+        // } else {
+        //   result.push({
+        //     ...item,
+        //     hasDelete: false,
+        //     isSuccess: true,
+        //     showProfile: false,
+        //     position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
+        //     showOperate: false
+        //   })
+        // }
       })
     })
     // if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-    //   //debugger
+    //   //
     //   // insertData(result)
     //   // setChatList(chatList.concat(result))
-    //   debugger
+    //   
     //   setChatList(result)
     // }
+    console.log(result, 'chatList====')
     setShowMask(false)
     return result
   }
