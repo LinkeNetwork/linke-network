@@ -125,10 +125,10 @@ export default function Chat() {
         }
       })
     }
-    setState({
-      currentAddress: ''
-    })
-    setCurrentAddress()
+    // setState({
+    //   currentAddress: ''
+    // })
+    // setCurrentAddress()
   }, [currentTabIndex])
   const getMyAvatar = async () => {
     const tokensQuery = `
@@ -153,7 +153,7 @@ export default function Chat() {
     })
   }
   const getMyPublicKey = () => {
-    debugger
+    //debugger
     window.ethereum
     .request({
       method: 'eth_getEncryptionPublicKey',
@@ -176,13 +176,11 @@ export default function Chat() {
     })
   }
   const getManager = async(id, type) => {
-    debugger
     if(type == 3) return
     const tx = await getDaiWithSigner(id, PUBLIC_GROUP_ABI).profile()
     const canSendText = tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase()
     setManager(tx.manager)
     setCanSendText(canSendText)
-    debugger
     if(!canSendText || !hasAccess) {
       setShowJoinGroupButton(true)
     } else {
@@ -195,9 +193,8 @@ export default function Chat() {
     setPrivateKey(res)
     console.log(res, currentNetworkInfo, 'getPrivateChatStatus=====')
   }
-  const initRoomAddress = () => {
+  const initRoomAddress = async() => {
     let data = history.location?.state
-    console.log(data, '===initRoomAddress')
     if(data) {
       const {currentIndex, address, name , avatar, privateKey} = data
       setCurrentTabIndex(currentIndex)
@@ -225,11 +222,10 @@ export default function Chat() {
       setState({
         currentAddress: address
       })
-      isRoom(address)
+      await isRoom(address)
     }
   }
-  const updateGroupList = (name, roomAddress, type) => {
-    debugger
+  const updateGroupList = async(name, roomAddress, type) => {
     console.log(groupLists, groupListRef.current,'==updateGroupList==')
     const index = groupListRef.current?.findIndex(item => item.id.toLowerCase() == roomAddress.toLowerCase())
     const groupList = [...groupListRef.current]
@@ -241,35 +237,36 @@ export default function Chat() {
         newChatCount: 0,
         _type: type
       })
-      localForage.getItem('chatListInfo').then(res => {
-        debugger
-        let chatListInfo = res ? res : {}
-        const list = Object.keys(chatListInfo)
-        const currentNetwork = getLocal('currentNetwork')
-        chatListInfo[currentNetwork] = list.length ? chatListInfo[currentNetwork] : {}
-        chatListInfo[currentNetwork][getLocal('account')] =  chatListInfo[currentNetwork][getLocal('account')] ? chatListInfo[currentNetwork][getLocal('account')] : {}
-        chatListInfo[currentNetwork][getLocal('account')]['publicRooms'] = [...groupList]
-        localForage.setItem('chatListInfo', chatListInfo)
-      })
-      setRoomList(groupList)
-      setState({
-        groupLists: groupList
+      let res = await localForage.getItem('chatListInfo')
+      let chatListInfo = res ? res : {}
+      const list = Object.keys(chatListInfo)
+      const currentNetwork = getLocal('network')
+      chatListInfo[currentNetwork] = list.length ? chatListInfo[currentNetwork] : {}
+      chatListInfo[currentNetwork][getLocal('account')] =  chatListInfo[currentNetwork][getLocal('account')] ? chatListInfo[currentNetwork][getLocal('account')] : {}
+      chatListInfo[currentNetwork][getLocal('account')]['publicRooms'] = [...groupList]
+      localForage.setItem('chatListInfo', chatListInfo).then(res=> {
+        setRoomList(groupList)
+        setState({
+          groupLists: groupList
+        })
+      }).catch(err => {
+        console.log(err)
       })
     }
   }
   const isRoom = async (roomAddress) => {
     try {
-      debugger
-      console.log(groupListRef.current, 'groupListRef.current======')
-      const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
+   const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
       if(index > 0) return
-      debugger
       if(!getLocal('isConnect')) {
         const path = history.location.pathname.split('/chat/')[1]
         var currentNetwork = path?.split('/')[1]
         var networkInfo = networks.filter(i=> i.name === currentNetwork)[0]
         setLocal('currentGraphqlApi', networkInfo?.APIURL)
         setLocal('currentNetwork', currentNetwork)
+      } else {
+        const currentNetwork = getLocal('network')
+        var networkInfo = networks.filter(i=> i.name === currentNetwork)[0]
       }
       const groupInfo = await getGroupMember(roomAddress, networkInfo?.APIURL)
       const groupType = groupInfo?._type
@@ -279,11 +276,10 @@ export default function Chat() {
       } else {
         var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
       }
-      console.log(name, '====....')
       updateGroupList(name, roomAddress, groupType)
+      await getInitChatList(roomAddress)
       getJoinRoomAccess(roomAddress, groupType)
       setCurrentRoomName(name)
-      getInitChatList(roomAddress)
       initCurrentAddress(roomAddress)
     }
     catch (e) {
@@ -300,7 +296,6 @@ export default function Chat() {
   }
   const getJoinRoomAccess = async(roomAddress, groupType) => {
     try {
-      debugger
       if(groupType == 1 || groupType == 2) {
         var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
       } 
@@ -308,6 +303,7 @@ export default function Chat() {
         var res = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
         console.log(res, '=getDaiWithSigner==')
       }
+      if(!res) return
       const hasAccess= ethers.BigNumber.from(res) > 0
       setHasAccess(hasAccess)
       if(!Boolean(hasAccess)) {
@@ -337,16 +333,18 @@ export default function Chat() {
     const collection = db.collection('chatInfos')
     const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
     const chatList = data?.data?.chatInfos || []
-    console.log(chatList, res, 'chatList=====>>>')
-    const result = formateData(chatList)
-    if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-      debugger
-      setChatList(res || result)
-    }
+    // const result = formateData(chatList, roomAddress)
+    const result = await getMemberList(roomAddress, chatList)
     insertData(result)
-    getMemberList(roomAddress, result)
+    if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
+      if(res.length > 0) {
+        setChatList(res)
+      } else {
+        setChatList(result)
+      }
+    }
   }
-
+  
   const insertData = async(datas) =>{
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
@@ -358,6 +356,8 @@ export default function Chat() {
         } else {
           collection.insert(datas[i])
         }
+      }).catch(error => {
+        console.log(error)
       })
     }
   }
@@ -369,7 +369,6 @@ export default function Chat() {
     setState({
       currentAddress: list
     })
-    setChatList([])
   }
   const getCurrentRoomInfo = (roomAddress) => {
     setShowJoinRoom(false)
@@ -444,7 +443,6 @@ export default function Chat() {
     setHasScroll(false)
   }
   const loadingGroupData = async() => {
-    debugger
     const firstBlock = chatList && chatList[chatList.length-1]?.block
     if(!firstBlock) return
     const tokensQuery = `
@@ -461,9 +459,7 @@ export default function Chat() {
     }
     `
     const data = await clientInfo.query(tokensQuery).toPromise()
-    console.log(data, 'loading=data=')
     const loadingList = data?.data?.chatInfos || []
-    console.log(loadingList, 'loadingList====')
     if(loadingList.length < 20) {
       setHasMore(false)
     }
@@ -479,16 +475,12 @@ export default function Chat() {
     })
     
     const newfetchData = await addAvatarToList(fetchData)
-    insertData(newfetchData)
+    // insertData(newfetchData)
     if(chatListRef.current.length) {
       const list = [...chatListRef.current]
-      console.log(newfetchData, 'newfetchData===')
-      console.log(fetchData, list, memberListInfo, '====fetchData')
       const result = list.concat(newfetchData)
-      debugger
       setChatList(result)
     }
-    console.log(fetchData, 'chatList.length')
   }
   const loadingData = async () => {
     if(currentTabIndex === 0) {
@@ -532,9 +524,9 @@ export default function Chat() {
     }
     const list = [...chatListRef.current]
     setChatList(currentList.concat(list))
-    insertData(currentList)
+    // insertData(currentList)
   }
-  const formateData = (list) => {
+  const formateData = (list, roomAddress) => {
     const result = list && list.map((item) => {
       return {
         ...item,
@@ -606,9 +598,8 @@ export default function Chat() {
     try{
       const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, toAddress, avatar)
       setChatList(currentList)
-      insertData(currentList)
+      // insertData(currentList)
       setShowMask(false)
-      console.log(currentList, 'currentList=====')
     } catch(error) {
       console.log(error, '====')
       setShowMask(false)
@@ -628,18 +619,14 @@ export default function Chat() {
     const collection = db.collection('chatInfos')
     const res = await collection?.find({room: toAddress}).project({}).sort({ block: -1 }).toArray()
     if(!res || res?.length === 0) {
-      // debugger
       if(currentTabIndex == 0) {
-        fetchPublicChatList(toAddress)
+        await fetchPublicChatList(toAddress)
       } 
       if(currentTabIndex == 1) {
-        fetchPrivateChatList(toAddress, avatar)
+        await fetchPrivateChatList(toAddress, avatar)
       }
     } else {
-      // debugger
       if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-        console.log(res, chatList, 'getInitChatList=====>>>')
-        // debugger
         setChatList(res)
       }
       setShowMask(false)
@@ -668,14 +655,11 @@ export default function Chat() {
     setSendSuccess(false)
     try {
       if(currentTabIndex === 1) {
-        debugger
         const myPublicKey = await localForage.getItem('publicKeyList').then(res => {
           return res[myAddress]
         })
         const encryptedMessage = getencryptedMessage(chatText, privateKey)
         const encryptedSenderMessage = getencryptedMessage(chatText, myPublicKey)
-        console.log(encryptedSenderMessage, encryptedMessage, 'encryptedMessage====')
-        console.log(privateKey, myPublicKey)
         var tx = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       }
       if(currentTabIndex === 0 ) {
@@ -683,11 +667,9 @@ export default function Chat() {
         const groupType = groupInfo?._type
         setGroupType(groupType)
         const abi = groupType == 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
-        debugger
         var tx = await getDaiWithSigner(currentAddress, abi).send(chatText, 'msg')
       }
       setClearChatInput(true)
-      console.log(tx, 'tx===123')
       var newChat = {
         id: tx.hash,
         block: 0,
@@ -705,20 +687,15 @@ export default function Chat() {
       chatList.unshift(newChat)
       getMemberList(currentAddress, chatList)
       // setChatList(chatList)
-      console.log(chatList, 'chatList====123')
       let callback = await tx.wait()
-
-      console.log('callback', callback)
       if (callback?.status === 1) {
         const index = chatList?.findIndex((item) => item.id.toLowerCase() == tx.hash.toLowerCase())
         const sendIndex = memberListInfo?.findIndex((item) => item.id.toLowerCase() == tx.from.toLowerCase())
-        console.log(chatList[index], '==callback==')
         chatList[index].isSuccess = true
         chatList[index].block = callback?.blockNumber
         chatList[index].avatar = currentTabIndex === 0 ? memberListInfo[sendIndex]?.profile?.avatar : myAvatar
         chatList[index].isDecrypted = true
         setChatListState(chatList)
-        console.log(chatList, '====change')
         const db = await setDataBase()
         const collection = db.collection('chatInfos')
         newChat.isSuccess = true
@@ -727,12 +704,10 @@ export default function Chat() {
         newChat.room = currentAddress
         newChat.isDecrypted = true
         collection.insert(newChat)
-        console.log(newChat, 'newChat====>>.')
       }
     } catch (error) {
       console.log(error, 'error==')
     }
-
   }
   
   const setChatListState = (chatList, address) => {
@@ -750,11 +725,10 @@ export default function Chat() {
         setChatList(chatLists)
       }
     }
-    console.log(chatList, 'chatLists=====')
     setShowMask(false)
   }
   const handleScroll = () => {
-    // debugger
+    // //debugger
     setHasScroll(true)
   }
   const startInterval = (currentAddress) => {
@@ -771,7 +745,6 @@ export default function Chat() {
   }
   const handleReadMessage = (roomAddress) => {
     localForage.getItem('chatListInfo').then(res => {
-      console.log(res, 'res===>>updateUnreadNum')
       const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
       const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
       if(index > -1) {
@@ -785,7 +758,6 @@ export default function Chat() {
   const getUserAvatar = async(newList) => {
     let list = []
     const ids = newList?.map(item => item.sender)
-    console.log(ids, '=====>>>>ids')
     if(!ids?.length) return
     const idsList = '"' + ids.join('","')+ '"'
     const tokensQuery = `
@@ -798,7 +770,6 @@ export default function Chat() {
       }
     }`
     const res = await clientInfo.query(tokensQuery).toPromise()
-    console.log(res, 'memberListInfo=====')
     newList?.map(item => {
       res?.data?.profiles?.map(info => {
          if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
@@ -806,6 +777,10 @@ export default function Chat() {
              ...item,
              avatar: info?.avatar
            })
+         } else {
+          list.push({
+            ...item
+          })
          }
        })
      })
@@ -813,7 +788,6 @@ export default function Chat() {
   }
   const addAvatarToList = async(newList) => {
     let list = []
-    console.log(memberListInfo, newList, '=====>>>.addAvatarToList')
     newList?.map(item => {
      memberListInfo?.map(info => {
         if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
@@ -821,16 +795,18 @@ export default function Chat() {
             ...item,
             avatar: info.profile.avatar
           })
+        } else {
+          list.push({
+            ...item
+          })
         }
       })
     })
     return list
   }
   const updateUnreadNum = (roomAddress, res) => {
-    console.log(res, '====>>>1')
     const currentList = res
     localForage.getItem('chatListInfo').then(res => {
-      console.log(res, 'res===>>updateUnreadNum')
       const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
       const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
       if(index > -1) {
@@ -839,7 +815,6 @@ export default function Chat() {
         res[currNetwork][getLocal('account')][roomType] = [...publicRooms]
         localForage.setItem('chatListInfo', res)
         setRoomList(publicRooms)
-        console.log(publicRooms, res, 'publicRooms====')
       }
     })
   }
@@ -848,11 +823,9 @@ export default function Chat() {
     const collection = db.collection('chatInfos')
     const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
     updateUnreadNum(roomAddress, res)
-    console.log(res, '=====>>>res')
     const lastBlock = res?.length && +res[0]?.block + 1
     console.log(roomAddress, lastBlock, res[0]?.index, 'getCurrentGroupChatList')
     // if(!lastBlock || chatListRef.current[0]?.block == 0) return
-    console.log(lastBlock, 'lastBlock=====1')
     const tokensQuery = `
         query{
           chatInfos(orderBy:block,orderDirection:desc, where:{room: "`+ roomAddress?.toLowerCase() +`", block_gte: ` + lastBlock + `}){
@@ -867,25 +840,21 @@ export default function Chat() {
         }
       `
       const data = await client.query(tokensQuery).toPromise()
-      const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
+      if(!data?.data?.chatInfos.length) return
+      const newList = data?.data?.chatInfos && await getMemberList(roomAddress, data?.data?.chatInfos)
       const formatList = await getUserAvatar(newList)
-      console.log(newList, formatList, 'formatList---')
       const list = [...chatListRef.current]
       collection.insert(formatList,(error) => {
         updateNewList(roomAddress, collection)
         if (error) { throw error; }
       })
       if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
-        debugger
         setChatList(formatList.concat(list))
       }
-      console.log(roomAddress, newList, groupLists, 'newList====')
-      console.log(chatList, 'getCurrentChatList====')
   }
   const updateNewList = async(roomAddress, collection) => {
     const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
     const index = groupListRef.current?.findIndex(item => item.id.toLowerCase() == roomAddress)
-    console.log(res,+res[0]?.index - Number(groupLists[index]?.chatCount), roomAddress, groupLists,'1====>>.')
     if(index > -1) {
       groupListRef.current[index] = {
         ...groupListRef.current[index],
@@ -894,7 +863,6 @@ export default function Chat() {
       setHasChatCount(true)
     }
     
-    console.log(groupLists, index, roomAddress, 'index====>>>')
     setRoomList(groupLists)
   }
   const getCurrentChatList = async (roomAddress) => {
@@ -909,7 +877,6 @@ export default function Chat() {
   const getCurrentPrivateChatList = async(roomAddress) => {
     const lastBlock = chatListRef.current.length && +chatListRef.current[0]?.block + 1
     if(!lastBlock || chatListRef.current[0]?.block == 0) return
-    console.log(lastBlock, roomAddress, 'lastBlock=====1')
     const tokensSenderQuery = `
     query{
       encryptedInfos(orderBy:block,orderDirection:desc, where:{sender: "`+ myAddress +`", to: "`+ roomAddress?.toLowerCase() + `",block_gte: ` + lastBlock + `}){
@@ -939,43 +906,52 @@ export default function Chat() {
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && currentList.length) {
       setChatList(currentList.concat(list))
     }
-    insertData(currentList)
-    console.log(currentList, 'formateCurrentPrivateList====')
+    // insertData(currentList)
   }
   const getMemberList = async(roomAddress, chatList) => {
-    if(currentTabIndex === 1) return
-    const data = await getGroupMember(currentAddressRef?.current)
+    if(currentTabIndex === 1 || !chatList.length) return
+    const data = await getGroupMember(roomAddress)
     const memberListInfo = data?.users
     setMemberListInfo(memberListInfo)
-    const list = [...chatList]
     let result = []
     chatList.map(item => {
      memberListInfo?.map(info => {
         if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
           result.push({
             ...item,
+            hasDelete: false,
+            isSuccess: true,
+            showProfile: false,
+            position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
+            showOperate: false,
             avatar: info.profile.avatar
+          })
+        } else {
+          result.push({
+            ...item,
+            hasDelete: false,
+            isSuccess: true,
+            showProfile: false,
+            position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
+            showOperate: false
           })
         }
       })
     })
     // if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
+    //   //debugger
+    //   // insertData(result)
+    //   // setChatList(chatList.concat(result))
     //   debugger
-    //   insertData(result)
-    //   setChatList(chatList.concat(result))
-    //   // setChatList(result)
+    //   setChatList(result)
     // }
     setShowMask(false)
-    console.log(hasScrollRef.current, 'hasScrollRef.current====')
-    // startInterval(roomAddress, list)
-    console.log(data, chatList, result,'initChatList====')
-    console.log(result, 'result===')
+    return result
   }
   const handleHiddenMask = () => {
     setShowMask(false)
   }
   const getDecryptedMessage = async(id, message) => {
-    debugger
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
     setHasDecrypted(false)
@@ -997,15 +973,13 @@ export default function Chat() {
       chatList[index].isDecrypted = true
       chatList[index].chatText = decryptedMessage
       setHasDecrypted(true)
-      insertData()
+      // insertData()
       setChatList(chatList)
-      console.log('The decrypted message i====:', chatList, decryptedMessage)
       }
     )
     .catch((error) => console.log(error.message));
   }
   const changeJoinStatus = (groupType) => {
-    debugger
     if(groupType == 1 || groupType == 2) {
       setHasAccess(true)
     } else {
@@ -1018,8 +992,6 @@ export default function Chat() {
   const handlePrivateChat = (item, res) => {
     setCurrentTabIndex(1)
     setShowGroupMember(false)
-    debugger
-    console.log(item)
     if(Boolean(res)) {
       history.push({
         pathname: `/chat/${item.id}`,
@@ -1032,7 +1004,6 @@ export default function Chat() {
     }
   }
   useEffect(() => {
-    console.log(accounts, 'accounts====')
     if(accounts) {
       setMyAddress(accounts)
     }
@@ -1153,6 +1124,7 @@ export default function Chat() {
                         currentRoomName={currentRoomName}
                         memberCount={memberCount}
                         roomAvatar={roomAvatar}
+                        currentTabIndex={currentTabIndex}
                         getGroupMember={() => {setShowGroupMember(true)}}
                         hiddenChat={() => {setShowChat(false)}}
                       />

@@ -279,7 +279,7 @@ left: 70%;
 bottom: 0;
 top: 0;
 background: #eee;
-z-index: 31;
+z-index: 100;
 &.member-wrap-client {
   left: 0;
   .title {

@@ -120,6 +120,7 @@ export default function useWallet() {
         currentNetworkInfo:item,
         clientInfo: client
       })
+      setLocal('clientInfo', client)
       setLocal('currentGraphqlApi', item?.APIURL)
     } catch(error) {
       console.log(error, 'getNetworkInfo====')
@@ -140,6 +141,7 @@ export default function useWallet() {
       currentNetworkInfo:item,
       clientInfo: client
     })
+    setLocal('clientInfo', client)
     setLocal('network', item?.name)
     setNetwork(item?.name)
     setChainId(item?.chainId)

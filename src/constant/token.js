@@ -1,5 +1,5 @@
 export const token = {
-  CZZ: {
+  ETHF: {
     name: "EthereumFair",
     symbol: "ETHF",
     decimals: 18,

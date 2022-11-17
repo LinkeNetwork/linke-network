@@ -59,9 +59,9 @@ export default function CountInfo() {
         }
 
         url.map(async (item) => {
-            const res = await clientInfo.query(countInfoQuery).toPromise()
+            const res = await clientInfo?.query(countInfoQuery)?.toPromise()
 
-            if (!res.data) return
+            if (!res?.data) return
             const {groupCount, groupProfileCount, profileCount, sendCount, followCount} = res?.data.statisticalData
             obj.groupCount += Number(groupCount)
             obj.groupProfileCount += Number(groupProfileCount)

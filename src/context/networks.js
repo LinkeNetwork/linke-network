@@ -1,6 +1,6 @@
 const networks =  [
   {
-    name: "EthereumFair",
+    name: "ETHF",
     symbol: "ETHF",
     decimals: 18,
     chainId: 513100,

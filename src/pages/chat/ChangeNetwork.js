@@ -8,7 +8,7 @@ export default function ChangeNetwork(props) {
     {
       image: metaURL,
       name: 'MetaMask',
-      network: 'MetaMask',
+      network: 'ETHF',
     }
   ]
   return (

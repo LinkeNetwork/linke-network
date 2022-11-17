@@ -95,6 +95,7 @@ export default function GroupList(props) {
       }
     }
     `
+    // debugger
     const res = await clientInfo?.query(tokensQuery).toPromise()
     var groupInfos = res?.data?.groupUser?.groupInfos || []
     const roomAddress = path.split('/chat/')[1]?.toLowerCase()
@@ -291,8 +292,10 @@ export default function GroupList(props) {
   }, [newGroupList, hasChatCount])
   useEffect(() => {
     if(accounts && chainId) {
+      // debugger
       const currNetwork = currentNetworkInfo?.name || getLocal('network')
       localForage.getItem('chatListInfo').then(res => {
+        // debugger
         const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
         const publicRooms = account ? account['publicRooms'] : []
         const privateRooms = account ? account['privateRooms'] : []
@@ -329,7 +332,8 @@ export default function GroupList(props) {
         console.log(error, 'error===')
       })
     }
-    
+  }, [accounts, chainId, newGroupList, currentTabIndex])
+  useEffect(() => {
     if(!getLocal('isConnect') || !chainId) {
       setGroupList([])
     }

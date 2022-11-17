@@ -110,7 +110,6 @@ export default function ChatContext(props) {
   }
   useEffect(() => {
     // setChatLists(chatList)
-    console.log(chatList, hasMore, 'chatList=====son===')
     document.addEventListener("click", documentClickHandler)
     return () => {
       document.removeEventListener("click", documentClickHandler)
