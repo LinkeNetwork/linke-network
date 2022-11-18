@@ -19,6 +19,7 @@ const state = {
   accounts: null,
   isJumpToProfile: false,
   clientInfo: null,
+  showHeader: true,
 }
 
 export default state

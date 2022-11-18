@@ -345,23 +345,22 @@ img, svg {
   .tab-content {
     display: none;
   }
-}
-
-.translate-tab {
-  display: block;
-  width: 100%;
-  .tab-pane {
-    height: 100%;
+  .translate-tab {
+    display: block;
+    width: 100%;
+    .tab-pane {
+      height: 100%;
+    }
   }
-}
-.translate-header-content {
-  justify-content: center;
-  // margin-top: 60px;
-  .icon-arrow-left-circle {
-    position: absolute;
-    left: 20px;
-    color: #212529;
-    font-size: 20px;
+  .translate-header-content {
+    justify-content: center;
+    // margin-top: 60px;
+    .icon-arrow-left-circle {
+      position: absolute;
+      left: 20px;
+      color: #212529;
+      font-size: 20px;
+    }
   }
 }
 .chat-ui-offcanvas {

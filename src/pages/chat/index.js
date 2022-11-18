@@ -420,6 +420,12 @@ export default function Chat() {
   }
   const showChatList = (e, item, list) => {
     setChatList([])
+    setShowChat(true)
+    if(detectMobile()){
+      setState({
+        showHeader: false
+      })  
+    }
     clearInterval(timer.current)
     clearInterval(allTimer.current)
     setRoomAvatar(item.avatar)
@@ -444,7 +450,6 @@ export default function Chat() {
       getJoinRoomAccess(item.id, item._type)
     }
     setCurrentRoomName(item.name)
-    setShowChat(true)
     setShowMask(true)
     setHasScroll(false)
   }
@@ -974,6 +979,12 @@ export default function Chat() {
   const handleHiddenMask = () => {
     setShowMask(false)
   }
+  const hiddenChat = () => {
+    setShowChat(false)
+    setState({
+      showHeader: true
+    })
+  }
   const getDecryptedMessage = async(id, message) => {
     const db = await setDataBase()
     const collection = db.collection('chatInfos')
@@ -1149,7 +1160,7 @@ export default function Chat() {
                         roomAvatar={roomAvatar}
                         currentTabIndex={currentTabIndex}
                         getGroupMember={() => {setShowGroupMember(true)}}
-                        hiddenChat={() => {setShowChat(false)}}
+                        hiddenChat={hiddenChat}
                       />
                       <div
                         className={`chat-conetent ${detectMobile() ? 'chat-conetent-client' : ''}`}

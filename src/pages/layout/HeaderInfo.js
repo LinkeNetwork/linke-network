@@ -20,7 +20,7 @@ export default function HeaderInfo() {
   const { balance, chainId, network, changeNetwork, disConnect } = useWallet()
   const locations = useLocation()
   const [showMenu, setShowMenu] = useState(false)
-  const { setState, showConnectNetwork, accounts } = useGlobal()
+  const { setState, showConnectNetwork, accounts, showHeader } = useGlobal()
   const [showAccount, setShowAccount] = useState(false)
   const [showConnectWallet, setShowConnectWallet] = useState(false)
   const [showHomeHeader, setShowHomeHeader] = useState(true)
@@ -56,10 +56,11 @@ export default function HeaderInfo() {
       {
         showHomeHeader && <Nav showMenulist={showMenulist} hiddenMenuList={() => { setShowMenulist(false) }} />
       }
-
-      <div className='header-top-wrap'>
+      {
+        showHeader &&
+        <div className='header-top-wrap'>
         {
-          !showHomeHeader &&
+          !showHomeHeader && 
           <HomeHeader handleShowMenu={() => setShowMenu(true)}/>
         }
         {
@@ -94,6 +95,9 @@ export default function HeaderInfo() {
         }
         <LanguageSwitch />
       </div>
+
+      }
+      
     </HeaderInfoContanier>
   )
 }
