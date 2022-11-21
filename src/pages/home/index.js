@@ -2,7 +2,7 @@ import React, { lazy } from "react"
 import './home.scss'
 import { detectMobile } from "../../utils"
 const HomeHeader = lazy(() => import('./Header'))
-const CountInfo = lazy(() => import('./CountInfo'))
+// const CountInfo = lazy(() => import('./CountInfo'))
 const Banner = lazy(() => import('./Banner'))
 const Version = lazy(() => import('./Version'))
 const JoinUs = lazy(() => import('./JoinUs'))
@@ -19,7 +19,11 @@ export default function Home() {
       <div className={`home-container ${detectMobile() ? 'home-container-client' : ''}`}>
         {/* <HomeHeader /> */}
         <Banner />
-        <CountInfo />
+        <div className='place-wrapper'>
+          <iframe src="https://place.linke.network/" frameBorder="0" width="100%" height="100%" scrolling="no">
+          </iframe>
+        </div>
+        {/* <CountInfo /> */}
         <Version />
       </div>
       <JoinUs />
