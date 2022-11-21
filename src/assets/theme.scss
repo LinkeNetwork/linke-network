@@ -292,6 +292,11 @@ img, svg {
     background-color: rgb(253, 237, 237);
     color: rgb(95, 33, 32);
   }
+  &-success-mobile{
+    width: 100px;
+    bottom: 0px;
+    left: 70%;
+  }
 }
 
 @media (min-width: 1200px){

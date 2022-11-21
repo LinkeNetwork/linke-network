@@ -4,7 +4,6 @@ import QRCode from 'qrcode.react'
 import html2canvas from 'html2canvas'
 import { detectMobile, getLocal } from '../../utils';
 import useGlobal from '../../hooks/useGlobal';
-import { createClient } from 'urql'
 export default function ShareInfo(props) {
   const { closeShareInfo, currentAddress, shareTextInfo, currentNetwork } = props
   const { showShareContent, clientInfo } = useGlobal()
@@ -107,7 +106,7 @@ export default function ShareInfo(props) {
             <div className='qrcode-dom' style={{backgroundImage: `url(${shareInfoStyle?.qrCodeBg})`}}>
               <QRCode
                 renderAs="svg"
-                value={`https://www.linke.network/chat/${currentAddress}/${currentNetwork}`}
+                value={`https://www.linke.network/chat/${currentAddress}/${getLocal('network')}`}
                 size={60}
                 fgColor="#000"
               />

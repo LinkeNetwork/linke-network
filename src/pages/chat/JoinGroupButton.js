@@ -10,7 +10,7 @@ import { ethers } from "ethers";
 export default function JoinGroupButton(props) {
   const { setState } = useGlobal()
   const { getGroupMember } = useGroupMember()
-  const { currentAddress, changeJoinStatus } = props
+  const { currentAddress, changeJoinStatus, hasAccess } = props
   const [showJoinRoom, setShowJoinRoom] = useState(false)
   const [showLoading, setShowLoading] = useState(false)
   const [transactionHash, setTransactionHash] = useState()
@@ -71,9 +71,12 @@ export default function JoinGroupButton(props) {
           Join Room
         </button>
       </Modal>
-      <div onClick={() => setShowJoinRoom(true)}>
-        Join
-      </div>
+      {
+        hasAccess!== undefined &&
+        <div onClick={() => setShowJoinRoom(true)}>
+          Join
+        </div>
+      }
       {
         showLoading && <Loading />
       }

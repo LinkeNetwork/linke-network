@@ -52,6 +52,7 @@ export default function GroupList(props) {
     console.log(fetchData, currNetwork, '=====>>>>updateChatCount')
     localForage.getItem('chatListInfo').then(res => {
       if(currNetwork) {
+        debugger
         const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
         const publicRooms = account ? account['publicRooms'] : []
         const privateRooms = account ? account['privateRooms'] : []
@@ -334,11 +335,14 @@ export default function GroupList(props) {
     }
   }, [accounts, chainId, newGroupList, currentTabIndex])
   useEffect(() => {
-    if(!getLocal('isConnect') || !chainId) {
+    if((!getLocal('isConnect') || !chainId) && !clientInfo) {
       setGroupList([])
     }
+    if(!getLocal('isConnect') && clientInfo) {
+      setGroupList(newGroupList)
+    }
     console.log(getLocal('isConnect'), chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, '777====')
-  }, [getLocal('account'), getLocal('isConnect'), hasCreateRoom, chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, hasQuitRoom, accounts, network])
+  }, [getLocal('isConnect'), chainId, newGroupList])
   return (
     <ListGroupContainer>
       {

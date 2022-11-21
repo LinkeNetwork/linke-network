@@ -1,13 +1,29 @@
-import React, { Fragment } from 'react'
+import React, { Fragment, useState } from 'react'
 import { formatAddress } from '../../utils'
 import useWallet from '../../hooks/useWallet'
 import CopyButton from '../../component/Copy'
+import useDataBase from '../../hooks/useDataBase'
 import styled from 'styled-components'
 export default function ConnectInfo(props) {
+  const { setDataBase } = useDataBase()
   const { account, handleDisconnect } = props
   const { disConnect } = useWallet()
+  const [showTips, setShowTips] = useState(false)
+  const handleClearCache = async() => {
+    const db = await setDataBase()
+    db.drop((error) => {
+      console.log(error, 'drop===')
+      setShowTips(true)
+      setTimeout(() => {
+        setShowTips(false)
+      }, 3000)
+    })
+  }
   return (
     <Fragment>
+      {
+        showTips && <div className='message-tips message-tips-success message-tips-success-mobile'>clear success</div>
+      }
       <ConnectBlock>
         <div className="f-c-sb">
           <h4>Connected with MetaMask</h4>
@@ -20,6 +36,7 @@ export default function ConnectInfo(props) {
             <h3>{formatAddress(account)}</h3>
             <div className="f-c connect-bar">
               <CopyButton toCopy={account}>copy Address</CopyButton>
+              {/* <div onClick={handleClearCache}>Clear Cache</div> */}
             </div>
           </div>
         </div>

@@ -11,7 +11,7 @@ import useGlobal from "../../hooks/useGlobal"
 import Loading from '../../component/Loading'
 import { ethers } from "ethers"
 export default function GroupMember(props) {
-  const {currentAddress, closeGroupMember, hiddenGroupMember, handleShowMask, handleHiddenMask, handlePrivateChat} = props
+  const {currentAddress, closeGroupMember, hiddenGroupMember, handleShowMask, handleHiddenMask, handlePrivateChat, hasAccess} = props
   const { setState, currentNetworkInfo, hasCreateRoom } = useGlobal()
   const {getGroupMember} = useGroupMember()
   const [canQuitRoom, setCanQuitRoom] = useState()
@@ -37,7 +37,7 @@ export default function GroupMember(props) {
     })
     const groupType = data?._type
     setGroupType(groupType)
-    getManager(groupType)
+    await getManager(groupType)
     setMemberList(memberListInfo)
     setGroupInfo(data)
     console.log(data, memberList, memberListInfo, 'memberList====')

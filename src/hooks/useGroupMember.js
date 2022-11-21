@@ -5,7 +5,6 @@ import { useCallback } from 'react'
 export default function useGroupMember() {
   const { currentTabIndex, currentAddress, clientInfo, networks } = useGlobal()
   const getGroupMember = useCallback(async(address, APIURL) => {
-    debugger
     if(currentTabIndex === 1 || !address) return
     const tokensQuery = `
     query{
