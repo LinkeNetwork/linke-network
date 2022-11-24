@@ -313,7 +313,6 @@ export default function Chat() {
   }
   const getJoinRoomAccess = async(roomAddress, groupType) => {
     try {
-      
       if(groupType == 1 || groupType == 2) {
         var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
       } 
@@ -323,12 +322,11 @@ export default function Chat() {
       }
       if(!res) return
       const hasAccess= ethers.BigNumber.from(res) > 0
-      console.group(hasAccess, 'hasAccess=3==')
       setHasAccess(hasAccess)
       if(!Boolean(hasAccess)) {
         setShowJoinGroupButton(true)
       }
-      console.log(hasAccess,  hasAccessRef.current, showJoinGroupButton, showJoinGroupButtonRef.current, Boolean(hasAccess), 'hasAccess======')
+      console.log(hasAccess,  hasAccessRef.current, showJoinGroupButtonRef.current, showJoinGroupButton, showJoinGroupButtonRef.current, Boolean(hasAccess), 'hasAccess======')
     } catch(error) {
       console.log(error, '===error==')
     }
@@ -1201,7 +1199,7 @@ export default function Chat() {
                       ></ChatInputBox> 
                       }
                       {
-                        (!hasAccess) && currentGroupTypeRef.current != 3 && currentTabIndex != 1 &&
+                        !hasAccess && currentGroupTypeRef.current != 3 && currentTabIndex != 1 &&
                         <JoinGroupButton hasAccess={hasAccess} currentAddress={currentAddress} changeJoinStatus={(groupType) => changeJoinStatus(groupType)} />
                       }
                     </div>

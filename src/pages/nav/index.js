@@ -24,6 +24,7 @@ export default function Nav(props) {
     }
   ]
   const jumpPage = (path) => {
+    hiddenMenuList()
     if(path.includes('/profile')) {
       setState({
         isJumpToProfile: true
