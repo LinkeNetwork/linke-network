@@ -1121,9 +1121,9 @@ export default function Chat() {
             <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''}`}>
               <div className={`user-search-wrapper ${showChat ? 'hidden' : ''}`}>
                 <div className='chat-ui-offcanvas' id='chatOffcanvas'>
-                  <div className="chat-ui-header">
-                    {
-                      myAddress &&
+                  {
+                    myAddress &&
+                    <div className="chat-ui-header">
                       <div className='chat-search-wrap'>
                         <SearchChat />
                         <AddChatRoom
@@ -1132,8 +1132,8 @@ export default function Chat() {
                           onClickSelect={(e) => onClickSelect(e)}
                         />
                       </div>
-                    }
-                  </div>
+                    </div>
+                  }
                   <ChatTab changeChatType={(index) => changeChatType(index)} currentTabIndex={currentTabIndex}/>
 
                   <ListGroup

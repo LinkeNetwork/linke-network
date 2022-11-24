@@ -1,8 +1,15 @@
 import styled from "styled-components"
+import useGlobal from "../../hooks/useGlobal"
 import { getLocal } from "../../utils"
-
+import ConnectButton from './ConnectButton'
 export default function EmptyInfo(props) {
   const { onClickDialog } = props
+  const { setState } = useGlobal()
+  const connectWallet = () => {
+    setState({
+      showConnectNetwork: true
+    })
+  }
   return (
     <EmptyInfoContainer>
       <div>
@@ -20,6 +27,10 @@ export default function EmptyInfo(props) {
             <i className="bi bi-plus-lg me-1"></i>Start new conversation
           </button>
         </div>
+      }
+      {
+        !getLocal('isConnect') &&
+        <ConnectButton connectWallet={() => connectWallet()}></ConnectButton>
       }
     </EmptyInfoContainer>
   )
