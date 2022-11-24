@@ -13,6 +13,7 @@ import JoinRooom from './JoinRoom'
 import useGroupMember from '../../hooks/useGroupMember'
 import useDataBase from '../../hooks/useDataBase'
 import useUnConnect from '../../hooks/useUnConnect'
+import ShareGroupCode from './ShareGroupCode'
 import { ethers } from "ethers"
 import { detectMobile, throttle } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
@@ -83,6 +84,7 @@ export default function Chat() {
   const [hasChatCount, setHasChatCount] = useState(false)
   const [currentGroupType, setCurrentGroupType] = useState()
   const [groupList, setGroupLists] = useState()
+  const [showShareGroup, setShowShareGroup] = useState(false)
   const groupListRef = useRef()
   const [manager, setManager] = useState()
   const [canSendText, setCanSendText] = useState()
@@ -1083,8 +1085,21 @@ export default function Chat() {
         {
           showGroupMember &&
           <div className='group-member-wrap'>
+            {
+              showShareGroup &&
+              <ShareGroupCode currentAddress={currentAddress}></ShareGroupCode>
+            }
             <div className='mask' onClick={() => { setShowGroupMember(false)}}></div>
-            <GroupMember currentAddress={currentAddress} closeGroupMember={() =>  setShowGroupMember(false)} groupType={groupType} handleShowMask={() => setShowMask(true)} handleHiddenMask={() => setShowMask(false)} handlePrivateChat={(item, res) => {handlePrivateChat(item, res)}} hasAccess={hasAccess}/>
+            <GroupMember
+              shareGroup={() =>  setShowShareGroup(true)}
+              currentAddress={currentAddress}
+              closeGroupMember={() =>  setShowGroupMember(false)}
+              groupType={groupType}
+              handleShowMask={() => setShowMask(true)}
+              handleHiddenMask={() => setShowMask(false)}
+              handlePrivateChat={(item, res) => {handlePrivateChat(item, res)}}
+              hasAccess={hasAccess}
+            />
           </div>
         }
         {

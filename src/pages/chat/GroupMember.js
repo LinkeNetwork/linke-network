@@ -11,7 +11,7 @@ import useGlobal from "../../hooks/useGlobal"
 import Loading from '../../component/Loading'
 import { ethers } from "ethers"
 export default function GroupMember(props) {
-  const {currentAddress, closeGroupMember, hiddenGroupMember, handleShowMask, handleHiddenMask, handlePrivateChat, hasAccess} = props
+  const {currentAddress, closeGroupMember, hiddenGroupMember, handleShowMask, handleHiddenMask, handlePrivateChat, hasAccess, shareGroup} = props
   const { setState, currentNetworkInfo, hasCreateRoom } = useGlobal()
   const {getGroupMember} = useGroupMember()
   const [canQuitRoom, setCanQuitRoom] = useState()
@@ -118,6 +118,10 @@ export default function GroupMember(props) {
         <div className="item">
           <span className="name">Group Description: </span>
           <span className="value">{groupInfo?.description}</span>
+        </div>
+        <div className="btn btn-lg btn-primary share-btn" onClick={shareGroup}>
+          <span className="iconfont icon-share"></span>
+          share group
         </div>
       </div>
     )
@@ -280,6 +284,14 @@ bottom: 0;
 top: 0;
 background: #eee;
 z-index: 100;
+.share-btn {
+  position: relative;
+  .icon-share {
+    position: inherit;
+    right: 2px;
+    top: 2px;
+  }
+}
 &.member-wrap-client {
   left: 0;
   .title {
