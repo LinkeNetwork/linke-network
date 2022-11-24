@@ -82,6 +82,7 @@ export default function GroupMember(props) {
       })
       closeGroupMember()
       history.push('/chat')
+      window.location.reload()
     } catch(error) {
       console.log(error, '====error')
       closeGroupMember()
