@@ -155,7 +155,6 @@ export default function GroupMember(props) {
   }
   const getManager = async(groupType) => {
     if(groupType == 1 || groupType == 2) {
-      debugger
       const tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
       setManager(tx.manager)
       const canQuitRoom = tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase()
