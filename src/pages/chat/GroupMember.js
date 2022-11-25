@@ -10,6 +10,7 @@ import useGroupMember from '../../hooks/useGroupMember'
 import useGlobal from "../../hooks/useGlobal"
 import Loading from '../../component/Loading'
 import { ethers } from "ethers"
+import ewmLogo from '../../assets/images/ewm.png'
 export default function GroupMember(props) {
   const {currentAddress, closeGroupMember, hiddenGroupMember, handleShowMask, handleHiddenMask, handlePrivateChat, hasAccess, shareGroup} = props
   const { setState, currentNetworkInfo, hasCreateRoom } = useGlobal()
@@ -119,10 +120,14 @@ export default function GroupMember(props) {
           <span className="name">Group Description: </span>
           <span className="value">{groupInfo?.description}</span>
         </div>
-        <div className="btn btn-lg btn-primary share-btn" onClick={shareGroup}>
+        <div className="item">
+          <span className="name">Group QR Code: </span>
+          <img src={ewmLogo} className="ewm-logo" alt='' onClick={shareGroup} />
+        </div>
+        {/* <div className="btn btn-lg btn-primary share-btn" onClick={shareGroup}>
           <span className="iconfont icon-share"></span>
           share group
-        </div>
+        </div> */}
       </div>
     )
   }
@@ -402,6 +407,12 @@ z-index: 100;
   padding: 20px 20px 10px;
   .item {
     margin-bottom: 20px;
+    display: flex;
+    .ewm-logo {
+      width: 20px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
     .name {
       font-weight: bold;
       font-size: 15px;

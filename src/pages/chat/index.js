@@ -1087,7 +1087,12 @@ export default function Chat() {
           <div className='group-member-wrap'>
             {
               showShareGroup &&
-              <ShareGroupCode currentAddress={currentAddress}></ShareGroupCode>
+              <ShareGroupCode
+                currentAddress={currentAddress}
+                currentRoomName={currentRoomName}
+                roomAvatar={roomAvatar}
+                closeShareGroup={() => setShowShareGroup(false)}>
+              </ShareGroupCode>
             }
             <div className='mask' onClick={() => { setShowGroupMember(false)}}></div>
             <GroupMember
