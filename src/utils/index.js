@@ -1,4 +1,7 @@
 import { ethers } from "ethers"
+import Web3 from 'web3'
+import BigNumber from 'bignumber.js'
+import { TOKEN_ABI } from '../abi/index'
 export const formatAddress = (address) => {
   if (address) {
     return address.slice(0, 6) + '...' + address.slice(-6)
@@ -76,5 +79,34 @@ export const getDaiWithSigner = (address, abi) => {
     const daiContract = new ethers.Contract(address, abi, provider)
     const daiWithSigner = daiContract.connect(signer)
     return daiWithSigner
+  }
+}
+
+export const getContract = (provider, address, abi = TOKEN_ABI, ) => {
+  const web3 = new Web3(provider)
+  const contract = new web3.eth.Contract(
+    abi,
+    address,
+  )
+  return contract
+}
+
+
+export const getBalanceNumber = (balance, decimals = 18) => {
+  if (balance) { 
+    const displayBalance = balance.dividedBy(new BigNumber(10).pow(decimals))
+    return displayBalance.toNumber()
+  }
+}
+
+export const getBalance = async (  provider, tokenAddress, userAddress ) => {
+  const lpContract = getContract(provider, tokenAddress)
+  try {
+    const balance = await lpContract.methods
+      .balanceOf(userAddress)
+      .call()
+    return balance
+  } catch (e) {
+    return '0'
   }
 }

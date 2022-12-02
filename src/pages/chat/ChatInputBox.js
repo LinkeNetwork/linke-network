@@ -5,7 +5,7 @@ import emoji from 'emoji-mart/dist-es/components/emoji/emoji'
 import { detectMobile } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace } = props
+  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus } = props
   const { setState } = useGlobal()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
@@ -221,8 +221,10 @@ export default function ChatInputBox(props) {
           <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handlePlaceClick}>
             <span className='iconfont icon-yanse'></span>
           </div>
+          <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleAwardBonus}>
+            <span className='iconfont icon-hongbao'></span>
+          </div>
         </div>
-        
         <div className={`rich-editor chat-input ${!detectMobile() ? 'chat-input-pc' : 'chat-input-client'}`}>
           <div className={`wrapper ${!detectMobile() ? 'wrapper-pc' : 'wrapper-client'}`}>
             <div className="editor-area"
@@ -276,7 +278,7 @@ position: relative;
   // height: 36px;
   overflow-y: auto;
   resize: none;
-  margin-left: 5rem;
+  margin-left: 7.6rem;
   // max-height: 12rem;
   padding: 0.375rem 2.5rem 0.375rem 1rem;
   border-radius: 1rem;

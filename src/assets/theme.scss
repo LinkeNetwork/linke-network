@@ -270,6 +270,43 @@ img, svg {
 .ms-1 {
   margin-left: 0.25rem!important;
 }
+.numeric-keyboard-actionsheet {
+  .numeric-keyboard-key[data-key=enter] {
+    color: #fff;
+    background: #FFCE00;
+  }
+}
+.amount-wrapper {
+  .numeric-input {
+    background: #f6f6f6;
+    width: inherit;
+    display: flex;
+    padding: 0;
+    align-items: center;
+  }
+  .numeric-input-text {
+    padding-right: 40px;
+  }
+}
+.token-list-title {
+  margin: 10px 0 2px;
+  color: #FFCE00;
+  font-weight: bold;
+  font-size: 16px;
+}
+.token-list-name, .token-balance{
+  font-size: 12px;
+  opacity: .5;
+}
+.search-token {
+  position: relative;
+  .search-input {
+    width: 100%;
+    border-radius: 4px;
+    margin: 12px 0;
+    height: 40px;
+  }
+}
 .message-tips{
   transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   border-radius: 4px;
