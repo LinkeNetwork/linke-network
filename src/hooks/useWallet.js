@@ -100,7 +100,7 @@ export default function useWallet() {
     console.log(etherString, 'etherString====>>')
     setBalance(etherString)
     setState({
-      currentTokenBalance: etherString
+      currentTokenBalance: etherString.
     })
   }
   const getNetworkInfo = async() => {
