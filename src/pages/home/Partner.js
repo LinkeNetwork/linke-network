@@ -11,11 +11,12 @@ import partner9 from '../../assets/images/partner9.png'
 import partner10 from '../../assets/images/partner10.png'
 import partner11 from '../../assets/images/partner11.png'
 import partner12 from '../../assets/images/partner12.png'
+import partner13 from '../../assets/images/partner13.svg'
 import intl from "react-intl-universal";
 import { detectMobile } from '../../utils'
 export default function Partner() {
   const partnerList = [
-    partner1, partner2, partner3, partner4, partner5, partner6, partner7, partner8, partner9, partner10, partner11, partner12
+    partner1, partner2, partner3, partner4, partner5, partner6, partner7, partner8, partner9, partner10, partner11, partner12, partner13
   ]
   return(
     <PartnerContanier>
@@ -110,7 +111,7 @@ ul {
       width: 220px;
     }
   }
-  @media (max-width: 1450px) {
+  @media (max-width: 1470px) {
     .image-wrap {
       width: 200px;
       margin-right: 90px;

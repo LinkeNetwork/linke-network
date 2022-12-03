@@ -5,6 +5,7 @@ import FOLLOW_ABI from './FOLLOW_ABI.json'
 import ENCRYPTED_COMMUNICATION_ABI from './ENCRYPTED_COMMUNICATION_ABI.json'
 import PUBLIC_SUBSCRIBE_GROUP_ABI from './PublicSubscriptionGroupV2.json'
 import TOKEN_ABI from './TOKEN_ABI.json'
+import RED_PACKET from './RED_PACKET.json'
 export {
   FOLLOW_ABI,
   PROFILE_ABI,
@@ -12,5 +13,6 @@ export {
   PUBLIC_GROUP_ABI,
   ENCRYPTED_COMMUNICATION_ABI,
   PUBLIC_SUBSCRIBE_GROUP_ABI,
-  TOKEN_ABI
+  TOKEN_ABI,
+  RED_PACKET
 }

@@ -99,6 +99,9 @@ export default function useWallet() {
     const etherString = ethers.utils.formatEther(balance)
     console.log(etherString, 'etherString====>>')
     setBalance(etherString)
+    setState({
+      currentTokenBalance: etherString
+    })
   }
   const getNetworkInfo = async() => {
     try {

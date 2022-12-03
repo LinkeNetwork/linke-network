@@ -111,6 +111,14 @@ const HeaderInfoContanier = styled.div`
     font-size: 12px;
     font-weight: 800;
   }
+  .home-icon-header {
+    display: flex;
+    flex: 1;
+    justify-content: space-between;
+    img {
+      width: 117px;
+    }
+  }
   .header-top-wrap {
     background: #fff;
     z-index: 7;

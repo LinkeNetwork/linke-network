@@ -317,23 +317,21 @@ export default function Chat() {
   }
   const getJoinRoomAccess = async (roomAddress, groupType) => {
     try {
-
-      if (groupType == 1 || groupType == 2) {
+      if(groupType == 1 || groupType == 2) {
         var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
       }
       if (groupType == 3) {
         var res = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
         console.log(res, '=getDaiWithSigner==')
       }
-      if (!res) return
-      const hasAccess = ethers.BigNumber.from(res) > 0
-      console.group(hasAccess, 'hasAccess=3==')
+      if(!res) return
+      const hasAccess= ethers.BigNumber.from(res) > 0
       setHasAccess(hasAccess)
       if (!Boolean(hasAccess)) {
         setShowJoinGroupButton(true)
       }
-      console.log(hasAccess, hasAccessRef.current, showJoinGroupButton, showJoinGroupButtonRef.current, Boolean(hasAccess), 'hasAccess======')
-    } catch (error) {
+      console.log(hasAccess,  hasAccessRef.current, showJoinGroupButtonRef.current, showJoinGroupButton, showJoinGroupButtonRef.current, Boolean(hasAccess), 'hasAccess======')
+    } catch(error) {
       console.log(error, '===error==')
     }
   }
@@ -1072,10 +1070,16 @@ export default function Chat() {
   return (
     <div className="chat-ui-wrapper">
       {
-        showAwardBonus &&
-        <AwardBonus handleCloseAward={() => { setShowAwardBonus(false) }}></AwardBonus>
+        showAwardBonus && detectMobile() && 
+        <AwardBonus handleCloseAward={() => { setShowAwardBonus(false) }} currentAddress={currentAddress}></AwardBonus>
       }
-
+      {
+        !detectMobile() &&
+        <Modal title="Award Bonus" visible={showAwardBonus} onClose={() => { setShowAwardBonus(false) }}>
+          <AwardBonus handleCloseAward={() => { setShowAwardBonus(false) }} currentAddress={currentAddress}></AwardBonus>
+        </Modal>
+      }
+      
       {
         hasClickPlace && <Loading />
       }
@@ -1148,9 +1152,9 @@ export default function Chat() {
             <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''}`}>
               <div className={`user-search-wrapper ${showChat ? 'hidden' : ''}`}>
                 <div className='chat-ui-offcanvas' id='chatOffcanvas'>
-                  <div className="chat-ui-header">
-                    {
-                      myAddress &&
+                  {
+                    myAddress &&
+                    <div className="chat-ui-header">
                       <div className='chat-search-wrap'>
                         <SearchChat />
                         <AddChatRoom
@@ -1159,9 +1163,9 @@ export default function Chat() {
                           onClickSelect={(e) => onClickSelect(e)}
                         />
                       </div>
-                    }
-                  </div>
-                  <ChatTab changeChatType={(index) => changeChatType(index)} currentTabIndex={currentTabIndex} />
+                    </div>
+                  }
+                  <ChatTab changeChatType={(index) => changeChatType(index)} currentTabIndex={currentTabIndex}/>
 
                   <ListGroup
                     hiddenMask={() => { handleHiddenMask() }}
@@ -1229,7 +1233,7 @@ export default function Chat() {
                         ></ChatInputBox>
                       }
                       {
-                        (!hasAccess) && currentGroupTypeRef.current != 3 && currentTabIndex != 1 &&
+                        !hasAccess && currentGroupTypeRef.current != 3 && currentTabIndex != 1 &&
                         <JoinGroupButton hasAccess={hasAccess} currentAddress={currentAddress} changeJoinStatus={(groupType) => changeJoinStatus(groupType)} />
                       }
                     </div>

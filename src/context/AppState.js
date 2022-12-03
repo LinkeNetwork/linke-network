@@ -20,6 +20,7 @@ const state = {
   isJumpToProfile: false,
   clientInfo: null,
   showHeader: true,
+  currentTokenBalance: '',
 }
 
 export default state

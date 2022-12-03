@@ -341,7 +341,7 @@ export default function GroupList(props) {
     if(!getLocal('isConnect') && clientInfo) {
       setGroupList(newGroupList)
     }
-    console.log(getLocal('isConnect'), chainId, currentTabIndex, hasAccess, newGroupList, hasChatCount, '777====')
+    console.log(groupList,groupList?.length === 0, '777====')
   }, [getLocal('isConnect'), chainId, newGroupList])
   return (
     <ListGroupContainer>

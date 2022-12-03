@@ -143,7 +143,7 @@ export default function ChatContext(props) {
       }}
     >
       <InfiniteScroll
-        dataLength={chatList.length}
+        dataLength={chatList?.length}
         next={loadingDatas}
         style={{ display: 'flex', flexDirection: 'column-reverse',transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' }} //To put endMessage and loader to the top.
         inverse={true}

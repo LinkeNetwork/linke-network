@@ -1,12 +1,19 @@
 import styled from "styled-components"
 import axios from 'axios'
 import { useEffect, useState } from "react"
-import {List} from 'react-virtualized'
+import { detectMobile } from "../../utils"
 import UseTokenBalance from "../../hooks/UseTokenBalance"
+import {List} from 'react-virtualized'
+import { tokenListInfo } from '../../constant/tokenList'
+import useGlobal from "../../hooks/useGlobal"
 export default function TokenList(props) {
-  const { contentHeight } = props
-  const [listHeight, setListHeight] = useState(450)
+  const { selectToken } = props
+  const { currentTokenBalance } = useGlobal()
   const { getTokenBalance, tokenList } = UseTokenBalance()
+  const [listHeight, setListHeight] = useState(450)
+  const [contentHeight,setContentHeight] = useState(450)
+  const [tokenInfo, setTokenInfo] = useState([])
+  const [defaultList, setDefaultList] = useState()
   const listStyle = {
     'display': 'flex',
     'alignItems': 'center',
@@ -40,23 +47,57 @@ export default function TokenList(props) {
   }) => {
     return (
       <div key={key} style={style}>
-        <div style={listStyle}>
+        <div style={listStyle} onClick={() => selectToken(tokenInfo[index])}>
           <div style={tokenInfoStyle}>
-            <img src={tokenList[index].logoURI} alt="" style={imgStyle}/>
+            <img src={tokenInfo[index]?.logoURI} alt="" style={imgStyle}/>
             <div style={tokenNameStyle}>
-              <div style={symbolStyle}>{tokenList[index].symbol}</div>
-              <div className="token-list-name">{tokenList[index].name}</div>
+              <div style={symbolStyle}>{tokenInfo[index]?.symbol}</div>
+              <div className="token-list-name">{tokenInfo[index]?.name}</div>
             </div>
           </div>
-          <span className="token-balance">{tokenList[index].balance}</span>
+          <span className="token-balance">{tokenInfo[index]?.balance}</span>
         </div>
       </div>
     )
   }
-  const formatList = (tempList) => {
+  const getDefaultList = () => {
+    const tempList = [...tokenListInfo]
+    tempList[0].balance = Number(currentTokenBalance).toFixed(4)
+    setDefaultList(tempList[0])
+    console.log(tempList[0], currentTokenBalance, 'tempList[0]====')
+  }
+  const formatList = () => {
+    const tempList = [...tokenListInfo]
+    tempList.shift()
+    console.log(tempList, 'tempList=====')
     for(let i = 0; i < tempList.length; i++) {
       getTokenBalance(tempList[i], tempList, i)
     }
+  }
+  const handleSearch = (event) => {
+    const value = event.target.value
+    const list = [...tokenListInfo]
+    var newList = list.filter(item => item.symbol.toUpperCase().includes(value.toUpperCase()) || item.address.toUpperCase().includes(value.toUpperCase()))
+    setTokenInfo(newList)
+  }
+  const searchContent = () => {
+    return(
+      <div className="search-token">
+          <span className="icon-search-wrapper">
+            <i className="iconfont icon-search"></i>
+          </span>
+          <input
+            className="search-input"
+            onBlur={()=>setContentHeight(450)}
+            onFocus={setHeight}
+            placeholder="Search Name or Paste Address"
+            onInput={handleSearch}
+          />
+        </div>
+    )
+  }
+  const setHeight = () => {
+    setContentHeight(detectMobile() ? 200 : 450)
   }
   const getTokenList = () => {
     axios.get('https://tokens.etherfair.org/')
@@ -68,19 +109,28 @@ export default function TokenList(props) {
       })
   }
   useEffect(() => {
-    getTokenList()
+    getDefaultList()
+    formatList()
+    // getTokenList()
   }, [])
   useEffect(() => {
     setListHeight(contentHeight)
   }, [contentHeight])
+  useEffect(() => {
+    tokenList.unshift(defaultList)
+    setTokenInfo(tokenList)
+  }, [tokenList])
   return (
     <TokenListContainer>
       {
-        tokenList?.length &&
+        searchContent()
+      }
+      {
+        tokenInfo?.length &&
         <List
           width={360}
           height={listHeight}
-          rowCount={tokenList?.length}
+          rowCount={tokenInfo?.length}
           rowHeight={60}
           rowRenderer={rowRenderer}
         />

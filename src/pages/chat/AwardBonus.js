@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react"
 import styled from "styled-components"
-import Modal from "../../component/Modal"
+import { Modal, Image }  from "../../component/index"
 import { NumericInput } from "numeric-keyboard"
-import { detectMobile } from "../../utils"
+import { detectMobile, getDaiWithSigner } from "../../utils"
 import TokenList from "./TokenList"
+import { RED_PACKET } from '../../abi/index'
 export default function AwardBonus(props) {
-  const { handleCloseAward } = props
-  const [contentHeight,setContentHeight] = useState(450)
+  const { handleCloseAward, currentAddress } = props
   const [showBonusType, setShowBonusType] = useState(false)
   const [totalAmount, setTotalAmount] = useState(0)
   const [amount, setAmount] = useState()
@@ -14,11 +14,28 @@ export default function AwardBonus(props) {
   const [amountText, setAmountText] = useState('Total')
   const [clickNumber, setClickNumber] = useState(0)
   const [showTokenList, setShowTokenList] = useState(false)
+  const [selectedToken, setSelectedToken] = useState('')
+  const [tokenBalance, setTokenBalance] = useState('')
+  const [selectTokenAddress, setSelectTokenAddress] = useState('')
+  const [tokenLogo, setTokenLogo] = useState('')
+  const [canSend, setCanSend] = useState(false)
   const amountRef = useRef()
   const BonusList = [
     'Random Amount',
     'Identical Amount'
   ]
+  const handleSend = async() => {
+    const params = {
+      group: currentAddress,
+      token: selectTokenAddress,
+      amount: totalAmount,
+      count: quantity,
+      type_: currentBonusType === 'Random Amount' ? 2 : 1
+    }
+    const address = ''
+    const tx = await getDaiWithSigner(address, RED_PACKET).send(params)
+    console.log(tx, '====tx===')
+  }
   const handleQuantityInput = (key) => {
     setQuantity(key)
   }
@@ -30,11 +47,15 @@ export default function AwardBonus(props) {
     setCurrentBonusType(BonusList[i])
     setShowBonusType(false)
   }
-  const setHeight = () => {
-    setContentHeight(detectMobile() ? 200 : 450)
+  const selectToken = (item) => {
+    setQuantity()
+    setShowTokenList(false)
+    setSelectedToken(item.symbol)
+    setTokenBalance(item.balance)
+    setTokenLogo(item.logoURI)
+    setSelectTokenAddress(item.address)
   }
   useEffect(() => {
-    console.log(detectMobile() && !amount, amount==0, amount, amountRef.current,'======')
     currentBonusType === 'Random Amount' ? setAmountText('Total') : setAmountText('Amount Each') 
     if(currentBonusType === 'Identical Amount') {
       const amount = totalAmount/quantity < 1 ? (totalAmount/quantity).toFixed(2) : (Math.floor(totalAmount/quantity)).toFixed(2)
@@ -49,7 +70,7 @@ export default function AwardBonus(props) {
     if(currentBonusType === 'Random Amount' && quantity && amount) {
       setTotalAmount(amount)
     }
-    if(!quantity && !amount) {
+    if(!quantity || !amount) {
       setTotalAmount(0)
     }
   }, [currentBonusType, amount, quantity])
@@ -57,17 +78,14 @@ export default function AwardBonus(props) {
     amountRef.current = amount
     setClickNumber(clickNumber+1)
   }, [currentBonusType, amount])
+  useEffect(() => {
+    ( tokenBalance > totalAmount && quantity && amount) ? setCanSend(true) : setCanSend(false)
+  }, [totalAmount, quantity, amount])
   return (
     <AwardBonusContanier>
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
         <div className="token-list-title">Choose Token</div>
-        <div className="search-token">
-          <span className="icon-search-wrapper">
-            <i className="iconfont icon-search"></i>
-          </span>
-          <input className="search-input" onBlur={()=>setContentHeight(450)} onFocus={setHeight} placeholder="Search Name or Paste Address" aria-label="Search..." />
-        </div>
-        <TokenList contentHeight={contentHeight} ></TokenList>
+        <TokenList selectToken={(item) => selectToken(item)}></TokenList>
       </Modal>
       <Modal visible={showBonusType} onClose={() => setShowBonusType(false)} className="modal modal-client bonus-type-modal">
         {
@@ -78,15 +96,33 @@ export default function AwardBonus(props) {
           })
         }
       </Modal>
-      <div className="header">
-        <span className="iconfont icon-close" onClick={handleCloseAward}></span>
-        <span>Award Bonus</span>
-        <span className="iconfont icon-more"></span>
+      {
+        detectMobile() && 
+        <div className="header">
+          <span className="iconfont icon-close" onClick={handleCloseAward}></span>
+          <span>Award Bonus</span>
+          {/* <span className="iconfont icon-more"></span> */}
       </div>
+      }
+      
       <div className="content">
         <div className="token-wrapper">
-          <div className="token-name"></div>
-          <span onClick={() => {setShowTokenList(true)}}>Select a Token<i className="iconfont icon-expand"></i></span>
+          <div className="token-detail">
+            {
+              selectedToken &&
+              <div>balance</div>
+            }
+            <div className="balance">{tokenBalance}</div>
+          </div>
+          <div onClick={() => {setShowTokenList(true)}} className="token-info">
+            {
+              tokenLogo && <Image size={24} src={tokenLogo} style={{ 'border-radius': '50%'}} />
+            }
+            {
+              !selectedToken ?  <span>Select a Token</span> : <div className="name">{selectedToken}</div>
+            }
+            <i className="iconfont icon-expand"></i>
+          </div>
         </div>
         <div className="bonus-type-wrapper" onClick={() => { setShowBonusType(true) }}>
           <span>{currentBonusType}</span>
@@ -116,8 +152,8 @@ export default function AwardBonus(props) {
         </div>
       </div>
       <div className="total">{totalAmount}</div>
-      <div className="send-btn-wrapper">
-        <span className="send-btn btn btn-primary">Send</span>
+      <div className="send-btn-wrapper" onClick={handleSend}>
+        <span className={`send-btn btn btn-primary ${ canSend ? 'send-allowed' : ''}`}>Send</span>
       </div>
     </AwardBonusContanier>
   )
@@ -126,12 +162,35 @@ const AwardBonusContanier = styled.div`
 height: 100%;
 width: 100%;
 background: #fff;
+.amount-wrapper, .token-wrapper {
+  justify-content: space-between;
+  background: #f6f6f6;
+  border-radius: 6px;
+  display: flex;
+  margin: 16px 0;
+  padding: 4px 10px;
+  height: 54px;
+  align-items: center;
+}
 .token-wrapper {
+  height: 74px;
   font-size: 12px;
-  span {
+  .token-info {
+    align-items: center;
+    display: flex;
     padding: 10px;
     border-radius: 5px;
-    background: hsla(0,0%,100%,.637)
+    background: hsla(0,0%,100%,.637);
+    .name {
+      margin-left: 4px;
+    }
+  }
+  .token-detail {
+    height: 54px;
+    .balance {
+      font-size: 18px;
+      margin-top: 6px;
+    }
   }
   .icon-expand {
     margin-left: 4px;
@@ -143,12 +202,18 @@ background: #fff;
   justify-content: center;
 }
 .send-btn {
+  opacity: 0.4;
+  cursor: not-allowed;
   width: 200px;
   height: 50px;
   align-items: center;
   display: flex;
   justify-content: center;
   font-size: 20px;
+}
+.send-allowed {
+  cursor: pointer;
+  opacity: 1;
 }
 .total {
   text-align: center;
@@ -178,16 +243,6 @@ background: #fff;
 .content {
   margin-top: 70px;
   padding: 0 20px;
-}
-.amount-wrapper, .token-wrapper {
-  justify-content: space-between;
-  background: #f6f6f6;
-  border-radius: 6px;
-  display: flex;
-  margin: 16px 0;
-  padding: 4px 10px;
-  height: 54px;
-  align-items: center;
 }
 .amount-wrapper{
   span {
