@@ -307,6 +307,16 @@ img, svg {
     height: 40px;
   }
 }
+.bonus-type {
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 30px;
+  cursor: pointer;
+}
+.bonus-type-modal  {
+  width: 400px;
+  margin-top: 30px;
+}
 .message-tips{
   transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   border-radius: 4px;

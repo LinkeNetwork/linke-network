@@ -5,10 +5,12 @@ import { NumericInput } from "numeric-keyboard"
 import { detectMobile, getDaiWithSigner } from "../../utils"
 import TokenList from "./TokenList"
 import { RED_PACKET } from '../../abi/index'
+const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
+const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function AwardBonus(props) {
   const { handleCloseAward, currentAddress } = props
   const [showBonusType, setShowBonusType] = useState(false)
-  const [totalAmount, setTotalAmount] = useState(0)
+  const [totalAmount, setTotalAmount] = useState()
   const [amount, setAmount] = useState()
   const [quantity, setQuantity] = useState('')
   const [amountText, setAmountText] = useState('Total')
@@ -55,15 +57,28 @@ export default function AwardBonus(props) {
     setTokenLogo(item.logoURI)
     setSelectTokenAddress(item.address)
   }
+  const enforcer = (nextUserInput, type) => {
+    if (nextUserInput === '' || inputRegex.test(escapeRegExp(nextUserInput))) {
+      valChange(nextUserInput, type)
+    }
+  }
+  const valChange = (tokenValue, type) => {
+    type === 0 ? setQuantity(tokenValue) : setAmount(tokenValue)
+    
+  }
   useEffect(() => {
     currentBonusType === 'Random Amount' ? setAmountText('Total') : setAmountText('Amount Each') 
     if(currentBonusType === 'Identical Amount') {
-      const amount = totalAmount/quantity < 1 ? (totalAmount/quantity).toFixed(2) : (Math.floor(totalAmount/quantity)).toFixed(2)
-      setAmount(amount)
+      if(totalAmount && quantity) {
+        const amount = totalAmount/quantity < 1 ? (totalAmount/quantity).toFixed(2) : Math.floor((totalAmount/quantity) * 100)/100
+        setAmount(amount)
+      }
     }
     if(currentBonusType === 'Random Amount') {
       const result = totalAmount
-      setAmount(result)
+      if(result > 0) {
+        setAmount(result)
+      }
     }
   }, [currentBonusType])
   useEffect(() => {
@@ -87,11 +102,11 @@ export default function AwardBonus(props) {
         <div className="token-list-title">Choose Token</div>
         <TokenList selectToken={(item) => selectToken(item)}></TokenList>
       </Modal>
-      <Modal visible={showBonusType} onClose={() => setShowBonusType(false)} className="modal modal-client bonus-type-modal">
+      <Modal visible={showBonusType} onClose={() => setShowBonusType(false)} className={`modal bonus-type-modal ${detectMobile() ? 'modal-client' : ''}`}>
         {
           BonusList.map((v, i) => {
             return (
-              <div className="" key={i} onClick={() => { handleSelecType(i) }}>{v}</div>
+              <div className="bonus-type" key={i} onClick={() => { handleSelecType(i) }}>{v}</div>
             )
           })
         }
@@ -105,7 +120,7 @@ export default function AwardBonus(props) {
       </div>
       }
       
-      <div className="content">
+      <div className={`content ${detectMobile() ? 'content-client' : ''}`}>
         <div className="token-wrapper">
           <div className="token-detail">
             {
@@ -132,27 +147,28 @@ export default function AwardBonus(props) {
           {
             detectMobile() 
             ? <NumericInput layout="tel" placeholder="Enter quantity" onInput={(key) => { handleQuantityInput(key) }} />
-            : <input placeholder="Enter quantity" />
+            : <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} value={quantity}/>
           }
-          <span>Quantity</span>
+          <span><span className="iconfont icon-hongbao2"></span>Quantity</span>
         </div>
         <div className="amount-wrapper">
           {
-            detectMobile() && (amount == 0 || amount == 'NaN') &&
+            detectMobile() && (amount == 0 || amount == 'NaN' || !amount) &&
             <NumericInput layout="number" placeholder="0.00" onInput={(key) => { handleAmountInput(key) }}/>
           }
           {
             detectMobile() && Number(amount) > 0 &&
-            <NumericInput layout="number" placeholder="0.00" onInput={(key) => { handleAmountInput(key) }} value={amountRef.current} name={`${currentBonusType}`}/>
+            <NumericInput layout="number" placeholder="0.00" onInput={(key) => { handleAmountInput(key) }} value={amountRef.current} key={`${currentBonusType}`}/>
           }
           {
-            !detectMobile() && <input placeholder="0.00" />
+            !detectMobile() && 
+            <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 1)} value={amount}/>
           }
           <div>{amountText}</div>
         </div>
       </div>
       <div className="total">{totalAmount}</div>
-      <div className="send-btn-wrapper" onClick={handleSend}>
+      <div className={`send-btn-wrapper ${detectMobile() ? 'send-btn-wrapper-client': ''}`} onClick={handleSend}>
         <span className={`send-btn btn btn-primary ${ canSend ? 'send-allowed' : ''}`}>Send</span>
       </div>
     </AwardBonusContanier>
@@ -171,6 +187,10 @@ background: #fff;
   padding: 4px 10px;
   height: 54px;
   align-items: center;
+}
+.icon-hongbao2 {
+  color: red;
+  margin-right: 2px;
 }
 .token-wrapper {
   height: 74px;
@@ -200,6 +220,7 @@ background: #fff;
   width: 100%;
   display: flex;
   justify-content: center;
+  margin-bottom: 30px;
 }
 .send-btn {
   opacity: 0.4;
@@ -225,7 +246,7 @@ background: #fff;
   height: 60px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0 16px;
   background: #fff;
   position: fixed;
@@ -236,11 +257,18 @@ background: #fff;
   .icon-close, .icon-more {
     font-size: 26px;
   }
+  .icon-close {
+    position: absolute;
+    left: 20px;
+  }
   .icon-more {
     transform: rotate(90deg);
   }
 }
 .content {
+  
+}
+.content-client {
   margin-top: 70px;
   padding: 0 20px;
 }
@@ -251,7 +279,7 @@ background: #fff;
   input {
     // flex: 1;
     display: flex;
-    text-align: right;
+    text-align: left;
   }
 }
 .bonus-type-wrapper {
