@@ -32,8 +32,7 @@ export default function GroupList(props) {
   const history = useHistory()
   const path = history.location.pathname
 
-  const updateChatCount = async() => {
-    if(!currentAddress?.toLowerCase()) return
+  const getCurrentGroupInfo = async(currentAddress) => {
     const tokensQuery = `
       query{
         groupInfo(id: "`+ currentAddress?.toLowerCase() + `"){
@@ -43,12 +42,17 @@ export default function GroupList(props) {
           avatar,
           userCount,
           chatCount,
-          style
+          style,
+          _type,
         }
       }
     `
     const res = await clientInfo?.query(tokensQuery).toPromise()
-    let fetchData = res?.data?.groupInfo
+    return res?.data?.groupInfo
+  }
+  const updateChatCount = async() => {
+    if(!currentAddress?.toLowerCase()) return
+    let fetchData = await getCurrentGroupInfo(currentAddress)
     console.log(fetchData, currNetwork, '=====>>>>updateChatCount')
     localForage.getItem('chatListInfo').then(res => {
       if(currNetwork) {
@@ -100,12 +104,15 @@ export default function GroupList(props) {
     const res = await clientInfo?.query(tokensQuery).toPromise()
     var groupInfos = res?.data?.groupUser?.groupInfos || []
     const roomAddress = path.split('/chat/')[1]?.toLowerCase()
+    let fetchData = await getCurrentGroupInfo(roomAddress)
     if(roomAddress) {
       const index = groupInfos?.findIndex((item) => item.id === roomAddress)
       if(index === -1 && !hasQuitRoom) {
         groupInfos.push({
           id: roomAddress,
-          name: currentRoomName
+          name: fetchData.name,
+          chatCount: fetchData.chatCount,
+          _type: fetchData._type
         })
       }
     }
@@ -397,7 +404,7 @@ export default function GroupList(props) {
                 {
                   !detectMobile() &&
                   <div className={`delete-btn-wrapper ${!detectMobile() ? 'delete-btn-web' : ''}`}>
-                    <div className='iconfont icon-shanchu' onClick={(e) => { deleteChatRoom(e, item.id) }}></div>
+                    {/* <div className='iconfont icon-shanchu' onClick={(e) => { deleteChatRoom(e, item.id) }}></div> */}
                     <CopyToClipboard text={item.id}>
                       <div className='iconfont icon-fuzhiwenjian' onClick={onCopy}></div>
                     </CopyToClipboard>

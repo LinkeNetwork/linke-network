@@ -235,7 +235,7 @@ export default function Chat() {
     }
   }
   const updateGroupList = async(name, roomAddress, type) => {
-    console.log(groupLists, groupListRef?.current,'==updateGroupList==')
+    console.log(groupLists, groupListRef?.current,type, '==updateGroupList==')
     
     const index = groupListRef?.current?.findIndex(item => item.id.toLowerCase() == roomAddress.toLowerCase())
     const groupList = groupListRef?.current ? [...groupListRef?.current] : []
@@ -285,18 +285,17 @@ export default function Chat() {
       }
       const groupInfo = await getGroupMember(roomAddress, networkInfo?.APIURL)
       const groupType = groupInfo?._type
+      console.log(roomAddress, groupType, 'groupType=====')
       getJoinRoomAccess(roomAddress, groupType)
       setGroupType(groupType)
       if(groupType == 3) {
         var { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
+        updateGroupList(name, roomAddress, groupType)
       } else {
         var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
-      }
-      setCurrentRoomName(name)
-      
-      if(name) {
         updateGroupList(name, roomAddress, groupType)
       }
+      setCurrentRoomName(name)
       await getInitChatList(roomAddress)
     }
     catch (e) {
@@ -370,6 +369,7 @@ export default function Chat() {
       } else {
         setChatList(result)
       }
+      setShowMask(false)
     }
   }
   
@@ -718,8 +718,11 @@ export default function Chat() {
         showOperate: false,
         avatar: myAvatar
       }
-
-      chatList.unshift(newChat)
+      if(chatList.length > 0) {
+        chatList.unshift(newChat)
+      } else {
+        chatList.push(newChat)
+      }
       getMemberList(currentAddress, chatList)
       // setChatList(chatList)
       let callback = await tx.wait()
@@ -942,7 +945,6 @@ export default function Chat() {
     const memberListInfo = data?.users
     setMemberListInfo(memberListInfo)
     let result = [...chatList]
-    
     result.map(item => {
      memberListInfo?.map(info => {
         if (item?.sender?.toLowerCase() == info?.id?.toLowerCase()) { 
@@ -1045,9 +1047,11 @@ export default function Chat() {
     if(accounts) {
       setMyAddress(accounts)
     }
+    setRoomList([])
     initRoomAddress()
     setMyAddress(getLocal('account'))
     return () => {
+      console.log(123123)
       clearInterval(timer.current)
       clearInterval(allTimer.current)
       window.removeEventListener('scroll', throttle(handleScroll, 500), true)
