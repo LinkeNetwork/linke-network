@@ -68,9 +68,9 @@ export default function useWallet() {
     getAccounInfo(account)
   }
   const handleNewAccounts = newAccounts => {
+    getNetworkInfo()
     getCurrentBalance(newAccounts[0])
     updateAccounts(newAccounts[0])
-    getNetworkInfo()
     setLocal('account', newAccounts[0])
     setLocal('isConnect', true)
   }
@@ -117,6 +117,7 @@ export default function useWallet() {
       setNetwork(currNetwork)
       setChainId(network.chainId)
       setState({
+        currentChain: currNetwork,
         currentNetworkInfo:item,
         clientInfo: client
       })
