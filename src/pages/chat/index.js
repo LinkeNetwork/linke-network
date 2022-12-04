@@ -307,7 +307,11 @@ export default function Chat() {
       console.log(e, 'err====')
       setShowMask(false)
       if (!hasNotice) {
-        alert('This is not a chat room.')
+        if(getLocal('isConnect')) {
+          alert('This is not a chat room.')
+        } else {
+          alert('Please connect wallet first')
+        }
         setHasNotice(true)
         setShowMask(false)
       }
