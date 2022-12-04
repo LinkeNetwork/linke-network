@@ -265,7 +265,7 @@ export default function GroupMember(props) {
           })
         }
         {
-          !canQuitRoom &&
+          !canQuitRoom && hasAccess &&
           <div className="btn btn-lg btn-primary" onClick={() => setShowQuitRoomConfirm(true)}>Quit Room</div>
         }
       </div>
@@ -278,6 +278,8 @@ right: 0;
 left: 70%;
 bottom: 0;
 top: 0;
+height: 100%;
+overflow: auto;
 background: #eee;
 z-index: 100;
 &.member-wrap-client {
@@ -317,6 +319,7 @@ z-index: 100;
   left: 70%;
   right: 0;
   top: 0;
+  z-index: 10
 }
 .iconfont {
   position: absolute;
@@ -343,7 +346,7 @@ z-index: 100;
   height: 40px
 }
 .member-list {
-  height: calc(100vh - 320px);
+  // height: calc(100vh - 340px);
   overflow: auto;
   .button-wrapper {
     display: flex;
