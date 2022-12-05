@@ -27,19 +27,19 @@ export default function UseTokenBalance() {
       }
     }
   }
-  const allowanceAction = async (from) => {
-    let account = accounts || localStorage.getItem('account')
-    const {provider, currency, router: spender, tokenValue} = from
-    const {tokenAddress} = currency
-    const allowanceTotal = await allowance({provider, tokenAddress, spender, account})
-    const amountToken = ethers.utils.parseEther(tokenValue)
-    const allonceNum = ethers.utils.parseEther(allowanceTotal)
-    console.log("allowanceAction", amountToken, allonceNum, allonceNum.gte(amountToken))
-    return allonceNum.gte(amountToken)
-  }
-  const getAuthorization = async(from) => {
-    const allowanceResult = from.currency.tokenAddress ? await allowanceAction(from) : true
-    setAuthorization(allowanceResult)
-  }
+  // const allowanceAction = async (from) => {
+  //   let account = accounts || localStorage.getItem('account')
+  //   const {provider, currency, router: spender, tokenValue} = from
+  //   const {tokenAddress} = currency
+  //   const allowanceTotal = await allowance({provider, tokenAddress, spender, account})
+  //   const amountToken = ethers.utils.parseEther(tokenValue)
+  //   const allonceNum = ethers.utils.parseEther(allowanceTotal)
+  //   console.log("allowanceAction", amountToken, allonceNum, allonceNum.gte(amountToken))
+  //   return allonceNum.gte(amountToken)
+  // }
+  // const getAuthorization = async(from) => {
+  //   const allowanceResult = from.currency.tokenAddress ? await allowanceAction(from) : true
+  //   setAuthorization(allowanceResult)
+  // }
   return { poolBalance, tokenList, getTokenBalance, authorization }
 }
