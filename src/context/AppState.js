@@ -21,6 +21,7 @@ const state = {
   clientInfo: null,
   showHeader: true,
   currentChain: '',
+  currentChatInfo: {}
 }
 
 export default state

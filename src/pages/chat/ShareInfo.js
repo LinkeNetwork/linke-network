@@ -24,7 +24,7 @@ export default function ShareInfo(props) {
         }
       }
     `
-    const res = await clientInfo.query(tokensQuery).toPromise()
+    const res = await clientInfo?.query(tokensQuery).toPromise()
     let fetchData = res?.data?.groupInfo
     console.log(fetchData, '===fetchDatafetchData=>>>>')
     if(fetchData?.style) {

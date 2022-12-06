@@ -182,11 +182,11 @@ export default function GroupList(props) {
   }
   const showCurrentChatList = (e, item, index) => {
     setCurrentRoomIndex(index)
-    showChatList(e, item, groupList)
+    showChatList(item)
   }
   const getCurrentRoomIndex = (groupInfos) => {
     const roomAddress = path.split('/chat/')[1]?.toLowerCase()
-    const index =  groupInfos && groupInfos.findIndex((item) => item.id.toLowerCase() == roomAddress)
+    const index =  groupInfos && groupInfos.findIndex((item) => item?.id?.toLowerCase() == roomAddress)
     setCurrentRoomIndex(index)
   }
   const initPrivateMember = () => {
@@ -219,8 +219,8 @@ export default function GroupList(props) {
         }
       }
     `
-    const list1 = await clientInfo.query(senderQuery).toPromise()
-    const list2 = await clientInfo.query(tokensQuery).toPromise()
+    const list1 = await clientInfo?.query(senderQuery).toPromise()
+    const list2 = await clientInfo?.query(tokensQuery).toPromise()
     const groupList = []
     list1?.data?.encryptedInfos.map(item => {
       if(!groupList.includes(item.to)) {
@@ -313,14 +313,17 @@ export default function GroupList(props) {
           } else {
             const list = initPrivateMember()
             const groupList = [...privateRooms]
-            if(Object.keys(list).length !== 0) {
+            const index = groupList?.findIndex((item) => item?.id?.toLowerCase() === list?.id?.toLowerCase())
+            if(Object.keys(list).length !== 0 && index === -1) {
               groupList.push(list)
             }
             res[currNetwork][getLocal('account')]['privateRooms'] = [...groupList]
             localForage.setItem('chatListInfo', res)
+            const currentChatInfo = groupList.filter((item) => item?.id?.toLowerCase() === currentAddress?.toLowerCase())
             setGroupList(groupList)
             setState({
-              groupLists: groupList
+              groupLists: groupList,
+              currentChatInfo: currentChatInfo[0]
             })
           }
         }
@@ -356,7 +359,7 @@ export default function GroupList(props) {
             }
             return (
               <div
-                className={`chat-list ${currentRoomIndex === index ? 'active' : ''}`}
+                className={`chat-list ${item?.id?.toLowerCase() === currentAddress?.toLowerCase() ? 'active' : ''}`}
                 onClick={(e) => { showCurrentChatList(e, item, index) }}
                 onTouchStart={handleTouchStart}
                 onTouchMove={(e) => handleTouchMove(e, index)}

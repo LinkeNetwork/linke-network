@@ -23,7 +23,7 @@ export default function FollowerList(props) {
         tokenId
       }
     }`
-    const res = await clientInfo.query(tokensQuery).toPromise()
+    const res = await clientInfo?.query(tokensQuery).toPromise()
     let profiles = res?.data?.profiles
     const noProfiles = ids.filter(ele => profiles.every(item => item.id !== ele))
     noProfiles.map(item => {
@@ -59,7 +59,7 @@ export default function FollowerList(props) {
         }
         `
     }
-    const res = await clientInfo.query(tokensQuery).toPromise()
+    const res = await clientInfo?.query(tokensQuery).toPromise()
     const data = res?.data?.followers
     const ids = followType === 1 ? data.map(item => item.to) : data.map(item => item.from)
     setFollowerCount(res.data.followers.length)
