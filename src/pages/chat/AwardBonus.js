@@ -166,6 +166,9 @@ export default function AwardBonus(props) {
           }
           <div>{amountText}</div>
         </div>
+        <div className="amount-wrapper">
+          <input placeholder="Best Wishes"/>
+        </div>
       </div>
       <div className="total">{totalAmount}</div>
       <div className={`send-btn-wrapper ${detectMobile() ? 'send-btn-wrapper-client': ''}`} onClick={handleSend}>

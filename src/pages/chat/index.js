@@ -8,6 +8,7 @@ import ChatInputBox from './ChatInputBox'
 import Introduction from './Introduction'
 import ChatTab from './ChatTab'
 import ShareInfo from './ShareInfo'
+import RedEnvelopeCover from './RedEnvelopeCover'
 import CreateNewRoom from './CreateNewRoom'
 import JoinRooom from './JoinRoom'
 import useGroupMember from '../../hooks/useGroupMember'
@@ -51,6 +52,7 @@ export default function Chat() {
   const [currentRoomName, setCurrentRoomName] = useState()
   const [hasAccess, setHasAccess] = useState()
   const [chatList, setChatList] = useState([])
+  const [showOpenAward, setShowOpenAward] = useState(false)
   const [showJoinGroupButton, setShowJoinGroupButton] = useState()
   const chatListRef = useRef()
   const [hasScroll, setHasScroll] = useState(false)
@@ -1045,6 +1047,14 @@ export default function Chat() {
       })
     }
   }
+  const handleAwardBonus = () => {
+    setShowOpenAward(true)
+    // setShowAwardBonus(true)
+  }
+  const handleOpenAward = () => {
+    setShowOpenAward(false)
+    setShowAwardBonus(true)
+  }
   useEffect(() => {
     if (accounts) {
       setMyAddress(accounts)
@@ -1073,6 +1083,18 @@ export default function Chat() {
   }, [getLocal('isConnect')])
   return (
     <div className="chat-ui-wrapper">
+      {
+        <RedEnvelopeCover></RedEnvelopeCover>
+      }
+      {
+        showOpenAward && 
+        <Modal title="Open red envelope" visible={showOpenAward} onClose={() => { setShowOpenAward(false) }}>
+          <div className='btn-operate-award'>
+            <div className='btn btn-primary' onClick={handleOpenAward}>Open</div>
+            <div className='btn btn-light' onClick={() => { setShowOpenAward(false) }}>Cancel</div>
+          </div>
+        </Modal>
+      }
       {
         showAwardBonus && detectMobile() && 
         <AwardBonus handleCloseAward={() => { setShowAwardBonus(false) }} currentAddress={currentAddress}></AwardBonus>
@@ -1232,7 +1254,7 @@ export default function Chat() {
                           startChat={(text) => startChat(text)}
                           clearChatInput={clearChatInput}
                           handleShowPlace={() => { setShowPlaceWrapper(true) }}
-                          handleAwardBonus={() => { setShowAwardBonus(true) }}
+                          handleAwardBonus={handleAwardBonus}
                           resetChatInputStatus={() => { setClearChatInput(false) }}
                         ></ChatInputBox>
                       }
