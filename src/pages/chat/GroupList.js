@@ -231,7 +231,6 @@ export default function GroupList(props) {
         groupList.push(item.sender)
       }
     })
-    console.log(groupList, 'groupList====')
     const idList = groupList.filter(Boolean)
     const idsList = '"' + idList.join('","')+ '"'
     console.log(idList, list1?.data?.encryptedInfos, list2?.data?.encryptedInfos, 'getPrivateGroupList====')
