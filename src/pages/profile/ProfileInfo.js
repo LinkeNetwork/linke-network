@@ -28,10 +28,12 @@ export default function ProfileInfo(props) {
 
   }
   const getPrivateChatStatus = async (pathname) => {
-    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(pathname)
-    setShowPrivateChat(Boolean(res))
-    setPrivateKey(res)
-    console.log(res, currentNetworkInfo, 'getPrivateChatStatus=====')
+    if(currentNetworkInfo?.PrivateChatAddress && pathname) {
+      const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(pathname)
+      setShowPrivateChat(Boolean(res))
+      setPrivateKey(res)
+      console.log(res, currentNetworkInfo, 'getPrivateChatStatus=====')
+    }
   }
   const getFollowStatus = async (client) => {
     const tokensQuery = `
@@ -44,9 +46,9 @@ export default function ProfileInfo(props) {
       }
     }
     `
-    const res = await client.query(tokensQuery).toPromise()
+    const res = await client?.query(tokensQuery).toPromise()
     console.log(res, 'getFollowStatus=====')
-    setHasFollow(Boolean(res.data.followers.length))
+    setHasFollow(Boolean(res?.data?.followers?.length))
     setTimeout(() => {
       setShoMask(false)
     }, 100)
@@ -67,15 +69,14 @@ export default function ProfileInfo(props) {
       }
     }
     `
-    const res = await clientInfo.query(tokensQuery).toPromise()
+    const res = await clientInfo?.query(tokensQuery).toPromise()
     getFollowStatus(clientInfo)
     setShoMask(false)
-    console.log(res, 'urlParams====')
     setState({
-      tokenId: res.data?.profile?.tokenId,
-      profileAvatar: res.data?.profile?.avatar
+      tokenId: res?.data?.profile?.tokenId,
+      profileAvatar: res?.data?.profile?.avatar
     })
-    setProfileInfo(res.data?.profile)
+    setProfileInfo(res?.data?.profile)
   }
   const handleFollow = async () => {
     const tokenrul = {
@@ -83,7 +84,6 @@ export default function ProfileInfo(props) {
       "description": profileInfo?.description,
       "image": "https://linke.infura-ipfs.io/ipfs/"
     }
-    debugger
     if (profileInfo?.selfNFT) {
       setShoMask(true)
       const res = await getDaiWithSigner(profileInfo?.selfNFT, FOLLOW_ABI).awardItem(urlParams, tokenrul)
@@ -140,7 +140,7 @@ export default function ProfileInfo(props) {
     const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(accounts)
     if(Boolean(res)) {
       history.push({
-        pathname: `/chat/${address}`,
+        pathname: `/chat/${address}#p`,
         state: {
           name: profileInfo?.name,
           address: address,
@@ -172,7 +172,6 @@ export default function ProfileInfo(props) {
     if (!accounts) return
     getMyprofileInfo(pathname)
     getPrivateChatStatus(pathname)
-    console.log(pathname, accounts,'pathname===')
   }, [urlParams,hasCreateProfile, profileId, accounts, pathname])
   return (
     <ProfileInfoContanier>
