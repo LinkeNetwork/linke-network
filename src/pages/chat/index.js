@@ -30,7 +30,6 @@ import GroupMember from './GroupMember'
 import JoinGroupButton from './JoinGroupButton'
 import { useHistory } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
-import * as zango from "zangodb";
 import useWallet from '../../hooks/useWallet'
 
 
@@ -43,8 +42,7 @@ export default function Chat() {
   const messagesEnd = useRef(null)
   const { chainId } = useWallet()
   const { getclientInfo } = useUnConnect()
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo} = useGlobal()
-  const { groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, giveAwayAddress } = useGlobal()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentAddress, setCurrentAddress] = useState()
   const currentAddressRef = useRef(null)
