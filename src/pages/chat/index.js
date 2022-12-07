@@ -3,7 +3,7 @@ import './chat.scss'
 import 'emoji-mart/css/emoji-mart.css'
 import Loading from '../../component/Loading'
 import ListGroup from './GroupList'
-import { createClient } from 'urql'
+import { createClient, debugExchange } from 'urql'
 import ChatInputBox from './ChatInputBox'
 import Introduction from './Introduction'
 import ChatTab from './ChatTab'
@@ -19,7 +19,7 @@ import AwardBonus from './AwardBonus'
 import { ethers } from "ethers"
 import { detectMobile, throttle } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
-import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI } from '../../abi/index'
+import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET } from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
 import SearchChat from './SearchChat'
@@ -43,12 +43,13 @@ export default function Chat() {
   const messagesEnd = useRef(null)
   const { chainId } = useWallet()
   const { getclientInfo } = useUnConnect()
-  const { groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo } = useGlobal()
+  const { groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, giveAwayAddress } = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentAddress, setCurrentAddress] = useState()
   const currentAddressRef = useRef(null)
   const [memberCount, setMemberCount] = useState()
   const [myAddress, setMyAddress] = useState()
+  const [showRedEnvelope, setShowRedEnvelope] = useState(false)
   const [currentRoomName, setCurrentRoomName] = useState()
   const [hasAccess, setHasAccess] = useState()
   const [chatList, setChatList] = useState([])
@@ -336,6 +337,7 @@ export default function Chat() {
       if (!Boolean(hasAccess)) {
         setShowJoinGroupButton(true)
       }
+      setShowMask(false)
       console.log(hasAccess,  hasAccessRef.current, showJoinGroupButtonRef.current, showJoinGroupButton, showJoinGroupButtonRef.current, Boolean(hasAccess), 'hasAccess======')
     } catch(error) {
       console.log(error, '===error==')
@@ -448,6 +450,7 @@ export default function Chat() {
     setShowSettingList(false)
   }
   const showChatList = (e, item, list) => {
+    setShowMask(true)
     setHasAccess()
     setChatList([])
     if (currentTabIndex === 0) {
@@ -480,7 +483,6 @@ export default function Chat() {
       currentAddress: item.id
     })
     setCurrentRoomName(item.name)
-    setShowMask(true)
     setHasScroll(false)
   }
   const loadingGroupData = async () => {
@@ -518,9 +520,10 @@ export default function Chat() {
     const newfetchData = await addAvatarToList(fetchData)
     // insertData(newfetchData)
     if (chatListRef.current.length) {
-      const list = [...chatListRef.current]
+      const list = [...chatListRef?.current]
       const result = list.concat(newfetchData)
       setChatList(result)
+      setShowMask(false)
     }
   }
   const loadingData = async () => {
@@ -669,6 +672,7 @@ export default function Chat() {
     } else {
       if (toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
         setChatList(res)
+        setShowMask(false)
       }
       setShowMask(false)
     }
@@ -873,7 +877,7 @@ export default function Chat() {
     if (!data?.data?.chatInfos.length) return
     const newList = data?.data?.chatInfos && await getMemberList(roomAddress, data?.data?.chatInfos)
     // const formatList = await getUserAvatar(newList)
-    const list = [...chatListRef.current]
+    const list = [...chatListRef?.current]
 
     collection.insert(newList, (error) => {
 
@@ -883,6 +887,7 @@ export default function Chat() {
     if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
 
       setChatList(newList.concat(list))
+      setShowMask(false)
     }
   }
   const updateNewList = async (roomAddress, collection) => {
@@ -935,10 +940,11 @@ export default function Chat() {
     }
     `
     const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, roomAddress)
-    const list = [...chatListRef.current]
+    const list = [...chatListRef?.current]
     if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && currentList.length) {
 
       setChatList(currentList.concat(list))
+      setShowMask(false)
     }
     // insertData(currentList)
   }
@@ -1047,12 +1053,26 @@ export default function Chat() {
       })
     }
   }
-  const handleAwardBonus = () => {
-    setShowOpenAward(true)
-    // setShowAwardBonus(true)
+  const handleCloseRedEnvelope = () => {
+
   }
-  const handleOpenAward = () => {
-    setShowOpenAward(false)
+  const handleAwardBonus = async() => {
+    console.log(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI, giveAwayAddress, 'giveAwayAddress===')
+    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(giveAwayAddress)
+    if(!Boolean(res)) {
+      setShowOpenAward(true)
+    } else {
+      setShowAwardBonus(true)
+    }
+    console.log(res, 'handleAwardBonus====>>>>')
+  }
+  const handleOpenAward = async() => {
+    console.log(giveAwayAddress, currentAddress, 'currentAddress=2')
+    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).register(currentAddress)
+    setShowMask(true)
+    setShowOpenAward(false) 
+    await tx.wait()
+    setShowMask(false)
     setShowAwardBonus(true)
   }
   useEffect(() => {
@@ -1084,7 +1104,8 @@ export default function Chat() {
   return (
     <div className="chat-ui-wrapper">
       {
-        <RedEnvelopeCover></RedEnvelopeCover>
+        showRedEnvelope &&
+        <RedEnvelopeCover handleCloseRedEnvelope={handleCloseRedEnvelope}></RedEnvelopeCover>
       }
       {
         showOpenAward && 

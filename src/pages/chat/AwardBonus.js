@@ -4,10 +4,12 @@ import { Modal, Image }  from "../../component/index"
 import { NumericInput } from "numeric-keyboard"
 import { detectMobile, getDaiWithSigner } from "../../utils"
 import TokenList from "./TokenList"
+import useGlobal from "../../hooks/useGlobal"
 import { RED_PACKET } from '../../abi/index'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function AwardBonus(props) {
+  const { giveAwayAddress } = useGlobal()
   const { handleCloseAward, currentAddress } = props
   const [showBonusType, setShowBonusType] = useState(false)
   const [totalAmount, setTotalAmount] = useState()
@@ -27,15 +29,9 @@ export default function AwardBonus(props) {
     'Identical Amount'
   ]
   const handleSend = async() => {
-    const params = {
-      group: currentAddress,
-      token: selectTokenAddress,
-      amount: totalAmount,
-      count: quantity,
-      type_: currentBonusType === 'Random Amount' ? 2 : 1
-    }
-    const address = ''
-    const tx = await getDaiWithSigner(address, RED_PACKET).send(params)
+    const type_ = currentBonusType === 'Random Amount' ? 2 : 1
+    const address = giveAwayAddress
+    const tx = await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, totalAmount, quantity, type_)
     console.log(tx, '====tx===')
   }
   const handleQuantityInput = (key) => {
