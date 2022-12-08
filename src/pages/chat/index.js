@@ -244,6 +244,7 @@ export default function Chat() {
   const updateGroupList = async (name, roomAddress, type) => {
 
     const index = groupListRef?.current?.findIndex(item => item.id.toLowerCase() == roomAddress.toLowerCase())
+    console.log(index, '====updateGroupList')
     const groupList = groupListRef?.current ? [...groupListRef?.current] : []
     if (index === -1) {
       groupList.push({
@@ -1066,8 +1067,7 @@ export default function Chat() {
 
   }
   const handleAwardBonus = async() => {
-    console.log(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI, giveAwayAddress, 'giveAwayAddress===')
-    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(giveAwayAddress)
+    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddress)
     if(!Boolean(res)) {
       setShowOpenAward(true)
     } else {
@@ -1083,6 +1083,10 @@ export default function Chat() {
     await tx.wait()
     setShowMask(false)
     setShowAwardBonus(true)
+  }
+  const handleCloseAward = () => {
+    setShowChat(true)
+    setShowAwardBonus(false)
   }
   useEffect(() => {
     if(accounts) {
@@ -1136,7 +1140,7 @@ export default function Chat() {
       }
       {
         !detectMobile() &&
-        <Modal title="Award Bonus" visible={showAwardBonus} onClose={() => { setShowAwardBonus(false) }}>
+        <Modal title="Award Bonus" visible={showAwardBonus} onClose={handleCloseAward}>
           <AwardBonus handleCloseAward={() => { setShowAwardBonus(false) }} currentAddress={currentAddress}></AwardBonus>
         </Modal>
       }
@@ -1207,7 +1211,6 @@ export default function Chat() {
         </ShareInfo>
       }
       {
-        !showAwardBonus &&
         <div className='chat-content-wrap'>
           <div className={`chat-ui ${detectMobile() ? 'chat-ui-client' : ''}`}>
             <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''}`}>

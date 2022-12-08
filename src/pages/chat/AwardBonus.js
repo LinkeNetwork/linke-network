@@ -4,12 +4,15 @@ import { Modal, Image }  from "../../component/index"
 import { NumericInput } from "numeric-keyboard"
 import { detectMobile, getDaiWithSigner } from "../../utils"
 import TokenList from "./TokenList"
+import { ethers } from "ethers"
 import useGlobal from "../../hooks/useGlobal"
+import UseTokenBalance from "../../hooks/UseTokenBalance"
 import { RED_PACKET } from '../../abi/index'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function AwardBonus(props) {
   const { giveAwayAddress } = useGlobal()
+  const { getAuthorization } = UseTokenBalance()
   const { handleCloseAward, currentAddress } = props
   const [showBonusType, setShowBonusType] = useState(false)
   const [totalAmount, setTotalAmount] = useState()
@@ -31,7 +34,10 @@ export default function AwardBonus(props) {
   const handleSend = async() => {
     const type_ = currentBonusType === 'Random Amount' ? 2 : 1
     const address = giveAwayAddress
-    const tx = await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, totalAmount, quantity, type_)
+    const total = ethers.utils.parseEther(totalAmount)
+    console.log(total, 'total====')
+    console.log(currentAddress,selectTokenAddress, total, quantity, type_, 'handleSend')
+    const tx = await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_)
     console.log(tx, '====tx===')
   }
   const handleQuantityInput = (key) => {
@@ -45,7 +51,9 @@ export default function AwardBonus(props) {
     setCurrentBonusType(BonusList[i])
     setShowBonusType(false)
   }
-  const selectToken = (item) => {
+  const selectToken = async(item) => {
+    const authorization = await getAuthorization(item)
+    console.log(authorization, 'authorization====')
     setQuantity()
     setShowTokenList(false)
     setSelectedToken(item.symbol)

@@ -110,3 +110,22 @@ export const getBalance = async (  provider, tokenAddress, userAddress ) => {
     return '0'
   }
 }
+
+// tokenAddress :from token
+// provider: from provider
+// abi: tokenAbi
+// spender: from router
+export const allowance = async ({ spender, provider, tokenAddress,accounts }) => {
+  let account = accounts || localStorage.getItem('account')
+  console.log(spender, provider, tokenAddress, account, 'allowance====')
+  const lpContract = getContract(provider, tokenAddress)
+  try {
+    const res = await lpContract.methods
+      .allowance(account,spender)
+      .call()
+    return res
+  } catch (error) {
+    console.warn(error)
+    return false
+  }
+}

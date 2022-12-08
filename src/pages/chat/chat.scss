@@ -738,6 +738,24 @@ ul.dropdown-menu {
     padding: 6px 4px;
   }
 }
+.red-packet-wrap {
+  background: rgb(244,147,81);
+  cursor: pointer;
+  width: 14.4rem;
+  &::after {
+    position: absolute;
+    content: "";
+    left: 99.8%;
+    bottom: 10px;
+    border-top: 8px solid transparent;
+    border-left: 8px solid rgb(244,147,81);
+    border-bottom: 4px solid transparent;
+  }
+  span {
+    color: #fff;
+    font-size: 16px;
+  }
+}
 @media (min-width: 992px){
 .d-lg-none {
     display: none!important;

@@ -9,6 +9,7 @@ import { useHistory } from 'react-router-dom'
 import Image from "../../component/Image"
 import InfiniteScroll from 'react-infinite-scroll-component'
 import useGlobal from "../../hooks/useGlobal"
+import packetImg from '../../assets/images/packet.svg'
 export default function ChatContext(props) {
   const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom, currentTabIndex, handleDecryptedMessage, hasDecrypted } = props
   // const [chatLists, setChatLists] = useState(chatList)
@@ -171,6 +172,12 @@ export default function ChatContext(props) {
                 {
                   !v.hasDelete &&
                   <div className={`chat-item ${v.position ? 'chat-end' : 'chat-start'}`} id="chatItem">
+                    <div className="red-packet-wrap chat-ui-bubble">
+                      <div className="red-packet-content">
+                        <img src={packetImg} alt="" style={{'width': '40px'}}/>
+                        <span>Best wishes</span>
+                      </div>
+                    </div>
                     <div
                       className="chat-avatar-wrap"
                       id="chatAvatar"
