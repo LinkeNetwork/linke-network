@@ -23,6 +23,7 @@ const state = {
   currentTokenBalance: '',
   giveAwayAddress: '0xe9FE40002E008a72DA6c88d20dC9F38656dF4315',
   currentChain: '',
+  showOpen: false,
   currentChatInfo: {}
 }
 

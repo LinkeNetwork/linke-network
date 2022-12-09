@@ -1,19 +1,21 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import styled from "styled-components"
 import coinImg from '../../assets/images/qianbi.svg'
+import useGlobal from "../../hooks/useGlobal"
 export default function RedEnvelopeCover(props) {
-  const { handleCloseRedEnvelope } = props
-  const [showOpen, setShowOpen] = useState(true)
-  const handleOpen = () => {
-    setShowOpen(false)
-  }
+  const { handleCloseRedEnvelope, handleReceiveConfirm } = props
+  const { showOpen } = useGlobal()
+  const [isOpen, setIsOpen] = useState(false)
+  useEffect(() => {
+    setIsOpen(showOpen)
+  }, [showOpen])
   return (
     <RedEnvelopeCoverContanier>
       <div className="cover-wrapper">
         <div className="top-cover"></div>
         {
-          showOpen 
-            ? <div className="open-btn" onClick={handleOpen}>Open</div>
+          !isOpen 
+            ? <div className="open-btn" onClick={handleReceiveConfirm}>Open</div>
             : <div className="coin-wrapper">
                 <div className="front" style={{ backgroundImage: `url(${coinImg})` }}></div>
                 <div className="back" style={{ backgroundImage: `url(${coinImg})` }}></div>
@@ -84,6 +86,10 @@ transition: 0.4s;
   display: flex;
   align-items: center;
   justify-content: center;
+  .icon-guanbi {
+    right: inherit;
+    top: inherit;
+  }
 }
 @keyframes rotateCoin {
   0% {

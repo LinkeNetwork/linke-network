@@ -710,18 +710,19 @@ export default function Chat() {
     handleGiveAway(tx)
     let callback = await tx.wait()
     setShowAwardBonus(false)
-    console.log(callback, 'callback====')
+    console.log(callback, 'callback====handleSend')
     const index = chatList?.findIndex((item) => item.id.toLowerCase() == callback?.transactionHash?.toLowerCase())
     chatList[index].isSuccess = true
     console.log(chatList, 'chatList=====>>>')
     setShowMask(false)
   }
   const handleGiveAway = (tx) => {
-    console.log(tx)
+    console.log(tx, 'handleGiveAway00000')
     if(currentTabIndex === 0 ) {
       var newChat = {
         id: tx.hash,
         block: 0,
+        chatText: '',
         transaction: tx.hash,
         sender: myAddress,
         position: true,
@@ -993,6 +994,9 @@ export default function Chat() {
     }
     // insertData(currentList)
   }
+  const handleReceive = async() => {
+    setShowRedEnvelope(true)
+  }
   const getMemberList = async(roomAddress, chatList) => {
     if(currentTabIndex === 1 || !chatList.length) return
     const data = await getGroupMember(roomAddress)
@@ -1111,9 +1115,6 @@ export default function Chat() {
       alert('Please connect wallet first')
     }
   }, [currentChain])
-  const handleCloseRedEnvelope = () => {
-
-  }
   const handleAwardBonus = async() => {
     const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddress)
     if(!Boolean(res)) {
@@ -1122,6 +1123,16 @@ export default function Chat() {
       setShowAwardBonus(true)
     }
     console.log(res, 'handleAwardBonus====>>>>')
+  }
+  const handleReceiveConfirm = async(e, id) => {
+    setState({
+      showOpen: false
+    })
+    console.log(giveAwayAddress, id, 'giveAwayAddress===')
+    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).receive(id)
+    console.log(tx, 'handleReceiveConfirm====')
+    const callback = await tx.wait()
+    console.log(callback, 'handleReceiveConfirm====callback')
   }
   const handleOpenAward = async() => {
     console.log(giveAwayAddress, currentAddress, 'currentAddress=2')
@@ -1171,7 +1182,7 @@ export default function Chat() {
     <div className="chat-ui-wrapper">
       {
         showRedEnvelope &&
-        <RedEnvelopeCover handleCloseRedEnvelope={handleCloseRedEnvelope}></RedEnvelopeCover>
+        <RedEnvelopeCover handleCloseRedEnvelope={() => {setShowRedEnvelope(false)}} handleReceiveConfirm={(e, id) => {handleReceiveConfirm(e, id)}}></RedEnvelopeCover>
       }
       {
         showOpenAward &&
@@ -1335,6 +1346,7 @@ export default function Chat() {
                           currentTabIndex={currentTabIndex}
                           sendSuccess={sendSuccess}
                           hasToBottom={hasToBottom}
+                          handleReceive={handleReceive}
                           loadingData={() => loadingData()}
                           handleDecryptedMessage={(id, text) => handleDecryptedMessage(id, text)}
                           shareInfo={(e, v) => shareInfo(e, v)}

@@ -11,7 +11,7 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import useGlobal from "../../hooks/useGlobal"
 import packetImg from '../../assets/images/packet.svg'
 export default function ChatContext(props) {
-  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom, currentTabIndex, handleDecryptedMessage, hasDecrypted } = props
+  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive } = props
   // const [chatLists, setChatLists] = useState(chatList)
   const { setState } = useGlobal()
   const [showViewBtn, setShowViewBtn] = useState(false)
@@ -204,7 +204,7 @@ export default function ChatContext(props) {
                     }
                     {
                       v._type === 'Giveaway' &&
-                      <div className="red-packet-wrap">
+                      <div className="red-packet-wrap" onClick={(e, v) => {handleReceive(e, v.chatText)}}>
                         <div className="red-packet-content">
                           <img src={packetImg} alt="" style={{ 'width': '40px' }} />
                           <span>Best wishes</span>
