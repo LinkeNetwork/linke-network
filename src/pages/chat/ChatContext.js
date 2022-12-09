@@ -146,12 +146,12 @@ export default function ChatContext(props) {
       <InfiniteScroll
         dataLength={chatList?.length}
         next={loadingDatas}
-        style={{ display: 'flex', flexDirection: 'column-reverse',transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' }} //To put endMessage and loader to the top.
+        style={{ display: 'flex', flexDirection: 'column-reverse', transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' }} //To put endMessage and loader to the top.
         inverse={true}
         hasMore={hasMore}
         scrollThreshold={0.7}
         loader={
-          <div style={{textAlign: "center", fontSize: '12px'}}>Loading...</div>
+          <div style={{ textAlign: "center", fontSize: '12px' }}>Loading...</div>
         }
         endMessage={
           <p style={{ textAlign: 'center' }}>
@@ -172,131 +172,142 @@ export default function ChatContext(props) {
                 {
                   !v.hasDelete &&
                   <div className={`chat-item ${v.position ? 'chat-end' : 'chat-start'}`} id="chatItem">
-                    <div className="red-packet-wrap chat-ui-bubble">
-                      <div className="red-packet-content">
-                        <img src={packetImg} alt="" style={{'width': '40px'}}/>
-                        <span>Best wishes</span>
-                      </div>
-                    </div>
-                    <div
-                      className="chat-avatar-wrap"
-                      id="chatAvatar"
-                      onMouseEnter={(e) => { handleEnterProfile(e, v) }}
-                      onMouseLeave={(e) => { handleLeaveProfile(e, v) }}
-                      onClick={(e) => { handleShowProfile(e, v) }}
-                    >
-                      {
-                        v.avatar 
-                        ? <Image size={25} src={v.avatar} className="address-icon" />
-                        : <Jazzicon address={v.sender} className="address-icon" />
-                      }
-                      
-                      {
-                        v.showProfile &&
-                        <div className='user-profile-wrap'>
-                          {
-                            v.avatar 
-                            ? <Image size={60} src={v.avatar} className="icon" />
-                            : <Jazzicon address={v.sender} className="icon" />
-                          }
-                          
-                          <div className='name'>{formatAddress(v.sender)}</div>
-                          <div className="view-btn" onClick={() => viewProfile(v)}>View</div>
-                          {showOperate && <span></span>}
-                        </div>
-                      }
-
-                    </div>
-
-                    <div className='chat-ui-bubble chat-ui-bubble-reverse' key={i}
-                      // onClick={(e) => { this.onOperateMenu(e, v) }}
-                      onTouchStart={(e) => { gtouchstart(e, v) }}
-                      onTouchMove={(e) => { gtouchmove(e, v) }}
-                      onTouchEnd={(e) => { gtouchend(e, v) }}
-                      onContextMenu={(e) => { onContextMenu(e, v) }}
-                      id="chatBubble">
-                      <div className='d-flex align-items-center'>
-                        <div className="small text-muted me-2 d-flex chat-icon">
-                          {
-                            v.position &&
-                            <span>You on&nbsp;</span>
-                          }
-
-                          <span>{formatAddress(v.sender)}</span>&nbsp;
-                          {
-                            v.block &&
-                            <span>({v.block})</span>
-                          }
-                        </div>
-
-                      </div>
-                      <div className='text-left'>
+                    {
+                      <div
+                        className="chat-avatar-wrap"
+                        onMouseEnter={(e) => { handleEnterProfile(e, v) }}
+                        onMouseLeave={(e) => { handleLeaveProfile(e, v) }}
+                        onClick={(e) => { handleShowProfile(e, v) }}
+                      >
                         {
-                          currentTabIndex === 0 && <span>{v.chatText}</span>
+                          v.avatar
+                            ? <Image size={25} src={v.avatar} className="address-icon" />
+                            : <Jazzicon address={v.sender} className="address-icon" />
                         }
+
                         {
-                          currentTabIndex === 1 && v.position && 
-                          <div>
+                          v.showProfile &&
+                          <div className='user-profile-wrap'>
                             {
-                              v.isDecrypted ? <span>{v.chatText}</span> : <span onClick={() => {handleDecryptedMessage(v.id, v.chatTextSender)}}>Click to view</span>
+                              v.avatar
+                                ? <Image size={60} src={v.avatar} className="icon" />
+                                : <Jazzicon address={v.sender} className="icon" />
                             }
+
+                            <div className='name'>{formatAddress(v.sender)}</div>
+                            <div className="view-btn" onClick={() => viewProfile(v)}>View</div>
+                            {showOperate && <span></span>}
                           </div>
                         }
-                        {
-                          currentTabIndex === 1 && !v.position && 
-                          <div>
+
+                      </div>
+                    }
+                    {
+                      v._type === 'Giveaway' &&
+                      <div className="red-packet-wrap">
+                        <div className="red-packet-content">
+                          <img src={packetImg} alt="" style={{ 'width': '40px' }} />
+                          <span>Best wishes</span>
+                          {
+                            !v.isSuccess &&
+                            <span className='iconfont icon-loading'></span>
+                          }
+                        </div>
+                      </div>
+                    }
+                    {
+                      v._type === 'msg' &&
+                      <div className='chat-ui-bubble chat-ui-bubble-reverse' key={i}
+                        // onClick={(e) => { this.onOperateMenu(e, v) }}
+                        onTouchStart={(e) => { gtouchstart(e, v) }}
+                        onTouchMove={(e) => { gtouchmove(e, v) }}
+                        onTouchEnd={(e) => { gtouchend(e, v) }}
+                        onContextMenu={(e) => { onContextMenu(e, v) }}
+                        id="chatBubble">
+                        <div className='d-flex align-items-center'>
+                          <div className="small text-muted me-2 d-flex chat-icon">
                             {
-                              v.isDecrypted ? <span>{v.chatText}</span> : <span onClick={() => {handleDecryptedMessage(v.id, v.chatText)}}>Click to view</span>
+                              v.position &&
+                              <span>You on&nbsp;</span>
+                            }
+
+                            <span>{formatAddress(v.sender)}</span>&nbsp;
+                            {
+                              v.block &&
+                              <span>({v.block})</span>
                             }
                           </div>
-                        }
-                        {
-                          !v.isDecrypted && currentTabIndex === 1 &&
-                          <span className={`iconfont icon-suoding ${v.position ? 'icon-suoding-left': 'icon-suoding-right'}`}></span>
-                        }
-                        {
-                          !v.isSuccess &&
-                          <span className='iconfont icon-loading'></span>
-                        }
-                      </div>
 
-                      {
-                        (v.showOperate) &&
-                        <div className='operate-btn' id='deleteBtn'>
-                          {/* <div onClick={(e) => { this.deleteChat(e, v) }}>
+                        </div>
+                        <div className='text-left'>
+                          {
+                            currentTabIndex === 0 && <span>{v.chatText}</span>
+                          }
+                          {
+                            currentTabIndex === 1 && v.position &&
+                            <div>
+                              {
+                                v.isDecrypted ? <span>{v.chatText}</span> : <span onClick={() => { handleDecryptedMessage(v.id, v.chatTextSender) }}>Click to view</span>
+                              }
+                            </div>
+                          }
+                          {
+                            currentTabIndex === 1 && !v.position &&
+                            <div>
+                              {
+                                v.isDecrypted ? <span>{v.chatText}</span> : <span onClick={() => { handleDecryptedMessage(v.id, v.chatText) }}>Click to view</span>
+                              }
+                            </div>
+                          }
+                          {
+                            !v.isDecrypted && currentTabIndex === 1 &&
+                            <span className={`iconfont icon-suoding ${v.position ? 'icon-suoding-left' : 'icon-suoding-right'}`}></span>
+                          }
+                          {
+                            !v.isSuccess &&
+                            <span className='iconfont icon-loading'></span>
+                          }
+                        </div>
+
+                        {
+                          (v.showOperate) &&
+                          <div className='operate-btn' id='deleteBtn'>
+                            {/* <div onClick={(e) => { this.deleteChat(e, v) }}>
                         <span className='iconfont icon-shanchu' id='iconDelete'></span>
                         <span>delete</span>
                       </div> */}
-                          <div onClick={(e) => { shareInfo(e, v) }}>
-                            <span className='iconfont icon-share' id='iconShare'></span>
-                            <span>share</span>
-                          </div>
-                          {
-                            !detectMobile() &&
-                            <CopyToClipboard text={selectText}
-                              onCopy={(e) => { onCopy(e, v) }}>
-                              <div>
-                                <span className='iconfont icon-fuzhiwenjian'></span>
-                                <span>
-                                  {copyText}
-                                </span>
-                              </div>
-                            </CopyToClipboard>
-                          }
-                          {
-                            detectMobile() &&
-                            <CopyToClipboard text={v.chatText}
-                              onCopy={(e) => { onCopy(e, v) }}>
-                              <div>
-                                <span className='iconfont icon-fuzhiwenjian'></span>
-                                <span>copy</span>
-                              </div>
-                            </CopyToClipboard>
-                          }
+                            <div onClick={(e) => { shareInfo(e, v) }}>
+                              <span className='iconfont icon-share' id='iconShare'></span>
+                              <span>share</span>
+                            </div>
+                            {
+                              !detectMobile() &&
+                              <CopyToClipboard text={selectText}
+                                onCopy={(e) => { onCopy(e, v) }}>
+                                <div>
+                                  <span className='iconfont icon-fuzhiwenjian'></span>
+                                  <span>
+                                    {copyText}
+                                  </span>
+                                </div>
+                              </CopyToClipboard>
+                            }
+                            {
+                              detectMobile() &&
+                              <CopyToClipboard text={v.chatText}
+                                onCopy={(e) => { onCopy(e, v) }}>
+                                <div>
+                                  <span className='iconfont icon-fuzhiwenjian'></span>
+                                  <span>copy</span>
+                                </div>
+                              </CopyToClipboard>
+                            }
 
-                        </div>
-                      }
-                    </div>
+                          </div>
+                        }
+                      </div>
+                    }
+
                   </div>
                 }
               </div>

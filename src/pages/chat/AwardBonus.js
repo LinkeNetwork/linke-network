@@ -11,9 +11,9 @@ import { RED_PACKET } from '../../abi/index'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function AwardBonus(props) {
-  const { giveAwayAddress } = useGlobal()
-  const { getAuthorization } = UseTokenBalance()
-  const { handleCloseAward, currentAddress } = props
+  const { giveAwayAddress, swapButtonText, approveLoading } = useGlobal()
+  const { getAuthorization, approveActions, authorization } = UseTokenBalance()
+  const { handleCloseAward, currentAddress, handleCloseMask, handleShowMask, handleGiveAway, handleSend } = props
   const [showBonusType, setShowBonusType] = useState(false)
   const [totalAmount, setTotalAmount] = useState()
   const [amount, setAmount] = useState()
@@ -22,23 +22,29 @@ export default function AwardBonus(props) {
   const [clickNumber, setClickNumber] = useState(0)
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
+  const [selectedTokenInfo, setSelectedTokenInfo] = useState('')
   const [tokenBalance, setTokenBalance] = useState('')
   const [selectTokenAddress, setSelectTokenAddress] = useState('')
   const [tokenLogo, setTokenLogo] = useState('')
   const [canSend, setCanSend] = useState(false)
+  const [btnText, setBtnText] = useState('Send')
   const amountRef = useRef()
   const BonusList = [
     'Random Amount',
     'Identical Amount'
   ]
-  const handleSend = async() => {
-    const type_ = currentBonusType === 'Random Amount' ? 2 : 1
-    const address = giveAwayAddress
-    const total = ethers.utils.parseEther(totalAmount)
-    console.log(total, 'total====')
-    console.log(currentAddress,selectTokenAddress, total, quantity, type_, 'handleSend')
-    const tx = await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_)
-    console.log(tx, '====tx===')
+  const buttonActions = () => {
+    console.log(btnText, 'buttonActions====')
+    switch (btnText) {
+      case "Send":
+        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity)
+        break;
+      case "Approve":
+        approveActions(selectedTokenInfo)
+        break;
+      default:
+        return null;
+    }
   }
   const handleQuantityInput = (key) => {
     setQuantity(key)
@@ -52,14 +58,18 @@ export default function AwardBonus(props) {
     setShowBonusType(false)
   }
   const selectToken = async(item) => {
-    const authorization = await getAuthorization(item)
-    console.log(authorization, 'authorization====')
     setQuantity()
+    setSelectedTokenInfo(item)
     setShowTokenList(false)
     setSelectedToken(item.symbol)
     setTokenBalance(item.balance)
     setTokenLogo(item.logoURI)
     setSelectTokenAddress(item.address)
+    if(item.symbol === 'ETHF') return
+    const authorization = await getAuthorization(item)
+    if(!authorization) {
+      setBtnText('Approve')
+    }
   }
   const enforcer = (nextUserInput, type) => {
     if (nextUserInput === '' || inputRegex.test(escapeRegExp(nextUserInput))) {
@@ -100,6 +110,17 @@ export default function AwardBonus(props) {
   useEffect(() => {
     ( tokenBalance > totalAmount && quantity && amount) ? setCanSend(true) : setCanSend(false)
   }, [totalAmount, quantity, amount])
+  useEffect(() => {
+    if(authorization) {
+      setBtnText('Send')
+    }
+  }, [authorization])
+  useEffect(() => {
+    if(approveLoading) {
+      setCanSend(false)
+      setBtnText('APPROVE_ING')
+    }
+  }, [approveLoading])
   return (
     <AwardBonusContanier>
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
@@ -135,7 +156,7 @@ export default function AwardBonus(props) {
           </div>
           <div onClick={() => {setShowTokenList(true)}} className="token-info">
             {
-              tokenLogo && <Image size={24} src={tokenLogo} style={{ 'border-radius': '50%'}} />
+              tokenLogo && <Image size={24} src={tokenLogo} style={{ 'borderRadius': '50%'}} />
             }
             {
               !selectedToken ?  <span>Select a Token</span> : <div className="name">{selectedToken}</div>
@@ -151,7 +172,7 @@ export default function AwardBonus(props) {
           {
             detectMobile() 
             ? <NumericInput layout="tel" placeholder="Enter quantity" onInput={(key) => { handleQuantityInput(key) }} />
-            : <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} value={quantity}/>
+            : <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity}/>
           }
           <span><span className="iconfont icon-hongbao2"></span>Quantity</span>
         </div>
@@ -166,7 +187,7 @@ export default function AwardBonus(props) {
           }
           {
             !detectMobile() && 
-            <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 1)} value={amount}/>
+            <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 1)} defaultValue={amount}/>
           }
           <div>{amountText}</div>
         </div>
@@ -175,8 +196,8 @@ export default function AwardBonus(props) {
         </div>
       </div>
       <div className="total">{totalAmount}</div>
-      <div className={`send-btn-wrapper ${detectMobile() ? 'send-btn-wrapper-client': ''}`} onClick={handleSend}>
-        <span className={`send-btn btn btn-primary ${ canSend ? 'send-allowed' : ''}`}>Send</span>
+      <div className={`send-btn-wrapper ${detectMobile() ? 'send-btn-wrapper-client': ''}`} onClick={buttonActions}>
+        <span className={`send-btn btn btn-primary ${ canSend ? 'send-allowed' : ''}`}>{btnText}</span>
       </div>
     </AwardBonusContanier>
   )

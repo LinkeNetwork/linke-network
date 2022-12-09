@@ -12,6 +12,11 @@ export default function reducer(state, action) {
         ...state,
         ...action.payload
       }
+    case 'SET_BUTTON_TEXT':
+      return {
+      ...state,
+      swapButtonText: action.payload
+    }
     default: return state
   }
 };

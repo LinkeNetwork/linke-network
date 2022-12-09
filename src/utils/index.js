@@ -2,6 +2,10 @@ import { ethers } from "ethers"
 import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
 import { TOKEN_ABI } from '../abi/index'
+
+const { utils } = Web3
+const { numberToHex } = utils
+
 export const formatAddress = (address) => {
   if (address) {
     return address.slice(0, 6) + '...' + address.slice(-6)
@@ -9,12 +13,17 @@ export const formatAddress = (address) => {
 }
 
 export const setLocal = (key, value) => {
-  localStorage.setItem(key, JSON.stringify(value))
+  const isObj = Object.prototype.toString.call(value) === '[object Object]'
+  if(isObj) {
+    localStorage.setItem(key, JSON.stringify(value))
+  } else {
+    localStorage.setItem(key, value)
+  }
 }
 
 export const getLocal = (key) => {
   if(localStorage.getItem(key) != 'undefined') {
-    return JSON.parse(localStorage.getItem(key))
+    return localStorage.getItem(key)
   }
 }
 
@@ -83,7 +92,7 @@ export const getDaiWithSigner = (address, abi) => {
 }
 
 export const getContract = (provider, address, abi = TOKEN_ABI, ) => {
-  const web3 = new Web3(provider)
+  const web3 = new Web3(window.ethereum)
   const contract = new web3.eth.Contract(
     abi,
     address,
@@ -117,7 +126,6 @@ export const getBalance = async (  provider, tokenAddress, userAddress ) => {
 // spender: from router
 export const allowance = async ({ spender, provider, tokenAddress,accounts }) => {
   let account = accounts || localStorage.getItem('account')
-  console.log(spender, provider, tokenAddress, account, 'allowance====')
   const lpContract = getContract(provider, tokenAddress)
   try {
     const res = await lpContract.methods
@@ -127,5 +135,25 @@ export const allowance = async ({ spender, provider, tokenAddress,accounts }) =>
   } catch (error) {
     console.warn(error)
     return false
+  }
+}
+
+// tokenAddress :from token
+// provider: from provider
+// abi: tokenAbi
+// spender: from router
+export const approve = async ({ spender, provider, tokenAddress, accounts }) => {
+  console.log(spender, provider, tokenAddress, accounts, 'approve=====')
+  const lpContract = getContract(provider, tokenAddress)
+  try {
+    const amount = numberToHex('115792089237316195423570985008687907853269984665640564039457584007913129639935')
+    const res = await lpContract.methods
+      .approve(spender,amount)
+      .send({ from: accounts })
+    console.log(res, 'approve-----')
+    return res
+  } catch (error) {
+    console.log(error, '===erro2')
+    throw error
   }
 }

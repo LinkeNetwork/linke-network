@@ -352,7 +352,8 @@ export default function Chat() {
         block,
         index,
         chatText,
-        room
+        room,
+        _type
       }
     }
     `
@@ -498,7 +499,8 @@ export default function Chat() {
         block,
         chatText,
         room,
-        index
+        index,
+        _type
       }
     }
     `
@@ -695,6 +697,48 @@ export default function Chat() {
     )
     return encryptedMessage
   }
+  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity) => {
+    const type_ = currentBonusType === 'Random Amount' ? 2 : 1
+    const address = giveAwayAddress
+    const total = ethers.utils.parseEther(totalAmount)
+    console.log(total, 'total====')
+    console.log(currentAddress,selectTokenAddress, total, quantity, type_, 'handleSend')
+    const tx = await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_)
+    console.log(tx, '====tx===')
+    setShowMask(true)
+    setShowAwardBonus(false)
+    handleGiveAway(tx)
+    let callback = await tx.wait()
+    setShowAwardBonus(false)
+    console.log(callback, 'callback====')
+    const index = chatList?.findIndex((item) => item.id.toLowerCase() == callback?.transactionHash?.toLowerCase())
+    chatList[index].isSuccess = true
+    console.log(chatList, 'chatList=====>>>')
+    setShowMask(false)
+  }
+  const handleGiveAway = (tx) => {
+    console.log(tx)
+    if(currentTabIndex === 0 ) {
+      var newChat = {
+        id: tx.hash,
+        block: 0,
+        transaction: tx.hash,
+        sender: myAddress,
+        position: true,
+        hasDelete: false,
+        isSuccess: false,
+        showProfile: false,
+        showOperate: false,
+        avatar: myAvatar,
+        _type: 'Giveaway'
+      }
+      if(chatList.length > 0) {
+        chatList.unshift(newChat)
+      } else {
+        chatList.push(newChat)
+      }
+    }
+  }
   const startChat = async (chatText) => {
     setSendSuccess(false)
     try {
@@ -725,13 +769,16 @@ export default function Chat() {
         isSuccess: false,
         showProfile: false,
         showOperate: false,
-        avatar: myAvatar
+        avatar: myAvatar,
+        _type: 'msg'
       }
       if(chatList.length > 0) {
         chatList.unshift(newChat)
       } else {
         chatList.push(newChat)
       }
+      console.log(chatList, 'chatList===2==>>>')
+      // setChatList(chatList)
       getMemberList(currentAddress, chatList)
       // setChatList(chatList)
       let callback = await tx.wait()
@@ -871,7 +918,8 @@ export default function Chat() {
             block,
             chatText,
             room,
-            index
+            index,
+            _type
           }
         }
       `
@@ -1136,12 +1184,22 @@ export default function Chat() {
       }
       {
         showAwardBonus && detectMobile() &&
-        <AwardBonus handleCloseAward={() => { setShowAwardBonus(false) }} currentAddress={currentAddress}></AwardBonus>
+        <AwardBonus
+          handleCloseAward={() => { setShowAwardBonus(false) }}
+          currentAddress={currentAddress}
+          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity)}}
+          handleGiveAway={(tx) => {handleGiveAway(tx)}}
+        ></AwardBonus>
       }
       {
         !detectMobile() &&
         <Modal title="Award Bonus" visible={showAwardBonus} onClose={handleCloseAward}>
-          <AwardBonus handleCloseAward={() => { setShowAwardBonus(false) }} currentAddress={currentAddress}></AwardBonus>
+          <AwardBonus
+            handleCloseAward={() => { setShowAwardBonus(false) }}
+            currentAddress={currentAddress}
+            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity)}}
+            handleGiveAway={(tx) => {handleGiveAway(tx)}}
+          ></AwardBonus>
         </Modal>
       }
 

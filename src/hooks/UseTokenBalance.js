@@ -3,13 +3,14 @@ import BigNumber from 'bignumber.js'
 import { useState } from 'react'
 import useGlobal from './useGlobal'
 import { ethers } from "ethers"
-import { getBalanceNumber, getLocal, getBalance, allowance } from '../utils'
+import { getBalanceNumber, getLocal, getBalance, allowance, approve } from '../utils'
 export default function UseTokenBalance() {
-  const { accounts, giveAwayAddress } = useGlobal()
+  const { accounts, giveAwayAddress, setButtonText } = useGlobal()
   const [authorization, setAuthorization] = useState(false)
   const [poolBalance,setPoolBalance] = useState(0)
+  const [approveLoading, setApproveLoading] = useState(false)
   const [hasGetTokenList, setHasGetTokenList] = useState(false)
-
+  const [isApprove, setIsApprove] = useState(true)
   const [tokenList, setTokenList] = useState([])
   const getTokenBalance = async(item, arr, index) => {
     const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
@@ -45,5 +46,29 @@ export default function UseTokenBalance() {
     setAuthorization(allowanceResult)
     return allowanceResult
   }
-  return { poolBalance, tokenList, getTokenBalance, authorization, getAuthorization }
+
+  const approveActions = async (from) => {
+    try {
+      setApproveLoading(true)
+      setButtonText('APPROVE_ING')
+      const res = await approve({
+          provider: new Web3.providers.HttpProvider("https://rpc.etherfair.org"),
+          tokenAddress: from.address,
+          spender: giveAwayAddress,
+          accounts
+      })
+      console.log('Approve result ======', res)
+      setAuthorization(true)
+      setApproveLoading(false)
+      setIsApprove(res)
+    } catch (error) {
+      console.log(error, '====error')
+      setAuthorization(false)
+      throw error
+    } finally {
+      setApproveLoading(false)
+    }
+}
+
+  return { poolBalance, tokenList, getTokenBalance, authorization, getAuthorization, approveActions, approveLoading }
 }

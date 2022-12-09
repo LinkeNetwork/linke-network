@@ -13,5 +13,11 @@ export default function actions(state, dispatch) {
         payload
       })
     },
+    setButtonText(payload) {
+      dispatch({
+        type: 'SET_BUTTON_TEXT',
+        payload
+      })
+    }
   }
 }
