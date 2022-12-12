@@ -13,6 +13,7 @@ import packetImg from '../../assets/images/packet.svg'
 export default function ChatContext(props) {
   const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive } = props
   // const [chatLists, setChatLists] = useState(chatList)
+  console.log(chatList, 'chatList-======')
   const { setState } = useGlobal()
   const [showViewBtn, setShowViewBtn] = useState(false)
   const [showOperate, setShowOperate] = useState(false)
@@ -204,7 +205,7 @@ export default function ChatContext(props) {
                     }
                     {
                       v._type === 'Giveaway' &&
-                      <div className="red-packet-wrap" onClick={(e, v) => {handleReceive(e, v.chatText)}}>
+                      <div className="red-packet-wrap" onClick={() => handleReceive(v) }>
                         <div className="red-packet-content">
                           <img src={packetImg} alt="" style={{ 'width': '40px' }} />
                           <span>Best wishes</span>

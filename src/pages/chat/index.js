@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import './chat.scss'
 import 'emoji-mart/css/emoji-mart.css'
+import BigNumber from 'bignumber.js'
 import Loading from '../../component/Loading'
 import ListGroup from './GroupList'
 import { createClient, debugExchange } from 'urql'
@@ -46,6 +47,7 @@ export default function Chat() {
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentAddress, setCurrentAddress] = useState()
   const currentAddressRef = useRef(null)
+  const [currentRedEnvelopId, setCurrentRedEnvelopId] = useState()
   const [memberCount, setMemberCount] = useState()
   const [myAddress, setMyAddress] = useState()
   const [showRedEnvelope, setShowRedEnvelope] = useState(false)
@@ -710,10 +712,14 @@ export default function Chat() {
     handleGiveAway(tx)
     let callback = await tx.wait()
     setShowAwardBonus(false)
+    const id = callback?.events[3]?.args?.id
     console.log(callback, 'callback====handleSend')
+    console.log(id, (new BigNumber(Number(id))).toNumber(), 'callback====id')
     const index = chatList?.findIndex((item) => item.id.toLowerCase() == callback?.transactionHash?.toLowerCase())
     chatList[index].isSuccess = true
-    console.log(chatList, 'chatList=====>>>')
+    chatList[index].block = callback?.blockNumber
+    chatList[index].chatText = (new BigNumber(Number(id))).toNumber()
+    console.log(chatList, 'chatList=====>>>1')
     setShowMask(false)
   }
   const handleGiveAway = (tx) => {
@@ -994,7 +1000,8 @@ export default function Chat() {
     }
     // insertData(currentList)
   }
-  const handleReceive = async() => {
+  const handleReceive = (v) => {
+    setCurrentRedEnvelopId(v?.chatText)
     setShowRedEnvelope(true)
   }
   const getMemberList = async(roomAddress, chatList) => {
@@ -1128,8 +1135,8 @@ export default function Chat() {
     setState({
       showOpen: false
     })
-    console.log(giveAwayAddress, id, 'giveAwayAddress===')
-    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).receive(id)
+    console.log(giveAwayAddress, currentRedEnvelopId, 'giveAwayAddress===')
+    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).receive(currentRedEnvelopId)
     console.log(tx, 'handleReceiveConfirm====')
     const callback = await tx.wait()
     console.log(callback, 'handleReceiveConfirm====callback')
@@ -1346,7 +1353,7 @@ export default function Chat() {
                           currentTabIndex={currentTabIndex}
                           sendSuccess={sendSuccess}
                           hasToBottom={hasToBottom}
-                          handleReceive={handleReceive}
+                          handleReceive={(e, v) => handleReceive(e, v)}
                           loadingData={() => loadingData()}
                           handleDecryptedMessage={(id, text) => handleDecryptedMessage(id, text)}
                           shareInfo={(e, v) => shareInfo(e, v)}
