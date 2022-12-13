@@ -205,10 +205,16 @@ export default function ChatContext(props) {
                     }
                     {
                       v._type === 'Giveaway' &&
-                      <div className="red-packet-wrap" onClick={() => handleReceive(v) }>
+                      <div className={`red-packet-wrap ${v.isOpen ? 'red-packet-wrap-opened' : ''}`} onClick={() => handleReceive(v) }>
                         <div className="red-packet-content">
                           <img src={packetImg} alt="" style={{ 'width': '40px' }} />
-                          <span>Best wishes</span>
+                          <div>
+                            <span>Best wishes</span>
+                            {
+                              v.isOpen && 
+                              <div className="open-tags">Opened</div>
+                            }
+                          </div>
                           {
                             !v.isSuccess &&
                             <span className='iconfont icon-loading'></span>

@@ -298,6 +298,7 @@ export default function GroupList(props) {
         const privateRooms = account ? account['privateRooms'] : []
         if(currentTabIndex === 0) {
           if(!publicRooms?.length || hasCreateRoom || hasQuitRoom) {
+            console.log(hasCreateRoom, 'hasCreateRoom===')
             getGroupList()
           } else {
             const groupList = [...publicRooms]

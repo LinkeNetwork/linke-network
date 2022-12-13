@@ -116,6 +116,7 @@ export default function AwardBonus(props) {
     }
   }, [authorization])
   useEffect(() => {
+    console.log(approveLoading, 'approveLoading=====>>>>')
     if(approveLoading) {
       setCanSend(false)
       setBtnText('APPROVE_ING')

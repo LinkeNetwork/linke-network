@@ -17,6 +17,7 @@ import useDataBase from '../../hooks/useDataBase'
 import useUnConnect from '../../hooks/useUnConnect'
 import ShareGroupCode from './ShareGroupCode'
 import AwardBonus from './AwardBonus'
+import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
 import { detectMobile, throttle } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
@@ -38,6 +39,7 @@ export default function Chat() {
   const { collection, setDataBase } = useDataBase()
   const history = useHistory()
   const { getGroupMember } = useGroupMember()
+  const [clickNumber, setClickNumber] = useState(0)
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
@@ -46,6 +48,7 @@ export default function Chat() {
   const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentAddress, setCurrentAddress] = useState()
+  const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
   const currentAddressRef = useRef(null)
   const [currentRedEnvelopId, setCurrentRedEnvelopId] = useState()
   const [memberCount, setMemberCount] = useState()
@@ -715,6 +718,7 @@ export default function Chat() {
     const id = callback?.events[3]?.args?.id
     console.log(callback, 'callback====handleSend')
     console.log(id, (new BigNumber(Number(id))).toNumber(), 'callback====id')
+    console.log(chatList, 'chatList=====>>>top')
     const index = chatList?.findIndex((item) => item.id.toLowerCase() == callback?.transactionHash?.toLowerCase())
     chatList[index].isSuccess = true
     chatList[index].block = callback?.blockNumber
@@ -737,12 +741,13 @@ export default function Chat() {
         showProfile: false,
         showOperate: false,
         avatar: myAvatar,
-        _type: 'Giveaway'
+        _type: 'Giveaway',
+        isOpen: false
       }
-      if(chatList.length > 0) {
+      if(chatList?.length > 0) {
         chatList.unshift(newChat)
       } else {
-        chatList.push(newChat)
+        chatList?.push(newChat)
       }
     }
   }
@@ -779,7 +784,7 @@ export default function Chat() {
         avatar: myAvatar,
         _type: 'msg'
       }
-      if(chatList.length > 0) {
+      if(chatList?.length > 0) {
         chatList.unshift(newChat)
       } else {
         chatList.push(newChat)
@@ -1000,8 +1005,23 @@ export default function Chat() {
     }
     // insertData(currentList)
   }
-  const handleReceive = (v) => {
+  const handleReceive = async(v) => {
+    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(v?.chatText, getLocal('account'))
+    const isReceived = (new BigNumber(Number(tx))).toNumber()
+    v.isOpen = true
+    const db = await setDataBase()
+    const collection = db?.collection('chatInfos')
+    collection?.findOne({ id: v.id }).then((doc) => {
+      if (doc) {
+        collection.update({ id: v.id }, { $set: v })
+      }
+    }).catch(error => {
+      console.log(error)
+    })
+    setClickNumber(clickNumber+1)
+    if(!hasAccess || isReceived === 1) return
     setCurrentRedEnvelopId(v?.chatText)
+    setCurrentRedEnvelopTransaction(v?.transaction)
     setShowRedEnvelope(true)
   }
   const getMemberList = async(roomAddress, chatList) => {
@@ -1021,6 +1041,7 @@ export default function Chat() {
             showProfile: false,
             position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
             showOperate: false,
+            isOpen: false
           }
           Object.assign(item, params)
           return item
@@ -1029,6 +1050,7 @@ export default function Chat() {
             hasDelete: false,
             isSuccess: true,
             showProfile: false,
+            isOpen: false,
             position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
             showOperate: false,
           }
@@ -1124,12 +1146,12 @@ export default function Chat() {
   }, [currentChain])
   const handleAwardBonus = async() => {
     const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddress)
-    if(!Boolean(res)) {
+    if(!Boolean(res?.state)) {
       setShowOpenAward(true)
     } else {
       setShowAwardBonus(true)
     }
-    console.log(res, 'handleAwardBonus====>>>>')
+    console.log(res, res?.state, 'handleAwardBonus====>>>>')
   }
   const handleReceiveConfirm = async(e, id) => {
     setState({
@@ -1138,8 +1160,18 @@ export default function Chat() {
     console.log(giveAwayAddress, currentRedEnvelopId, 'giveAwayAddress===')
     const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).receive(currentRedEnvelopId)
     console.log(tx, 'handleReceiveConfirm====')
+    setState({
+      showOpen: true
+    })
     const callback = await tx.wait()
-    console.log(callback, 'handleReceiveConfirm====callback')
+    setState({
+      showReceiveBtn: false
+    })
+    const amount = callback?.events[1]?.args?.id
+    const receiveAmount = (new BigNumber(Number(amount))).toNumber()
+    const index = chatList?.findIndex(item => item.transaction == currentRedEnvelopTransaction)
+    chatList[index].isOpen = true
+    console.log(callback, receiveAmount, index, 'handleReceiveConfirm====callback')
   }
   const handleOpenAward = async() => {
     console.log(giveAwayAddress, currentAddress, 'currentAddress=2')
@@ -1190,6 +1222,11 @@ export default function Chat() {
       {
         showRedEnvelope &&
         <RedEnvelopeCover handleCloseRedEnvelope={() => {setShowRedEnvelope(false)}} handleReceiveConfirm={(e, id) => {handleReceiveConfirm(e, id)}}></RedEnvelopeCover>
+      }
+      {
+        // <Modal onClose={() => { setShowOpenAward(false) }}>
+          <ReceiveInfo currentRedEnvelopId={currentRedEnvelopId}></ReceiveInfo>
+        // </Modal>
       }
       {
         showOpenAward &&

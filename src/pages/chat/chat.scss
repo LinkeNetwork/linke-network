@@ -779,6 +779,17 @@ ul.dropdown-menu {
     color: #fff;
     font-size: 16px;
   }
+  &-opened {
+    opacity: 0.6;
+  }
+  .red-packet-content {
+    display: flex;
+    align-items: center;
+  }
+  .open-tags {
+    font-size: 12px;
+    color: #fff;
+  }
 }
 @media (min-width: 992px){
 .d-lg-none {

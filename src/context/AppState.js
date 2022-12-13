@@ -21,9 +21,10 @@ const state = {
   clientInfo: null,
   showHeader: true,
   currentTokenBalance: '',
-  giveAwayAddress: '0xe9FE40002E008a72DA6c88d20dC9F38656dF4315',
+  giveAwayAddress: '0x8281236725980eFA2E26e0a12Dc2F28F689f8e58',
   currentChain: '',
   showOpen: false,
+  showReceiveBtn: true,
   currentChatInfo: {}
 }
 
