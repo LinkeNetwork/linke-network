@@ -53,6 +53,7 @@ export default function Chat() {
   const [currentRedEnvelopId, setCurrentRedEnvelopId] = useState()
   const [memberCount, setMemberCount] = useState()
   const [myAddress, setMyAddress] = useState()
+  const [showReceiveInfo, setShowReceiveInfo] = useState(false)
   const [showRedEnvelope, setShowRedEnvelope] = useState(false)
   const [currentRoomName, setCurrentRoomName] = useState()
   const [hasAccess, setHasAccess] = useState()
@@ -1164,9 +1165,8 @@ export default function Chat() {
       showOpen: true
     })
     const callback = await tx.wait()
-    setState({
-      showReceiveBtn: false
-    })
+    setShowRedEnvelope(false)
+    setShowReceiveInfo(true)
     const amount = callback?.events[1]?.args?.id
     const receiveAmount = (new BigNumber(Number(amount))).toNumber()
     const index = chatList?.findIndex(item => item.transaction == currentRedEnvelopTransaction)
@@ -1224,9 +1224,8 @@ export default function Chat() {
         <RedEnvelopeCover handleCloseRedEnvelope={() => {setShowRedEnvelope(false)}} handleReceiveConfirm={(e, id) => {handleReceiveConfirm(e, id)}}></RedEnvelopeCover>
       }
       {
-        // <Modal onClose={() => { setShowOpenAward(false) }}>
-          <ReceiveInfo currentRedEnvelopId={currentRedEnvelopId}></ReceiveInfo>
-        // </Modal>
+        // showReceiveInfo &&
+        <ReceiveInfo currentRedEnvelopId={currentRedEnvelopId}></ReceiveInfo>
       }
       {
         showOpenAward &&
