@@ -21,7 +21,7 @@ const state = {
   clientInfo: null,
   showHeader: true,
   currentTokenBalance: '',
-  giveAwayAddress: '0x8281236725980eFA2E26e0a12Dc2F28F689f8e58',
+  giveAwayAddress: '0x5413cDd5c8194774F4d7170d05598E29933240CD',
   currentChain: '',
   showOpen: false,
   showReceiveBtn: true,

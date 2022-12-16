@@ -1,24 +1,53 @@
 import styled from "styled-components"
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import useGlobal from "../../hooks/useGlobal"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { ethers } from "ethers";
+import { getLocal } from '../../utils'
+import Image from "../../component/Image"
 export default function ReceiveInfo(props) {
-  const { currentRedEnvelopId } = props
+  const { currentRedEnvelopId, handleCloseReceiveInfo } = props
+  const [receivedInfo, setReceivedInfo] = useState()
+  const [profileInfo, setProfileInfo] = useState()
+  const [receiveList, setReceiveList] = useState([])
+  const [receivedAmount, setReceivedAmount] = useState()
   const { clientInfo } = useGlobal()
   const getReceiveInfo = async() => {
     const tokensQuery = `
     query{
-      giveawayReceive(id: "`+  currentRedEnvelopId + `"){
-        id,
+      giveaways(where: {id: "`+  currentRedEnvelopId + `"}){
         sender,
-        count,
         amount,
-        profile
+        profile {
+          name,
+          avatar
+        }
+        receiveProfile{
+          id,
+          gid,
+          sender,
+          count,
+          amount,
+          profile{
+            name, 
+            avatar
+          }
+        }
       }
     }
     `
     const res = await clientInfo?.query(tokensQuery).toPromise()
     console.log(res, '=====>>>.')
+    const receivedInfo = res?.data?.giveaways[0]
+    setReceivedInfo(receivedInfo)
+    const profileInfo = receivedInfo?.profile
+    setProfileInfo(profileInfo)
+    const receiveList = receivedInfo?.receiveProfile
+    const item = receiveList.filter(i=> i?.sender?.toLowerCase() === getLocal('account')?.toLowerCase())[0]
+    const amount = ethers.utils.formatUnits(item?.amount, 18)
+    console.log(receiveList, 'receiveList======')
+    setReceiveList(receiveList)
+    setReceivedAmount(amount)
   }
   useEffect(() => {
     getReceiveInfo()
@@ -28,20 +57,36 @@ export default function ReceiveInfo(props) {
       <div className="receive-wrapper">
       <div className="top-cover"></div>
       <div className="sender-info">
-        {/* <Jazzicon address={currentAddress} className="group-image" /> */}
-        <span>Send by</span><span className="sender-name"></span>
-        <div className="wishes-text">Best wishes</div>
-        <div className="receive-num"></div>
+        {
+          <Image src={profileInfo?.avatar} size={30} style={{ margin: '0 4px'}}/>
+          // profileInfo?.avatar
+          // ? <Image src={profileInfo?.avatar} size={40} style={{ margin: 0}}/>
+          // : <Jazzicon address={receivedInfo?.sender} className="avatar-image"/>
+        }
+        <span>Send by</span><span className="sender-name">{profileInfo?.name}</span>
       </div>
-      <div className="receive-list">
-        <div className="receive-list-item">
-          <div className="left">
-            <span className="avatar"></span>
-            <span className="name"></span>
-          </div>
-          <div className="right"></div>
-        </div>
+      <div className="wishes-text">Best wishes</div>
+      <div className="receive-num">{receivedAmount}</div>
+      <div className="divider"></div>
+      {
+        receiveList.map((item,index)=> {
+          return(
+            <div className="receive-list" key={index}>
+              <div className="receive-list-item">
+                <div className="left">
+                  <Image src={item?.profile?.avatar} size={30} style={{ margin: '0 4px'}}/>
+                  {/* <span className="avatar">{item?.profile?.avatar}</span> */}
+                  <span className="name">{item?.profile?.name}</span>
+                </div>
+                <div className="right">{ethers.utils.formatUnits(item?.amount, 18)}</div>
+              </div>
+            </div>
+          )
+        })
+      }
       </div>
+      <div className="close-btn" onClick={handleCloseReceiveInfo}>
+        <span className="iconfont icon-guanbi"></span>
       </div>
     </ReceiveInfoContanier>
   )
@@ -77,6 +122,59 @@ transition: 0.4s;
   border-radius: 0 0 185px 185px;
   width: 420px;
   height: 80px;
-  margin-left: -30px;
+  margin: 0 0 30px -30px;
+}
+.close-btn {
+  bottom: 90px;
+  cursor: pointer;
+  left: 50%;
+  margin-left: -20px;
+  color: rgb(230,206,160);
+  border: 1px solid rgb(230,206,160);
+  border-radius: 50%;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .icon-guanbi {
+    right: inherit;
+    top: inherit;
+  }
+}
+.sender-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sender-name {
+  font-weight: bold;
+  margin-left: 10px;
+  font-size: 16px;
+}
+.wishes-text {
+  text-align: center;
+  margin: 6px 0 10px;
+  font-size: 14px;
+  color: #666;
+}
+.receive-num{
+  text-align: center;
+  font-weight: bold;
+  margin: 10px 0;
+  font-size: 36px;
+  color: rgb(230,206,160);
+}
+.receive-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin: 20px 0;
+  .left {
+    display: flex;
+    align-items: center;
+  }
 }
 `

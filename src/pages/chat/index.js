@@ -708,8 +708,10 @@ export default function Chat() {
     const address = giveAwayAddress
     const total = ethers.utils.parseEther(totalAmount)
     console.log(total, 'total====')
-    console.log(currentAddress,selectTokenAddress, total, quantity, type_, 'handleSend')
-    const tx = await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_)
+    console.log(currentAddress,selectTokenAddress, selectTokenAddress === 0, total, quantity, type_, 'handleSend')
+    const tx = selectTokenAddress == 0 
+                ? await getDaiWithSigner(address, RED_PACKET).sendETH(currentAddress, total, quantity, type_)
+                : await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_)
     console.log(tx, '====tx===')
     setShowMask(true)
     setShowAwardBonus(false)
@@ -1020,8 +1022,12 @@ export default function Chat() {
       console.log(error)
     })
     setClickNumber(clickNumber+1)
-    if(!hasAccess || isReceived === 1) return
+    console.log(isReceived, currentRedEnvelopId, 'isReceived=====')
     setCurrentRedEnvelopId(v?.chatText)
+    if(isReceived === 1) {
+      setShowReceiveInfo(true)
+    }
+    if(!hasAccess || isReceived === 1) return
     setCurrentRedEnvelopTransaction(v?.transaction)
     setShowRedEnvelope(true)
   }
@@ -1171,6 +1177,9 @@ export default function Chat() {
     const receiveAmount = (new BigNumber(Number(amount))).toNumber()
     const index = chatList?.findIndex(item => item.transaction == currentRedEnvelopTransaction)
     chatList[index].isOpen = true
+    setState({
+      showOpen: false
+    })
     console.log(callback, receiveAmount, index, 'handleReceiveConfirm====callback')
   }
   const handleOpenAward = async() => {
@@ -1224,8 +1233,8 @@ export default function Chat() {
         <RedEnvelopeCover handleCloseRedEnvelope={() => {setShowRedEnvelope(false)}} handleReceiveConfirm={(e, id) => {handleReceiveConfirm(e, id)}}></RedEnvelopeCover>
       }
       {
-        // showReceiveInfo &&
-        <ReceiveInfo currentRedEnvelopId={currentRedEnvelopId}></ReceiveInfo>
+        showReceiveInfo &&
+        <ReceiveInfo currentRedEnvelopId={currentRedEnvelopId}  handleCloseReceiveInfo={() => {setShowReceiveInfo(false)}} ></ReceiveInfo>
       }
       {
         showOpenAward &&

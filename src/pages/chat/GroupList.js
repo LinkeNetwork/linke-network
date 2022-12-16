@@ -332,7 +332,7 @@ export default function GroupList(props) {
         console.log(error, 'error===')
       })
     }
-  }, [accounts, chainId, newGroupList, currentTabIndex])
+  }, [accounts, chainId, newGroupList, currentTabIndex, hasCreateRoom])
   useEffect(() => {
     if((!getLocal('isConnect') || !chainId) && !clientInfo) {
       setGroupList([])
