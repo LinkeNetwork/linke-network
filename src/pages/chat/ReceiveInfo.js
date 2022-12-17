@@ -4,6 +4,7 @@ import useGlobal from "../../hooks/useGlobal"
 import { useEffect, useState } from "react"
 import { ethers } from "ethers";
 import { getLocal } from '../../utils'
+import { tokenListInfo } from '../../constant/tokenList'
 import Image from "../../component/Image"
 export default function ReceiveInfo(props) {
   const { currentRedEnvelopId, handleCloseReceiveInfo } = props
@@ -11,12 +12,14 @@ export default function ReceiveInfo(props) {
   const [profileInfo, setProfileInfo] = useState()
   const [receiveList, setReceiveList] = useState([])
   const [receivedAmount, setReceivedAmount] = useState()
+  const [receiveSymbol, setReceiveSymbol] = useState()
   const { clientInfo } = useGlobal()
   const getReceiveInfo = async() => {
     const tokensQuery = `
     query{
       giveaways(where: {id: "`+  currentRedEnvelopId + `"}){
         sender,
+        token,
         amount,
         content,
         profile {
@@ -43,11 +46,14 @@ export default function ReceiveInfo(props) {
     setReceivedInfo(receivedInfo)
     const profileInfo = receivedInfo?.profile
     setProfileInfo(profileInfo)
+    const list = [...tokenListInfo]
+    var newList = list.filter(item => item.address.toUpperCase().includes(receivedInfo?.token.toUpperCase()))[0]
+    setReceiveSymbol(newList?.symbol)
     const receiveList = receivedInfo?.receiveProfile
     const item = receiveList.filter(i=> i?.sender?.toLowerCase() === getLocal('account')?.toLowerCase())[0]
     const amount = ethers.utils.formatUnits(item?.amount, 18)
 
-    console.log(receiveList, 'receiveList======')
+    console.log(receiveList, 'receiveList======', newList)
     setReceiveList(receiveList)
     setReceivedAmount(amount)
   }
@@ -85,7 +91,7 @@ export default function ReceiveInfo(props) {
                   {/* <span className="avatar">{item?.profile?.avatar}</span> */}
                   <span className="name">{item?.profile?.name}</span>
                 </div>
-                <div className="right">{ethers.utils.formatUnits(item?.amount, 18)}</div>
+                <div className="right">{ethers.utils.formatUnits(item?.amount, 18)}<span className="symbol">{receiveSymbol}</span></div>
               </div>
             </div>
           )
@@ -183,5 +189,10 @@ transition: 0.4s;
     display: flex;
     align-items: center;
   }
+}
+.symbol {
+  color: #666;
+  font-size: 12px;
+  margin-left: 2px;
 }
 `
