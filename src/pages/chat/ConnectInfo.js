@@ -36,7 +36,7 @@ export default function ConnectInfo(props) {
             <h3>{formatAddress(account)}</h3>
             <div className="f-c connect-bar">
               <CopyButton toCopy={account}>copy Address</CopyButton>
-              {/* <div onClick={handleClearCache}>Clear Cache</div> */}
+              <div onClick={handleClearCache} className="clear-btn">Clear Cache</div>
             </div>
           </div>
         </div>
@@ -57,5 +57,11 @@ margin-bottom: 10px;
 h4 {
   color: #888;
   font-size: 12px;
+}
+.clear-btn {
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
 }
 `

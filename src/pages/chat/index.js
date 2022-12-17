@@ -710,8 +710,8 @@ export default function Chat() {
     const total = ethers.utils.parseEther(totalAmount)
     console.log(total, 'total====')
     console.log(currentAddress,selectTokenAddress, selectTokenAddress === 0, total, quantity, type_, 'handleSend')
-    const tx = selectTokenAddress == 0 
-                ? await getDaiWithSigner(address, RED_PACKET).sendETH(currentAddress, total, quantity, type_)
+    const tx = selectTokenAddress == 0
+                ? await getDaiWithSigner(address, RED_PACKET).sendETH(currentAddress, total, quantity, type_,{value:total})
                 : await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_)
     console.log(tx, '====tx===')
     setShowMask(true)
