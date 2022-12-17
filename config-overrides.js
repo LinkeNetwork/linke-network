@@ -14,7 +14,7 @@ module.exports = {
       config.devtool =
         config.mode === "development" ? "cheap-module-source-map" : false;
       if (process.env.NODE_ENV === "production") {
-        config.plugins = [...config.plugins, ...selfPlugins];
+        config.plugins = [...config.plugins];
       }
       let loaders = config.module.rules.find((rule) =>
         Array.isArray(rule.oneOf)
