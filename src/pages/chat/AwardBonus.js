@@ -194,7 +194,7 @@ export default function AwardBonus(props) {
           <div>{amountText}</div>
         </div>
         <div className="amount-wrapper">
-          <input placeholder="Best Wishes" defaultValue={wishesText} onChange={(e) => {setWishesText(e.target.value)}}/>
+          <input placeholder="Best Wishes" defaultValue={wishesText} onChange={(e) => {setWishesText(e.target.value)}} maxlength={512}/>
         </div>
       </div>
       <div className="total">{totalAmount}</div>

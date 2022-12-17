@@ -710,8 +710,11 @@ export default function Chat() {
     const total = ethers.utils.parseEther(totalAmount)
     console.log(total, wishesText, 'total====')
     console.log(currentAddress,selectTokenAddress, selectTokenAddress === 0, total, quantity, type_, 'handleSend')
+    if(!wishesText) {
+      wishesText = 'Best Wishes'
+    }
     const tx = selectTokenAddress == 0
-                ? await getDaiWithSigner(address, RED_PACKET).sendETH(currentAddress, total, quantity, type_,{value:total}, wishesText)
+                ? await getDaiWithSigner(address, RED_PACKET).sendETH(currentAddress, total, quantity, type_, wishesText, {value:total})
                 : await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText)
     console.log(tx, '====tx===')
     setShowMask(true)
@@ -731,6 +734,7 @@ export default function Chat() {
       chatList[index].wishesText = wishesText
     } else {
       setChatList([])
+      console.log(chatList, '=====chatList>>>>>')
       chatList[0].isSuccess = true
       chatList[0].block = callback?.blockNumber
       chatList[0].chatText = (new BigNumber(Number(id))).toNumber()
@@ -1059,7 +1063,8 @@ export default function Chat() {
             showProfile: false,
             position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
             showOperate: false,
-            isOpen: false
+            isOpen: false, 
+            wishesText: item.chatText.split('---')[1]
           }
           Object.assign(item, params)
           return item
@@ -1071,6 +1076,7 @@ export default function Chat() {
             isOpen: false,
             position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
             showOperate: false,
+            wishesText: item.chatText.split('---')[1]
           }
           Object.assign(item, params)
           return item
