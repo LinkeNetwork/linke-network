@@ -18,6 +18,7 @@ export default function ReceiveInfo(props) {
       giveaways(where: {id: "`+  currentRedEnvelopId + `"}){
         sender,
         amount,
+        content,
         profile {
           name,
           avatar
@@ -45,6 +46,7 @@ export default function ReceiveInfo(props) {
     const receiveList = receivedInfo?.receiveProfile
     const item = receiveList.filter(i=> i?.sender?.toLowerCase() === getLocal('account')?.toLowerCase())[0]
     const amount = ethers.utils.formatUnits(item?.amount, 18)
+
     console.log(receiveList, 'receiveList======')
     setReceiveList(receiveList)
     setReceivedAmount(amount)
@@ -65,7 +67,12 @@ export default function ReceiveInfo(props) {
         }
         <span>Send by</span><span className="sender-name">{profileInfo?.name}</span>
       </div>
-      <div className="wishes-text">Best wishes</div>
+      <div className="wishes-text">
+        {
+          receivedInfo?.content ? <span>{receivedInfo?.content}</span> : <span>Best wishes</span>
+        }
+        
+      </div>
       <div className="receive-num">{receivedAmount}</div>
       <div className="divider"></div>
       {

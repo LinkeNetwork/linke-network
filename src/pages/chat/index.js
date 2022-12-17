@@ -704,15 +704,15 @@ export default function Chat() {
     )
     return encryptedMessage
   }
-  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity) => {
+  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText) => {
     const type_ = currentBonusType === 'Random Amount' ? 2 : 1
     const address = giveAwayAddress
     const total = ethers.utils.parseEther(totalAmount)
-    console.log(total, 'total====')
+    console.log(total, wishesText, 'total====')
     console.log(currentAddress,selectTokenAddress, selectTokenAddress === 0, total, quantity, type_, 'handleSend')
     const tx = selectTokenAddress == 0
-                ? await getDaiWithSigner(address, RED_PACKET).sendETH(currentAddress, total, quantity, type_,{value:total})
-                : await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_)
+                ? await getDaiWithSigner(address, RED_PACKET).sendETH(currentAddress, total, quantity, type_,{value:total}, wishesText)
+                : await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText)
     console.log(tx, '====tx===')
     setShowMask(true)
     setShowAwardBonus(false)
@@ -728,10 +728,13 @@ export default function Chat() {
       chatList[index].isSuccess = true
       chatList[index].block = callback?.blockNumber
       chatList[index].chatText = (new BigNumber(Number(id))).toNumber()
+      chatList[index].wishesText = wishesText
     } else {
+      setChatList([])
       chatList[0].isSuccess = true
       chatList[0].block = callback?.blockNumber
       chatList[0].chatText = (new BigNumber(Number(id))).toNumber()
+      chatList[0].wishesText = wishesText
     }
     console.log(chatList, 'chatList=====>>>1')
     setShowMask(false)
@@ -752,7 +755,8 @@ export default function Chat() {
         showOperate: false,
         avatar: myAvatar,
         _type: 'Giveaway',
-        isOpen: false
+        isOpen: false,
+        wishesText: ''
       }
       if(chatList?.length > 0) {
         chatList.unshift(newChat)
@@ -1257,7 +1261,7 @@ export default function Chat() {
         <AwardBonus
           handleCloseAward={() => { setShowAwardBonus(false) }}
           currentAddress={currentAddress}
-          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity)}}
+          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText)}}
           handleGiveAway={(tx) => {handleGiveAway(tx)}}
         ></AwardBonus>
       }
@@ -1267,7 +1271,7 @@ export default function Chat() {
           <AwardBonus
             handleCloseAward={() => { setShowAwardBonus(false) }}
             currentAddress={currentAddress}
-            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity)}}
+            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText)}}
             handleGiveAway={(tx) => {handleGiveAway(tx)}}
           ></AwardBonus>
         </Modal>

@@ -209,7 +209,10 @@ export default function ChatContext(props) {
                         <div className="red-packet-content">
                           <img src={packetImg} alt="" style={{ 'width': '40px' }} />
                           <div>
-                            <span>Best wishes</span>
+                            {
+                              v.wishesText ? <span>{v.wishesText}</span> : <span>Best wishes</span>
+                            }
+                            
                             {
                               v.isOpen && 
                               <div className="open-tags">Opened</div>

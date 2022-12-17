@@ -26,6 +26,7 @@ export default function AwardBonus(props) {
   const [tokenBalance, setTokenBalance] = useState('')
   const [selectTokenAddress, setSelectTokenAddress] = useState('')
   const [tokenLogo, setTokenLogo] = useState('')
+  const [wishesText, setWishesText] = useState()
   const [canSend, setCanSend] = useState(false)
   const [btnText, setBtnText] = useState('Send')
   const amountRef = useRef()
@@ -37,7 +38,7 @@ export default function AwardBonus(props) {
     console.log(btnText, 'buttonActions====')
     switch (btnText) {
       case "Send":
-        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity)
+        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText)
         break;
       case "Approve":
         approveActions(selectedTokenInfo)
@@ -193,7 +194,7 @@ export default function AwardBonus(props) {
           <div>{amountText}</div>
         </div>
         <div className="amount-wrapper">
-          <input placeholder="Best Wishes"/>
+          <input placeholder="Best Wishes" defaultValue={wishesText} onChange={(e) => {setWishesText(e.target.value)}}/>
         </div>
       </div>
       <div className="total">{totalAmount}</div>
