@@ -44,6 +44,7 @@ export default function Chat() {
   const allTimer = useRef()
   const messagesEnd = useRef(null)
   const { chainId } = useWallet()
+  const [showChatContent, setShowChatContent] = useState(true)
   const { getclientInfo } = useUnConnect()
   const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
@@ -723,9 +724,15 @@ export default function Chat() {
     console.log(id, (new BigNumber(Number(id))).toNumber(), 'callback====id')
     console.log(chatList, 'chatList=====>>>top')
     const index = chatList?.findIndex((item) => item.id.toLowerCase() == callback?.transactionHash?.toLowerCase())
-    chatList[index].isSuccess = true
-    chatList[index].block = callback?.blockNumber
-    chatList[index].chatText = (new BigNumber(Number(id))).toNumber()
+    if(chatList?.length > 0) {
+      chatList[index].isSuccess = true
+      chatList[index].block = callback?.blockNumber
+      chatList[index].chatText = (new BigNumber(Number(id))).toNumber()
+    } else {
+      chatList[0].isSuccess = true
+      chatList[0].block = callback?.blockNumber
+      chatList[0].chatText = (new BigNumber(Number(id))).toNumber()
+    }
     console.log(chatList, 'chatList=====>>>1')
     setShowMask(false)
   }
@@ -942,7 +949,7 @@ export default function Chat() {
     if (!data?.data?.chatInfos.length) return
     const newList = data?.data?.chatInfos && await getMemberList(roomAddress, data?.data?.chatInfos)
     // const formatList = await getUserAvatar(newList)
-    const list = [...chatListRef?.current]
+    const list = chatListRef ? [...chatListRef.current] : []
     collection.insert(newList, (error) => {
       updateNewList(roomAddress, collection)
       if (error) { throw error; }
@@ -1369,7 +1376,7 @@ export default function Chat() {
                   </ListGroup>
                 </div>
               </div>
-              <div className={`tab-content ${showChat ? 'translate-tab' : ''}`}>
+              <div className={`tab-content ${showChat ? 'translate-tab' : ''} ${ showAwardBonus ? 'display': ''}`}>
                 <div className='tab-pane'>
                   {
                     ((groupLists.length > 0 && currentAddress)) &&

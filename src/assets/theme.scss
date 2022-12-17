@@ -324,6 +324,9 @@ img, svg {
   .translate-tab {
     display: block;
     width: 100%;
+    &.display {
+      display: none;
+    }
     .tab-pane {
       height: 100%;
     }
