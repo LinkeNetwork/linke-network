@@ -1024,7 +1024,8 @@ export default function Chat() {
     // insertData(currentList)
   }
   const handleReceive = async(v) => {
-    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(v?.chatText, getLocal('account'))
+    console.log(v, 'handleReceive====')
+    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(v?.chatText.split('---')[0], getLocal('account'))
     const isReceived = (new BigNumber(Number(tx))).toNumber()
     v.isOpen = true
     const db = await setDataBase()
@@ -1038,7 +1039,7 @@ export default function Chat() {
     })
     setClickNumber(clickNumber+1)
     console.log(isReceived, currentRedEnvelopId, 'isReceived=====')
-    setCurrentRedEnvelopId(v?.chatText)
+    setCurrentRedEnvelopId(v?.chatText.split('---')[0])
     if(isReceived === 1) {
       setShowReceiveInfo(true)
     }
