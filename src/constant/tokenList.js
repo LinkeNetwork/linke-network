@@ -118,5 +118,21 @@ export const tokenListInfo = [
     "symbol": "WETHF",
     "decimals": 18,
     "logoURI": "https://www.gate.io/images/coin_icon/64/ethf.png",
+  },
+  {
+    "chainId": 513100,
+    "address": "0x2282443a094bd107f0c6d0070146b123c4a02013",
+    "name": "HuaFashiye",
+    "symbol": "HF",
+    "decimals": 18,
+    "logoURI": "https://www.gate.io/images/coin_icon/64/ethf.png",
+  },
+  {
+    "chainId": 513100,
+    "address": "0xde3fe799265bbdc0fa87d9ebe35d112887e50279",
+    "name": "FST",
+    "symbol": "FST",
+    "decimals": 18,
+    "logoURI": "https://www.gate.io/images/coin_icon/64/ethf.png",
   }
 ]

@@ -957,7 +957,7 @@ export default function Chat() {
     if (!data?.data?.chatInfos.length) return
     const newList = data?.data?.chatInfos && await getMemberList(roomAddress, data?.data?.chatInfos)
     // const formatList = await getUserAvatar(newList)
-    const list = chatListRef ? [...chatListRef.current] : []
+    const list = chatListRef ? chatListRef.current : []
     collection.insert(newList, (error) => {
       updateNewList(roomAddress, collection)
       if (error) { throw error; }
@@ -1025,7 +1025,8 @@ export default function Chat() {
   }
   const handleReceive = async(v) => {
     console.log(v, 'handleReceive====')
-    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(v?.chatText.split('---')[0], getLocal('account'))
+    const chatText = v?.chatText?.includes('---') ? v?.chatText.split('---')[0] : v?.chatText
+    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(chatText, getLocal('account'))
     const isReceived = (new BigNumber(Number(tx))).toNumber()
     v.isOpen = true
     const db = await setDataBase()
