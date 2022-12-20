@@ -25,7 +25,8 @@ const state = {
   currentChain: '',
   showOpen: false,
   showReceiveBtn: true,
-  currentChatInfo: {}
+  currentChatInfo: {},
+  transactionRoomHash: ''
 }
 
 export default state

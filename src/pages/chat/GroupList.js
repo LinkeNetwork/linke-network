@@ -11,7 +11,7 @@ import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 import useWallet from "../../hooks/useWallet"
 export default function GroupList(props) {
-  const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo } = useGlobal()
+  const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo, transactionRoomHash } = useGlobal()
   const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead, privateChatMember} = props
   const [groupList, setGroupList] = useState([])
   const { chainId, network } = useWallet()
@@ -103,6 +103,7 @@ export default function GroupList(props) {
     let fetchData = await getCurrentGroupInfo(roomAddress)
     if(roomAddress) {
       const index = groupInfos?.findIndex((item) => item.id === roomAddress)
+      console.log(index, roomAddress, '====>findIndex>>')
       if(index === -1 && !hasQuitRoom) {
         groupInfos.push({
           id: roomAddress,
@@ -112,10 +113,11 @@ export default function GroupList(props) {
         })
       }
     }
+    console.log(groupInfos, 'groupInfos=====>>>')
+    setGroupList([...groupInfos] || [])
     setState({
       groupLists: [...groupInfos]
     })
-    setGroupList(groupInfos || [])
     setChatListInfo(groupInfos, 1)
     getCurrentRoomIndex(groupInfos)
     hiddenMask()
@@ -286,7 +288,7 @@ export default function GroupList(props) {
   }
   useEffect(() => {
     updateChatCount()
-  }, [newGroupList, hasChatCount])
+  }, [newGroupList, hasChatCount, hasCreateRoom])
   useEffect(() => {
     if(accounts && chainId) {
       // debugger
@@ -302,6 +304,7 @@ export default function GroupList(props) {
             getGroupList()
           } else {
             const groupList = [...publicRooms]
+            console.log(publicRooms, 'publicRooms======')
             setGroupList(groupList)
             setState({
               groupLists: groupList
@@ -332,7 +335,7 @@ export default function GroupList(props) {
         console.log(error, 'error===')
       })
     }
-  }, [accounts, chainId, newGroupList, currentTabIndex, hasCreateRoom])
+  }, [accounts, chainId, newGroupList, currentTabIndex, hasCreateRoom, transactionRoomHash])
   useEffect(() => {
     if((!getLocal('isConnect') || !chainId) && !clientInfo) {
       setGroupList([])

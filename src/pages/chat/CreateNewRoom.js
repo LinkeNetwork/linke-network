@@ -10,6 +10,7 @@ import { ethers } from "ethers";
 import Select from 'react-select'
 import Message from "../../component/Message"
 import { Buffer } from 'buffer/';
+import { useHistory } from 'react-router-dom'
 
 const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
 const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
@@ -27,6 +28,7 @@ const client = create({
 export default function CreateNewRoom(props) {
   const { setState, currentNetworkInfo } = useGlobal()
   const { createNewRoom, hiddenCreateInfo } = props
+  const history = useHistory()
   const [name, setName] = useState()
   const [shoMask, setShoMask] = useState(false)
   const [describe, setDescribe] = useState('')
@@ -115,9 +117,11 @@ export default function CreateNewRoom(props) {
       const tx = await getDaiWithSigner(currentNetworkInfo?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
       setTransactionHash(tx.hash)
       let callback = await tx.wait()
+      history.push(`/chat/${callback.logs[0].address}`)
       hiddenCreateInfo()
       setState({
-        hasCreateRoom: true
+        hasCreateRoom: true,
+        transactionRoomHash: callback?.transactionHash
       })
       createNewRoom(callback.logs[0].address, name, currentGroupType)
       console.log('callback', callback, callback.logs[0].address)
