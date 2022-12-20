@@ -130,7 +130,7 @@ export const tokenListInfo = [
   {
     "chainId": 513100,
     "address": "0xde3fe799265bbdc0fa87d9ebe35d112887e50279",
-    "name": "FST",
+    "name": "Fitstep",
     "symbol": "FST",
     "decimals": 18,
     "logoURI": "https://www.gate.io/images/coin_icon/64/ethf.png",

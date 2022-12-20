@@ -730,14 +730,14 @@ export default function Chat() {
     if(chatList?.length > 0) {
       chatList[index].isSuccess = true
       chatList[index].block = callback?.blockNumber
-      chatList[index].chatText = (new BigNumber(Number(id))).toNumber()
+      chatList[index].chatText = String((new BigNumber(Number(id))).toNumber())
       chatList[index].wishesText = wishesText
     } else {
       setChatList([])
       console.log(chatList, '=====chatList>>>>>')
       chatList[0].isSuccess = true
       chatList[0].block = callback?.blockNumber
-      chatList[0].chatText = (new BigNumber(Number(id))).toNumber()
+      chatList[0].chatText = String((new BigNumber(Number(id))).toNumber())
       chatList[0].wishesText = wishesText
     }
     console.log(chatList, 'chatList=====>>>1')
@@ -1024,8 +1024,8 @@ export default function Chat() {
     // insertData(currentList)
   }
   const handleReceive = async(v) => {
-    console.log(v, 'handleReceive====')
-    const chatText = v?.chatText?.includes('---') ? v?.chatText.split('---')[0] : v?.chatText
+    console.log(v, typeof v.chatText,'handleReceive====')
+    const chatText = v?.chatText?.indexOf('---') ? v?.chatText.split('---')[0] : v?.chatText
     const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(chatText, getLocal('account'))
     const isReceived = (new BigNumber(Number(tx))).toNumber()
     v.isOpen = true
