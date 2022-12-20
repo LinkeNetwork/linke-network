@@ -22,6 +22,7 @@ export default function ReceiveInfo(props) {
         token,
         amount,
         content,
+        count,
         profile {
           name,
           avatar
@@ -52,10 +53,10 @@ export default function ReceiveInfo(props) {
     const receiveList = receivedInfo?.receiveProfile
     const item = receiveList.filter(i=> i?.sender?.toLowerCase() === getLocal('account')?.toLowerCase())[0]
     const amount = ethers.utils.formatUnits(item?.amount, 18)
-
-    console.log(receiveList, 'receiveList======', newList)
+    
+    console.log(receiveList, receivedInfo?.sender, amount, 'receiveList======', ethers.utils.formatUnits("9970000000000000000000000", 18), newList)
     setReceiveList(receiveList)
-    setReceivedAmount(amount)
+    setReceivedAmount((Math.floor(amount * 10000)/10000))
   }
   useEffect(() => {
     getReceiveInfo()
@@ -66,10 +67,13 @@ export default function ReceiveInfo(props) {
       <div className="top-cover"></div>
       <div className="sender-info">
         {
+          // <Image src={profileInfo?.avatar} size={30} style={{ margin: '0 4px'}}/>
+          profileInfo?.avatar &&
           <Image src={profileInfo?.avatar} size={30} style={{ margin: '0 4px'}}/>
-          // profileInfo?.avatar
-          // ? <Image src={profileInfo?.avatar} size={40} style={{ margin: 0}}/>
-          // : <Jazzicon address={receivedInfo?.sender} className="avatar-image"/>
+        }
+        {
+          receivedInfo?.sender && !profileInfo?.avatar &&
+          <Jazzicon address={receivedInfo?.sender} className="avatar-image"/>
         }
         <span>Send by</span><span className="sender-name">{profileInfo?.name}</span>
       </div>
@@ -81,22 +85,31 @@ export default function ReceiveInfo(props) {
       </div>
       <div className="receive-num">{receivedAmount}</div>
       <div className="divider"></div>
-      {
-        receiveList.map((item,index)=> {
-          return(
-            <div className="receive-list" key={index}>
-              <div className="receive-list-item">
-                <div className="left">
-                  <Image src={item?.profile?.avatar} size={30} style={{ margin: '0 4px'}}/>
-                  {/* <span className="avatar">{item?.profile?.avatar}</span> */}
-                  <span className="name">{item?.profile?.name}</span>
+      <div className="receive-list-wrapper">
+        {
+          receiveList.map((item,index)=> {
+            return(
+              <div className="receive-list" key={index}>
+                <div className="receive-list-item">
+                  <div className="left">
+                    {
+                      item?.profile?.avatar &&
+                      <Image src={item?.profile?.avatar} size={30} style={{ margin: '0 4px'}}/>
+                    }
+                    {/* <span className="avatar">{item?.profile?.avatar}</span> */}
+                    {
+                      item?.sender && !item?.profile?.avatar &&
+                      <Jazzicon address={item?.sender} className="avatar-image"/>
+                    }
+                    <span className="name">{item?.profile?.name}</span>
+                  </div>
+                  <div className="right">{(Math.floor(ethers.utils.formatUnits(item?.amount, 18) * 10000)/10000)}<span className="symbol">{receiveSymbol}</span></div>
                 </div>
-                <div className="right">{ethers.utils.formatUnits(item?.amount, 18)}<span className="symbol">{receiveSymbol}</span></div>
               </div>
-            </div>
-          )
-        })
-      }
+            )
+          })
+        }
+      </div>
       </div>
       <div className="close-btn" onClick={handleCloseReceiveInfo}>
         <span className="iconfont icon-guanbi"></span>
@@ -136,6 +149,10 @@ transition: 0.4s;
   width: 420px;
   height: 80px;
   margin: 0 0 30px -30px;
+}
+.receive-list-wrapper {
+  height: 240px;
+  overflow-y: auto;
 }
 .close-btn {
   bottom: 90px;
@@ -194,5 +211,10 @@ transition: 0.4s;
   color: #666;
   font-size: 12px;
   margin-left: 2px;
+}
+.avatar-image {
+  width: 30px;
+  height: 30px;
+  margin: 0 4px
 }
 `
