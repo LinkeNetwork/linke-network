@@ -39,12 +39,15 @@ export default function Chat() {
   const { collection, setDataBase } = useDataBase()
   const history = useHistory()
   const { getGroupMember } = useGroupMember()
+  const [showReceiveTips, setShowReceiveTips] = useState(false)
+  const skip = 0
   const [clickNumber, setClickNumber] = useState(0)
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
   const { chainId } = useWallet()
   const [showChatContent, setShowChatContent] = useState(true)
+  const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
   const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
@@ -344,7 +347,16 @@ export default function Chat() {
         setShowJoinGroupButton(true)
       }
       setShowMask(false)
-      console.log(hasAccess,  hasAccessRef.current, showJoinGroupButtonRef.current, showJoinGroupButton, showJoinGroupButtonRef.current, Boolean(hasAccess), 'hasAccess======')
+      if(hasAccess && currentRedEnvelopId) {
+        const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(currentRedEnvelopId, getLocal('account'))
+        const isReceived = (new BigNumber(Number(tx))).toNumber()
+        if(!isReceived) {
+          setShowRedEnvelope(true)
+        } else {
+          setShowReceiveTips(true)
+        }
+      }
+      console.log(hasAccess, hasAccessRef.current, showJoinGroupButtonRef.current, showJoinGroupButton, showJoinGroupButtonRef.current, Boolean(hasAccess), 'hasAccess======')
     } catch(error) {
       console.log(error, '===error==')
     }
@@ -592,6 +604,11 @@ export default function Chat() {
     })
     return result
   }
+  const shareToTwitter = (e, v) => {
+    e.stopPropagation()
+    const chatText = v?.chatText?.indexOf('---') ? v?.chatText.split('---')[0] : v?.chatText
+    window.open(`https://twitter.com/intent/tweet?text=https://linke.network/chat/${v.room}/${getLocal('network')}/?${chatText}`)
+  }
   const shareInfo = (e, v) => {
     e.stopPropagation()
     v.showOperate = false
@@ -734,11 +751,13 @@ export default function Chat() {
       chatList[index].wishesText = wishesText
     } else {
       setChatList([])
+      let list = []
       console.log(chatList, '=====chatList>>>>>')
-      chatList[0].isSuccess = true
-      chatList[0].block = callback?.blockNumber
-      chatList[0].chatText = String((new BigNumber(Number(id))).toNumber())
-      chatList[0].wishesText = wishesText
+      list[0].isSuccess = true
+      list[0].block = callback?.blockNumber
+      list[0].chatText = String((new BigNumber(Number(id))).toNumber())
+      list[0].wishesText = wishesText
+      setChatList(list)
     }
     console.log(chatList, 'chatList=====>>>1')
     setShowMask(false)
@@ -1024,7 +1043,11 @@ export default function Chat() {
     // insertData(currentList)
   }
   const handleReceive = async(v) => {
-    console.log(v, typeof v.chatText,'handleReceive====')
+    console.log(v, typeof v.chatText,'handleReceive====', hasAccess)
+    if(!hasAccess) {
+      setShowJoinModal(true)
+      return
+    }
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText.split('---')[0] : v?.chatText
     const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(chatText, getLocal('account'))
     const isReceived = (new BigNumber(Number(tx))).toNumber()
@@ -1050,8 +1073,9 @@ export default function Chat() {
   }
   const getMemberList = async(roomAddress, chatList) => {
     if(currentTabIndex === 1 || !chatList.length) return
-    const data = await getGroupMember(roomAddress)
+    const data = await getGroupMember(roomAddress, skip)
     const memberListInfo = data?.users
+    console.log(memberListInfo, 'memberListInfo=====')
     setMemberListInfo(memberListInfo)
     let result = [...chatList]
 
@@ -1159,6 +1183,8 @@ export default function Chat() {
   }
   useEffect(() => {
     const path = history.location.pathname.split('/chat/')[1]
+    const currentRedEnvelopId = history.location.search.split('?')[1]
+    setCurrentRedEnvelopId(currentRedEnvelopId)
     const address = path?.split('/')[0]
     const network = path?.split('/')[1] || getLocal('network') || currentChain
     const hash = history.location.hash
@@ -1247,6 +1273,16 @@ export default function Chat() {
   }, [getLocal('isConnect')])
   return(
     <div className="chat-ui-wrapper">
+      {
+        <Modal title="Join the group" visible={showJoinModal} onClose={() => { setShowJoinModal(false) }}>
+          <div>Please Join the group first</div>
+        </Modal>
+      }
+      {
+        <Modal title="Tips" visible={showReceiveTips} onClose={() => { setShowReceiveTips(false) }}>
+          <div>You've already received it</div>
+        </Modal>
+      }
       {
         showRedEnvelope &&
         <RedEnvelopeCover handleCloseRedEnvelope={() => {setShowRedEnvelope(false)}} handleReceiveConfirm={(e, id) => {handleReceiveConfirm(e, id)}}></RedEnvelopeCover>
@@ -1421,6 +1457,7 @@ export default function Chat() {
                           loadingData={() => loadingData()}
                           handleDecryptedMessage={(id, text) => handleDecryptedMessage(id, text)}
                           shareInfo={(e, v) => shareInfo(e, v)}
+                          shareToTwitter={(e, v) => shareToTwitter(e, v)}
                         />
 
                         <div style={{ float: "left", clear: "both" }}
