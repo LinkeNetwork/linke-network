@@ -3,7 +3,7 @@ import { Jazzicon } from '@ukstv/jazzicon-react'
 import useGlobal from "../../hooks/useGlobal"
 import { useEffect, useState } from "react"
 import { ethers } from "ethers";
-import { detectMobile, getLocal } from '../../utils'
+import { detectMobile, getLocal, formatAddress } from '../../utils'
 import { tokenListInfo } from '../../constant/tokenList'
 import Image from "../../component/Image"
 export default function ReceiveInfo(props) {
@@ -119,7 +119,12 @@ export default function ReceiveInfo(props) {
                         item?.sender && !item?.profile?.avatar &&
                         <Jazzicon address={item?.sender} className="avatar-image"/>
                       }
-                      <span className="name">{item?.profile?.name}</span>
+                      {
+                        item?.profile?.name 
+                        ? <span className="name">{item?.profile?.name}</span>
+                        : <span className="name">{formatAddress(item?.sender)}</span>
+                      }
+                      
                     </div>
                     <div className="right">{(Math.floor(ethers.utils.formatUnits(item?.amount, 18) * 10000)/10000)}<span className="symbol">{receiveSymbol}</span></div>
                   </div>
