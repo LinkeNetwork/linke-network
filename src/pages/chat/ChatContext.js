@@ -205,16 +205,36 @@ export default function ChatContext(props) {
                     }
                     {
                       v._type === 'Giveaway' &&
-                      <div className={`red-packet-wrap ${v.isOpen ? 'red-packet-wrap-opened' : ''}`} onClick={() => handleReceive(v) }>
+                      <div
+                        className={`red-packet-wrap ${v.isOpen ? 'red-packet-wrap-opened' : ''}`}
+                        onClick={() => handleReceive(v)}
+                        // onTouchStart={(e) => { gtoucStartPacket(e, v) }}
+                        // onTouchMove={(e) => { gtoucMovePacket(e, v) }}
+                        // onTouchEnd={(e) => { gtouchEndPacketPacket(e, v) }}
+                        // onContextMenu={(e) => { onContextMenuPacket(e, v) }}
+                        onTouchStart={(e) => { gtouchstart(e, v) }}
+                        onTouchMove={(e) => { gtouchmove(e, v) }}
+                        onTouchEnd={(e) => { gtouchend(e, v) }}
+                        onContextMenu={(e) => { onContextMenu(e, v) }}
+                      >
+                        {
+                          (v.showOperate) &&
+                          <div className='operate-btn'>
+                            <div onClick={(e) => { shareInfo(e, v) }}>
+                              <span className='iconfont icon-share'></span>
+                              <span>share</span>
+                            </div>
+                          </div>
+                        }
                         <div className="red-packet-content">
                           <img src={packetImg} alt="" style={{ 'width': '40px' }} />
                           <div>
                             {
                               v.wishesText ? <span>{v.wishesText}</span> : <span>Best wishes</span>
                             }
-                            
+
                             {
-                              v.isOpen && 
+                              v.isOpen &&
                               <div className="open-tags">Opened</div>
                             }
                           </div>
