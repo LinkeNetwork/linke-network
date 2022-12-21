@@ -31,14 +31,14 @@ export default function GroupMember(props) {
   const skip = 0
   const getMemberList = async() => {
     const data = await getGroupMember(currentAddress, skip)
-    let userList = []
-    if(data?.users.length) {
-      userList.concat([...data?.users])
-    }
-    if(data?.users.length >= 100) {
-      var fetchData = await getGroupMember(currentAddress, skip + 100)
-    }
-    console.log(data?.users, fetchData, 'data?.users=====')
+    // let userList = []
+    // if(data?.users.length) {
+    //   userList.concat([...data?.users])
+    // }
+    // if(data?.users.length >= 100) {
+    //   var fetchData = await getGroupMember(currentAddress, skip + 100)
+    // }
+    // console.log(data?.users, fetchData, 'data?.users=====')
     const memberListInfo = data?.users.map((item) => {
       return {
         ...item,

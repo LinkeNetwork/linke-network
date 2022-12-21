@@ -11,9 +11,8 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import useGlobal from "../../hooks/useGlobal"
 import packetImg from '../../assets/images/packet.svg'
 export default function ChatContext(props) {
-  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive } = props
+  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive, shareToTwitter} = props
   // const [chatLists, setChatLists] = useState(chatList)
-  console.log(chatList, 'chatList-======')
   const { setState } = useGlobal()
   const [showViewBtn, setShowViewBtn] = useState(false)
   const [showOperate, setShowOperate] = useState(false)
@@ -33,7 +32,6 @@ export default function ChatContext(props) {
     setTimeout(() => {
       v.showProfile = false
       setShowOperate(false)
-      console.log(111111, v)
     }, 4000)
   }
   const handleLeaveProfile = (e, v) => {
@@ -64,7 +62,8 @@ export default function ChatContext(props) {
     setShowOperate(true)
     setTimeout(() => {
       v.showOperate = false
-    }, 5000)
+      setShowOperate(false)
+    }, 4000)
   }
   const onContextMenu = (e, v) => {
     if (detectMobile()) return
@@ -80,7 +79,7 @@ export default function ChatContext(props) {
     }, 500))
   }
   const gtouchend = (e, v) => {
-    // v.showOperate = false
+    v.showOperate = false
     clearTimeout(timeOutEvent)
     setLongClick(0)
     if (timeOutEvent !== 0 && longClick === 0) {
@@ -208,10 +207,6 @@ export default function ChatContext(props) {
                       <div
                         className={`red-packet-wrap ${v.isOpen ? 'red-packet-wrap-opened' : ''}`}
                         onClick={() => handleReceive(v)}
-                        // onTouchStart={(e) => { gtoucStartPacket(e, v) }}
-                        // onTouchMove={(e) => { gtoucMovePacket(e, v) }}
-                        // onTouchEnd={(e) => { gtouchEndPacketPacket(e, v) }}
-                        // onContextMenu={(e) => { onContextMenuPacket(e, v) }}
                         onTouchStart={(e) => { gtouchstart(e, v) }}
                         onTouchMove={(e) => { gtouchmove(e, v) }}
                         onTouchEnd={(e) => { gtouchend(e, v) }}
@@ -220,7 +215,7 @@ export default function ChatContext(props) {
                         {
                           (v.showOperate) &&
                           <div className='operate-btn'>
-                            <div onClick={(e) => { shareInfo(e, v) }}>
+                            <div onClick={(e) => { shareToTwitter(e, v) }}>
                               <span className='iconfont icon-share'></span>
                               <span>share</span>
                             </div>
@@ -242,6 +237,7 @@ export default function ChatContext(props) {
                             !v.isSuccess &&
                             <span className='iconfont icon-loading'></span>
                           }
+                          {showOperate && <span></span>}
                         </div>
                       </div>
                     }
