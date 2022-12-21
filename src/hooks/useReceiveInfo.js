@@ -4,7 +4,7 @@ export default function useReceiveInfo() {
   const { clientInfo } = useGlobal()
   const getReceiveInfo = async(currentRedEnvelopId) => {
     const tokensQuery = `
-    query{
+    {
       giveaways(where: {id: "`+  currentRedEnvelopId + `"}){
         sender,
         token,
