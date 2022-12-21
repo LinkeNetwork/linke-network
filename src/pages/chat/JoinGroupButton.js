@@ -15,11 +15,12 @@ export default function JoinGroupButton(props) {
   const [showLoading, setShowLoading] = useState(false)
   const [transactionHash, setTransactionHash] = useState()
   const [name, setName] = useState()
+  const skip = 0
   const changeNameInput = (e) => {
     setName(e.target.value)
   }
   const handleJoinRoom = async() => {
-    const groupInfo = await getGroupMember(currentAddress)
+    const groupInfo = await getGroupMember(currentAddress, skip)
     const groupType = groupInfo?._type
     setShowLoading(true)
     try {

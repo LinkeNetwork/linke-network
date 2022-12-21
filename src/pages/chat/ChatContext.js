@@ -207,6 +207,15 @@ export default function ChatContext(props) {
                       </div>
                     }
                     {
+                      (v.showOperate) && v._type === 'Giveaway' && 
+                      <div className='operate-btn operate-btn-share'>
+                        <div onClick={(e) => { shareToTwitter(e, v) }}>
+                          <span className='iconfont icon-share'></span>
+                          <span>share</span>
+                        </div>
+                      </div>
+                    }
+                    {
                       v._type === 'Giveaway' &&
                       <div
                         className={`red-packet-wrap ${v.isOpen ? 'red-packet-wrap-opened' : ''}`}
@@ -216,15 +225,6 @@ export default function ChatContext(props) {
                         onTouchEnd={(e) => { gtouchend(e, v) }}
                         onContextMenu={(e) => { onContextMenu(e, v) }}
                       >
-                        {
-                          (v.showOperate) &&
-                          <div className='operate-btn'>
-                            <div onClick={(e) => { shareToTwitter(e, v) }}>
-                              <span className='iconfont icon-share'></span>
-                              <span>share</span>
-                            </div>
-                          </div>
-                        }
                         <div className="red-packet-content">
                           <img src={packetImg} alt="" style={{ 'width': '40px' }} />
                           <div>

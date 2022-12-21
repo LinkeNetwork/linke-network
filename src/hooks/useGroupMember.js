@@ -16,7 +16,7 @@ export default function useGroupMember() {
         userCount,
         chatCount,
         _type,
-        users{
+        users(first:50,skip:`+ skip + `){
           id,
           name,
           label,
@@ -36,7 +36,6 @@ export default function useGroupMember() {
     })
     const res = await client.query(tokensQuery).toPromise()
     const data = res?.data?.groupInfo
-    console.log(data, 'getGroupMember====')
     return data
   }, [currentAddress])
 

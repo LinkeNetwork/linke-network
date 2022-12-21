@@ -28,18 +28,22 @@ export default function GroupMember(props) {
   const [showPrivateChat, setShowPrivateChat] = useState(false)
   const [privateKey, setPrivateKey] = useState()
   const [showAddManager, setShowAddManager] = useState(false)
+  const [userCount, setUserCount] = useState()
   const skip = 0
   const getMemberList = async() => {
     const data = await getGroupMember(currentAddress, skip)
-    // let userList = []
-    // if(data?.users.length) {
-    //   userList.concat([...data?.users])
-    // }
-    // if(data?.users.length >= 100) {
-    //   var fetchData = await getGroupMember(currentAddress, skip + 100)
-    // }
-    // console.log(data?.users, fetchData, 'data?.users=====')
-    const memberListInfo = data?.users.map((item) => {
+    const page = Math.ceil(data?.userCount / 50)
+    setUserCount(data?.userCount)
+    let skipNum = 0
+    let userList = []
+    for(let i = 0; i < page; i++) {
+      skipNum = i === 0 ? skipNum : skipNum + 50
+      var fetchData = await getGroupMember(currentAddress, skipNum)
+      const data = [...fetchData?.users]
+      userList = userList.concat([...data])
+    }
+    console.log(userList, 'data?.users=====')
+    const memberListInfo = userList?.map((item) => {
       return {
         ...item,
         showProfile: false
@@ -217,8 +221,8 @@ export default function GroupMember(props) {
       <div className="sub-title">
         <div>
           Members {
-            groupInfo?.users?.length &&
-            <span>({groupInfo?.users?.length})</span>
+            +userCount > 0 &&
+            <span>({userCount})</span>
           }
         </div>
         {/* {
