@@ -4,7 +4,7 @@ import { getLocal } from '../utils/index'
 import { useCallback } from 'react'
 export default function useGroupMember() {
   const { currentTabIndex, currentAddress, clientInfo, networks } = useGlobal()
-  const getGroupMember = useCallback(async(address, APIURL) => {
+  const getGroupMember = useCallback(async(address, skip) => {
     if(currentTabIndex === 1 || !address) return
     const tokensQuery = `
     query{
@@ -16,7 +16,7 @@ export default function useGroupMember() {
         userCount,
         chatCount,
         _type,
-        users {
+        users(first:100,skip:`+ skip + `) {
           id,
           name,
           label,

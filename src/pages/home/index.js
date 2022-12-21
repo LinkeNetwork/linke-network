@@ -19,10 +19,10 @@ export default function Home() {
       <div className={`home-container ${detectMobile() ? 'home-container-client' : ''}`}>
         {/* <HomeHeader /> */}
         <Banner />
-        <div className='place-wrapper'>
+        {/* <div className='place-wrapper'>
           <iframe src="https://place.linke.network/" frameBorder="0" width="100%" height="100%" scrolling="no">
           </iframe>
-        </div>
+        </div> */}
         {/* <CountInfo /> */}
         <Version />
       </div>
