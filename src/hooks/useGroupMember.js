@@ -16,7 +16,7 @@ export default function useGroupMember() {
         userCount,
         chatCount,
         _type,
-        users{
+        users(first:50,skip:`+ skip + `){
           id,
           name,
           label,

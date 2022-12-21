@@ -302,7 +302,7 @@ export default function Chat() {
         const currentNetwork = getLocal('network') || currNetwork
         var networkInfo = networks.filter(i => i.name === currentNetwork)[0]
       }
-      const groupInfo = await getGroupMember(roomAddress, networkInfo?.APIURL)
+      const groupInfo = await getGroupMember(roomAddress, skip)
       const groupType = groupInfo?._type
       getJoinRoomAccess(roomAddress, groupType)
       setGroupType(groupType)
@@ -350,6 +350,7 @@ export default function Chat() {
         setShowJoinGroupButton(true)
       }
       setShowMask(false)
+      const currentRedEnvelopId = history.location.search.split('?')[1]
       if(hasAccess && currentRedEnvelopId) {
         const redEnvelopId = history.location.search.split('?')[1]
         const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(currentRedEnvelopId, getLocal('account'))
@@ -823,7 +824,7 @@ export default function Chat() {
         var tx = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       }
       if(currentTabIndex === 0 ) {
-        const groupInfo = await getGroupMember(currentAddress)
+        const groupInfo = await getGroupMember(currentAddress, skip)
         const groupType = groupInfo?._type
         setGroupType(groupType)
         const abi = groupType == 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI

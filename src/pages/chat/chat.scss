@@ -309,6 +309,10 @@
   align-items: center;
   justify-content: space-around;
   z-index: 10;
+  &-share {
+    left: 60px;
+    cursor: pointer;
+  }
   &::after {
     position: absolute;
     content: "";
