@@ -125,7 +125,7 @@ export const tokenListInfo = [
     "name": "HuaFashiye",
     "symbol": "HF",
     "decimals": 18,
-    "logoURI": "https://www.gate.io/images/coin_icon/64/ethf.png",
+    "logoURI": "https://linke.infura-ipfs.io/ipfs/QmW3tQsdAYFdqvbdKDYexJaHeFUub6HLSF447CqUkd71YG?filename=hf.jpg",
   },
   {
     "chainId": 513100,
@@ -133,6 +133,6 @@ export const tokenListInfo = [
     "name": "Fitstep",
     "symbol": "FST",
     "decimals": 18,
-    "logoURI": "https://www.gate.io/images/coin_icon/64/ethf.png",
+    "logoURI": "https://linke.infura-ipfs.io/ipfs/QmXurQ1NKUWDGgUqZNq7ySZmp9BZHMLYy3ZPWXuzym4GeB?filename=fst.png",
   }
 ]
