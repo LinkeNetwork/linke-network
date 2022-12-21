@@ -26,7 +26,7 @@ export default function ChatContext(props) {
   const history = useHistory()
   const handleShowProfile = (e, v) => {
     e.preventDefault()
-    getProfileStatus(v.sender)
+    getProfileStatus(v?.user?.id)
     v.showProfile = true
     setShowOperate(true)
     setTimeout(() => {
@@ -43,7 +43,7 @@ export default function ChatContext(props) {
   const handleEnterProfile = (e, v) => {
     if (!detectMobile()) return
     console.log(v, 'handleEnterProfile===')
-    getProfileStatus(v.sender)
+    getProfileStatus(v?.user?.id)
     e.preventDefault()
     setShowOperate(true)
     v.showProfile = true
@@ -125,11 +125,11 @@ export default function ChatContext(props) {
 
   const viewProfile = (v) => {
     setState({
-      currentProfileAddress: v.sender
+      currentProfileAddress: v?.user?.id
     })
     history.push({
-      pathname: `/profile/${v.sender}`,
-      state: v.sender
+      pathname: `/profile/${v?.user?.id}`,
+      state: v?.user?.id
     })
   }
   return (
@@ -180,21 +180,25 @@ export default function ChatContext(props) {
                         onClick={(e) => { handleShowProfile(e, v) }}
                       >
                         {
-                          v.avatar
-                            ? <Image size={25} src={v.avatar} className="address-icon" />
-                            : <Jazzicon address={v.sender} className="address-icon" />
+                          v.avatar &&
+                          <Image size={25} src={v.avatar} className="address-icon" />
                         }
-
+                        {
+                          !v.avatar && v?.user?.id &&
+                          <Jazzicon address={v?.user?.id} className="address-icon" />
+                        }
                         {
                           v.showProfile &&
                           <div className='user-profile-wrap'>
                             {
-                              v.avatar
-                                ? <Image size={60} src={v.avatar} className="icon" />
-                                : <Jazzicon address={v.sender} className="icon" />
+                              v.avatar &&
+                              <Image size={60} src={v.avatar} className="icon" />
                             }
-
-                            <div className='name'>{formatAddress(v.sender)}</div>
+                            {
+                              !v.avatar && v?.user?.id && 
+                              <Jazzicon address={v?.user?.id} className="icon" />
+                            }
+                            <div className='name'>{formatAddress(v?.user?.id)}</div>
                             <div className="view-btn" onClick={() => viewProfile(v)}>View</div>
                             {showOperate && <span></span>}
                           </div>
@@ -256,8 +260,11 @@ export default function ChatContext(props) {
                               v.position &&
                               <span>You on&nbsp;</span>
                             }
-
-                            <span>{formatAddress(v.sender)}</span>&nbsp;
+                            {
+                              v?.user?.id?.toLowerCase() !== getLocal('account')?.toLowerCase() &&
+                              <span><span>{formatAddress(v?.user?.id)}</span>&nbsp;</span>
+                            }
+                            
                             {
                               v.block &&
                               <span>({v.block})</span>
