@@ -19,6 +19,7 @@ import ShareGroupCode from './ShareGroupCode'
 import AwardBonus from './AwardBonus'
 import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
+import useReceiveInfo from '../../hooks/useReceiveInfo'
 import { detectMobile, throttle } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
 import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET } from '../../abi/index'
@@ -38,6 +39,7 @@ import useWallet from '../../hooks/useWallet'
 export default function Chat() {
   const { collection, setDataBase } = useDataBase()
   const history = useHistory()
+  const { getReceiveInfo } = useReceiveInfo()
   const { getGroupMember } = useGroupMember()
   const [showReceiveTips, setShowReceiveTips] = useState(false)
   const skip = 0
@@ -168,6 +170,7 @@ export default function Chat() {
     const res = await clientInfo?.query(tokensQuery).toPromise()
     setMyAvatar(res.data?.profile?.avatar)
     console.log(res, res.data?.profile?.avatar, 'getMyAvatar====')
+    return res.data?.profile?.avatar
   }
   const changeChatType = (index) => {
     setCurrentAddress()
@@ -348,11 +351,14 @@ export default function Chat() {
       }
       setShowMask(false)
       if(hasAccess && currentRedEnvelopId) {
+        const redEnvelopId = history.location.search.split('?')[1]
         const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(currentRedEnvelopId, getLocal('account'))
         const isReceived = (new BigNumber(Number(tx))).toNumber()
+        console.log(isReceived,currentRedEnvelopId, redEnvelopId, 'isReceived===')
         if(!isReceived) {
           setShowRedEnvelope(true)
         } else {
+          if(!redEnvelopId) return
           setShowReceiveTips(true)
         }
       }
@@ -367,12 +373,19 @@ export default function Chat() {
       chatInfos(orderBy:block,orderDirection:desc, first:20, where:{room: "`+ roomAddress?.toLowerCase() + `"}){
         id,
         transaction,
-        sender,
         block,
         index,
         chatText,
         room,
-        _type
+        _type,
+        user{
+          id,
+          name,
+          profile{
+            avatar,
+            name
+          }
+        }
       }
     }
     `
@@ -388,6 +401,7 @@ export default function Chat() {
     const collection = db?.collection('chatInfos')
     const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
     const chatList = data?.data?.chatInfos || []
+    console.log(chatList, 'chatList=====>>>>')
     // const result = formateData(chatList, roomAddress)
     const result = await getMemberList(roomAddress, chatList)
     await insertData(result)
@@ -469,6 +483,7 @@ export default function Chat() {
     setShowSettingList(false)
   }
   const showChatList = (item) => {
+    setCurrentRedEnvelopId()
     setShowMask(true)
     setHasAccess()
     setChatList([])
@@ -514,12 +529,19 @@ export default function Chat() {
       chatInfos(orderBy:block,orderDirection:desc, first:20, where:{room: "`+ currentAddressRef?.current?.toLowerCase() + `", block_lt: ` + firstBlock + `}){
         id,
         transaction,
-        sender,
         block,
         chatText,
         room,
         index,
-        _type
+        _type,
+        user{
+          id,
+          name,
+          profile{
+            avatar,
+            name
+          }
+        }
       }
     }
     `
@@ -534,7 +556,7 @@ export default function Chat() {
         hasDelete: false,
         isSuccess: true,
         showProfile: false,
-        position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
+        position: (item?.user?.id).toLowerCase() === (myAddress)?.toLowerCase(),
         showOperate: false,
       }
     })
@@ -598,7 +620,7 @@ export default function Chat() {
         hasDelete: false,
         isSuccess: true,
         showProfile: false,
-        position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
+        position: (item?.user?.id).toLowerCase() === (myAddress)?.toLowerCase(),
         showOperate: false,
       }
     })
@@ -789,6 +811,7 @@ export default function Chat() {
     }
   }
   const startChat = async (chatText) => {
+    const myAvatar = await getMyAvatar()
     setSendSuccess(false)
     try {
       if(currentTabIndex === 1) {
@@ -812,7 +835,6 @@ export default function Chat() {
         block: 0,
         transaction: tx.hash,
         chatText: chatText,
-        sender: myAddress,
         position: true,
         hasDelete: false,
         isSuccess: false,
@@ -831,19 +853,20 @@ export default function Chat() {
       getMemberList(currentAddress, chatList)
       // setChatList(chatList)
       let callback = await tx.wait()
+      console.log(callback, 'callback=====')
       if (callback?.status === 1) {
         const index = chatList?.findIndex((item) => item.id.toLowerCase() == tx.hash.toLowerCase())
         const sendIndex = memberListInfo?.findIndex((item) => item.id.toLowerCase() == tx.from.toLowerCase())
         chatList[index].isSuccess = true
         chatList[index].block = callback?.blockNumber
-        chatList[index].avatar = currentTabIndex === 0 ? memberListInfo[sendIndex]?.profile?.avatar : myAvatar
+        // chatList[index].avatar = currentTabIndex === 0 ? memberListInfo[sendIndex]?.profile?.avatar : myAvatar
         chatList[index].isDecrypted = true
         setChatListState(chatList)
         const db = await setDataBase()
         const collection = db?.collection('chatInfos')
         newChat.isSuccess = true
         newChat.block = String(callback?.blockNumber)
-        newChat.avatar = currentTabIndex === 0 ? memberListInfo[sendIndex]?.profile?.avatar : myAvatar
+        // newChat.avatar = currentTabIndex === 0 ? memberListInfo[sendIndex]?.profile?.avatar : myAvatar
         newChat.room = currentAddress
         newChat.isDecrypted = true
         collection.insert(newChat)
@@ -898,7 +921,7 @@ export default function Chat() {
   }
   const getUserAvatar = async(newList) => {
     let list = []
-    const ids = newList?.map(item => item.sender)
+    const ids = newList?.map(item => item?.user?.id)
     if(!ids?.length) return
     const idsList = '"' + ids.join('","')+ '"'
     const tokensQuery = `
@@ -913,7 +936,7 @@ export default function Chat() {
     const res = await clientInfo?.query(tokensQuery).toPromise()
     newList?.map(item => {
       res?.data?.profiles?.map(info => {
-         if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
+         if(item?.user?.id?.toLowerCase() == info?.id?.toLowerCase()) {
            list.push({
              ...item,
              avatar: info?.avatar
@@ -927,7 +950,7 @@ export default function Chat() {
     let list = []
     newList?.map(item => {
      memberListInfo?.map(info => {
-        if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
+        if(item?.user?.id?.toLowerCase() == info?.id?.toLowerCase()) {
           list.push({
             ...item,
             avatar: info.profile.avatar
@@ -963,12 +986,19 @@ export default function Chat() {
           chatInfos(orderBy:block,orderDirection:desc, where:{room: "`+ roomAddress?.toLowerCase() +`", block_gte: ` + lastBlock + `}){
             id,
             transaction,
-            sender,
             block,
             chatText,
             room,
             index,
-            _type
+            _type,
+            user{
+              id,
+              name,
+              profile{
+                avatar,
+                name
+              }
+            }
           }
         }
       `
@@ -1049,6 +1079,12 @@ export default function Chat() {
       return
     }
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText.split('---')[0] : v?.chatText
+    setCurrentRedEnvelopId(chatText)
+    const lastCount = await getReceiveInfo(chatText)
+    console.log(lastCount, typeof +lastCount,'lastCount=====')
+    if(+lastCount === 0) {
+      setShowReceiveInfo(true)
+    }
     const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(chatText, getLocal('account'))
     const isReceived = (new BigNumber(Number(tx))).toNumber()
     v.isOpen = true
@@ -1063,52 +1099,66 @@ export default function Chat() {
     })
     setClickNumber(clickNumber+1)
     console.log(isReceived, currentRedEnvelopId, 'isReceived=====')
-    setCurrentRedEnvelopId(v?.chatText.split('---')[0])
     if(isReceived === 1) {
       setShowReceiveInfo(true)
     }
-    if(!hasAccess || isReceived === 1) return
+    if(!hasAccess || isReceived === 1 || +lastCount === 0) return
     setCurrentRedEnvelopTransaction(v?.transaction)
     setShowRedEnvelope(true)
   }
   const getMemberList = async(roomAddress, chatList) => {
     if(currentTabIndex === 1 || !chatList.length) return
-    const data = await getGroupMember(roomAddress, skip)
-    const memberListInfo = data?.users
-    console.log(memberListInfo, 'memberListInfo=====')
-    setMemberListInfo(memberListInfo)
     let result = [...chatList]
-
     result.map(item => {
-     memberListInfo?.map(info => {
-        if (item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
-          let params = {
-            avatar: info.profile.avatar,
-            hasDelete: false,
-            isSuccess: true,
-            showProfile: false,
-            position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
-            showOperate: false,
-            isOpen: false, 
-            wishesText: item.chatText.split('---')[1]
-          }
-          Object.assign(item, params)
-          return item
-        } else {
-          let params = {
-            hasDelete: false,
-            isSuccess: true,
-            showProfile: false,
-            isOpen: false,
-            position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
-            showOperate: false,
-            wishesText: item.chatText.split('---')[1]
-          }
-          Object.assign(item, params)
-          return item
+      let params = {
+          avatar: item.user.profile.avatar,
+          hasDelete: false,
+          isSuccess: true,
+          showProfile: false,
+          position: (item?.user?.id).toLowerCase() === (getLocal('account'))?.toLowerCase(),
+          showOperate: false,
+          isOpen: false, 
+          wishesText: item.chatText.split('---')[1]
         }
-      })
+        Object.assign(item, params)
+        return item
     })
+    // const data = await getGroupMember(roomAddress, skip)
+    // const memberListInfo = data?.users
+    // console.log(memberListInfo, 'memberListInfo=====')
+    // setMemberListInfo(memberListInfo)
+    // let result = [...chatList]
+
+    // result.map(item => {
+    //  memberListInfo?.map(info => {
+    //     if (item?.user?.id?.toLowerCase() == info?.id?.toLowerCase()) {
+    //       let params = {
+    //         avatar: info.profile.avatar,
+    //         hasDelete: false,
+    //         isSuccess: true,
+    //         showProfile: false,
+    //         position: (item?.user?.id).toLowerCase() === (myAddress)?.toLowerCase(),
+    //         showOperate: false,
+    //         isOpen: false, 
+    //         wishesText: item.chatText.split('---')[1]
+    //       }
+    //       Object.assign(item, params)
+    //       return item
+    //     } else {
+    //       let params = {
+    //         hasDelete: false,
+    //         isSuccess: true,
+    //         showProfile: false,
+    //         isOpen: false,
+    //         position: (item?.user?.id).toLowerCase() === (myAddress)?.toLowerCase(),
+    //         showOperate: false,
+    //         wishesText: item.chatText.split('---')[1]
+    //       }
+    //       Object.assign(item, params)
+    //       return item
+    //     }
+    //   })
+    // })
     // if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
     //   //
     //   // insertData(result)

@@ -3,7 +3,7 @@ import { Jazzicon } from '@ukstv/jazzicon-react'
 import useGlobal from "../../hooks/useGlobal"
 import { useEffect, useState } from "react"
 import { ethers } from "ethers";
-import { getLocal } from '../../utils'
+import { detectMobile, getLocal } from '../../utils'
 import { tokenListInfo } from '../../constant/tokenList'
 import Image from "../../component/Image"
 export default function ReceiveInfo(props) {
@@ -11,15 +11,17 @@ export default function ReceiveInfo(props) {
   const [receivedInfo, setReceivedInfo] = useState()
   const [profileInfo, setProfileInfo] = useState()
   const [receiveList, setReceiveList] = useState([])
+  const [hasRedPacket, setHasRedPacket] = useState(true)
   const [receivedAmount, setReceivedAmount] = useState()
   const [receiveSymbol, setReceiveSymbol] = useState()
   const { clientInfo } = useGlobal()
   const getReceiveInfo = async() => {
     const tokensQuery = `
-    query{
+    {
       giveaways(where: {id: "`+  currentRedEnvelopId + `"}){
         sender,
         token,
+        lastCount,
         amount,
         content,
         count,
@@ -27,6 +29,7 @@ export default function ReceiveInfo(props) {
           name,
           avatar
         }
+        token,
         receiveProfile{
           id,
           gid,
@@ -44,6 +47,7 @@ export default function ReceiveInfo(props) {
     const res = await clientInfo?.query(tokensQuery).toPromise()
     console.log(res, '=====>>>.')
     const receivedInfo = res?.data?.giveaways[0]
+    console.log(receivedInfo, 'receivedInfo=====')
     setReceivedInfo(receivedInfo)
     const profileInfo = receivedInfo?.profile
     setProfileInfo(profileInfo)
@@ -52,15 +56,19 @@ export default function ReceiveInfo(props) {
     setReceiveSymbol(newList?.symbol)
     const receiveList = receivedInfo?.receiveProfile
     const item = receiveList.filter(i=> i?.sender?.toLowerCase() === getLocal('account')?.toLowerCase())[0]
-    const amount = ethers.utils.formatUnits(item?.amount, 18)
-    
-    console.log(receiveList, receivedInfo?.sender, amount, 'receiveList======', ethers.utils.formatUnits("9970000000000000000000000", 18), newList)
+    console.log(item, 'item-----')
+    setHasRedPacket(item)
+    if(item) {
+      const amount = ethers.utils.formatUnits(item?.amount, 18)
+      setReceivedAmount((Math.floor(amount * 10000)/10000))
+    }
+    console.log(receiveList, receivedInfo, receivedInfo?.sender, 'receiveList======', ethers.utils.formatUnits("9970000000000000000000000", 18), newList)
     setReceiveList(receiveList)
-    setReceivedAmount((Math.floor(amount * 10000)/10000))
+    
   }
   useEffect(() => {
     getReceiveInfo()
-  }, [])
+  }, [currentRedEnvelopId])
   return(
     <ReceiveInfoContanier>
       <div className="receive-wrapper">
@@ -75,43 +83,59 @@ export default function ReceiveInfo(props) {
           receivedInfo?.sender && !profileInfo?.avatar &&
           <Jazzicon address={receivedInfo?.sender} className="avatar-image"/>
         }
-        <span>Send by</span><span className="sender-name">{profileInfo?.name}</span>
+        <span>Sent by</span><span className="sender-name">{profileInfo?.name}</span>
       </div>
-      <div className="wishes-text">
-        {
-          receivedInfo?.content ? <span>{receivedInfo?.content}</span> : <span>Best wishes</span>
-        }
-        
-      </div>
+      {
+        +receivedInfo?.lastCount === 0 && !hasRedPacket &&
+        <div className="no-tips">Better luck next time!</div>
+      }
+      {
+        hasRedPacket && 
+        <div className="wishes-text">
+          {
+            receivedInfo?.content ? <span>{receivedInfo?.content}</span> : <span>Best wishes</span>
+          }
+          
+        </div>
+      }
+      
       <div className="receive-num">{receivedAmount}</div>
       <div className="divider"></div>
-      <div className="receive-list-wrapper">
-        {
-          receiveList.map((item,index)=> {
-            return(
-              <div className="receive-list" key={index}>
-                <div className="receive-list-item">
-                  <div className="left">
-                    {
-                      item?.profile?.avatar &&
-                      <Image src={item?.profile?.avatar} size={30} style={{ margin: '0 4px'}}/>
-                    }
-                    {/* <span className="avatar">{item?.profile?.avatar}</span> */}
-                    {
-                      item?.sender && !item?.profile?.avatar &&
-                      <Jazzicon address={item?.sender} className="avatar-image"/>
-                    }
-                    <span className="name">{item?.profile?.name}</span>
+      {
+        hasRedPacket &&
+        <div className="receive-list-wrapper">
+          {
+            receiveList.map((item,index)=> {
+              return(
+                <div className="receive-list" key={index}>
+                  <div className="receive-list-item">
+                    <div className="left">
+                      {
+                        item?.profile?.avatar &&
+                        <Image src={item?.profile?.avatar} size={30} style={{ margin: '0 4px'}}/>
+                      }
+                      {/* <span className="avatar">{item?.profile?.avatar}</span> */}
+                      {
+                        item?.sender && !item?.profile?.avatar &&
+                        <Jazzicon address={item?.sender} className="avatar-image"/>
+                      }
+                      <span className="name">{item?.profile?.name}</span>
+                    </div>
+                    <div className="right">{(Math.floor(ethers.utils.formatUnits(item?.amount, 18) * 10000)/10000)}<span className="symbol">{receiveSymbol}</span></div>
                   </div>
-                  <div className="right">{(Math.floor(ethers.utils.formatUnits(item?.amount, 18) * 10000)/10000)}<span className="symbol">{receiveSymbol}</span></div>
                 </div>
-              </div>
-            )
-          })
-        }
+              )
+            })
+          }
+        </div>
+      }
+      
+      {
+         +receivedInfo?.lastCount === 0 && !hasRedPacket &&
+         <div className="view-text" onClick={() => { setHasRedPacket(true)}}>View details<span className="iconfont icon-expand"></span></div>
+      }
       </div>
-      </div>
-      <div className="close-btn" onClick={handleCloseReceiveInfo}>
+      <div className={`close-btn ${detectMobile() ? 'close-btn-client' : ''}`} onClick={handleCloseReceiveInfo}>
         <span className="iconfont icon-guanbi"></span>
       </div>
     </ReceiveInfoContanier>
@@ -168,6 +192,9 @@ transition: 0.4s;
   display: flex;
   align-items: center;
   justify-content: center;
+  &-client {
+    bottom: 30px;
+  }
   .icon-guanbi {
     right: inherit;
     top: inherit;
@@ -216,5 +243,22 @@ transition: 0.4s;
   width: 30px;
   height: 30px;
   margin: 0 4px
+}
+.no-tips {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 16px;
+  color: rgb(230,206,160)
+}
+.view-text {
+  cursor: pointer;
+  text-align: center;
+  color: rgb(230,206,160);
+  margin-top: 16rem;
+}
+.icon-expand {
+  transform: rotate(-90deg);
+  display: inline-block;
+  margin-left: 4px;
 }
 `
