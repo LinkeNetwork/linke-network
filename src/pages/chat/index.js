@@ -51,7 +51,7 @@ export default function Chat() {
   const [showChatContent, setShowChatContent] = useState(true)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress} = useGlobal()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentAddress, setCurrentAddress] = useState()
   const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
@@ -84,6 +84,7 @@ export default function Chat() {
   const [showSettingList, setShowSettingList] = useState(false)
   const [currentIndex, setCurrentIndex] = useState()
   const [roomList, setRoomList] = useState([])
+  const [newRedEnvelope, setNewRedEnvelope] = useState({})
   const roomListRef = useRef()
   const [clearChatInput, setClearChatInput] = useState(false)
   const [hasMore, setHasMore] = useState(true)
@@ -350,9 +351,9 @@ export default function Chat() {
         setShowJoinGroupButton(true)
       }
       setShowMask(false)
-      if(hasAccess && currentRedEnvelopId) {
-        const redEnvelopId = history.location.search.split('?')[1]
-        const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(currentRedEnvelopId, getLocal('account'))
+      const redEnvelopId = history.location.search.split('?')[1]
+      if(hasAccess && redEnvelopId) {
+        const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(redEnvelopId, getLocal('account'))
         const isReceived = (new BigNumber(Number(tx))).toNumber()
         console.log(isReceived,currentRedEnvelopId, redEnvelopId, 'isReceived===')
         if(!isReceived) {
@@ -362,7 +363,7 @@ export default function Chat() {
           setShowReceiveTips(true)
         }
       }
-      if(!hasAccess) {
+      if(!hasAccess && redEnvelopId) {
         setShowJoinModal(true)
         return
       }
@@ -407,7 +408,8 @@ export default function Chat() {
     const chatList = data?.data?.chatInfos || []
     console.log(chatList, 'chatList=====>>>>')
     // const result = formateData(chatList, roomAddress)
-    const result = await getMemberList(roomAddress, chatList)
+    const result = await getMemberList(roomAddress, chatList) || []
+    console.log(result, 'result====2')
     await insertData(result)
     if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
       if (res?.length > 0) {
@@ -420,6 +422,7 @@ export default function Chat() {
   }
 
   const insertData = async (datas) => {
+    console.log(datas, 'datas====')
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
     for (let i = 0; i < datas?.length; i++) {
@@ -429,6 +432,7 @@ export default function Chat() {
         if (doc) {
           collection.update({ id: datas[i].id }, { $set: datas[i] })
         } else {
+          console.log(datas[i], 'insertData=datas====')
           collection.insert(datas[i])
         }
       }).catch(error => {
@@ -491,6 +495,7 @@ export default function Chat() {
     setShowMask(true)
     setHasAccess()
     setChatList([])
+    setNewRedEnvelope({})
     if (currentTabIndex === 0) {
       // getMemberCount(item.id)
       getManager(item.id, item._type)
@@ -631,9 +636,10 @@ export default function Chat() {
     return result
   }
   const shareToTwitter = (e, v) => {
+    console.log(v, currentAddress, 'shareToTwitter===')
     e.stopPropagation()
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText.split('---')[0] : v?.chatText
-    window.open(`https://twitter.com/intent/tweet?text=https://linke.network/chat/${v.room}/${getLocal('network')}/?${chatText}`)
+    window.open(`https://twitter.com/intent/tweet?text=https://linke.network/chat/${currentAddress}/${getLocal('network')}/?${chatText}`)
   }
   const shareInfo = (e, v) => {
     e.stopPropagation()
@@ -762,34 +768,43 @@ export default function Chat() {
     console.log(tx, '====tx===')
     setShowMask(true)
     setShowAwardBonus(false)
-    handleGiveAway(tx)
+    const db = await setDataBase()
+    const collection = db?.collection('chatInfos')
+    await handleGiveAway(tx, wishesText)
     let callback = await tx.wait()
     setShowAwardBonus(false)
     const id = callback?.events[3]?.args?.id
     console.log(callback, 'callback====handleSend')
     console.log(id, (new BigNumber(Number(id))).toNumber(), 'callback====id')
-    console.log(chatList, 'chatList=====>>>top')
+    console.log(chatList,newRedEnvelope,'chatList=====>>>top')
     const index = chatList?.findIndex((item) => item.id.toLowerCase() == callback?.transactionHash?.toLowerCase())
     if(chatList?.length > 0) {
       chatList[index].isSuccess = true
       chatList[index].block = callback?.blockNumber
       chatList[index].chatText = String((new BigNumber(Number(id))).toNumber())
       chatList[index].wishesText = wishesText
+      setClickNumber(clickNumber+1)
+      console.log(chatList[index], 'chatList[index]===1')
+      collection.insert(chatList[index])
+      setClickNumber(clickNumber+1)
     } else {
       setChatList([])
-      let list = []
       console.log(chatList, '=====chatList>>>>>')
-      list[0].isSuccess = true
-      list[0].block = callback?.blockNumber
-      list[0].chatText = String((new BigNumber(Number(id))).toNumber())
-      list[0].wishesText = wishesText
-      setChatList(list)
+      chatList[0].isSuccess = true
+      chatList[0].block = callback?.blockNumber
+      chatList[0].chatText = String((new BigNumber(Number(id))).toNumber())
+      chatList[0].wishesText = wishesText
+      setChatList(chatList)
+      console.log(chatList, 'chatList[index]===2')
+      collection.insert(chatList)
+      setClickNumber(clickNumber+1)
     }
     console.log(chatList, 'chatList=====>>>1')
     setShowMask(false)
   }
-  const handleGiveAway = (tx) => {
-    console.log(tx, 'handleGiveAway00000')
+  const handleGiveAway = async(tx, wishesText) => {
+    console.log(tx,wishesText, 'handleGiveAway00000')
+    const myAvatar = await getMyAvatar()
     if(currentTabIndex === 0 ) {
       var newChat = {
         id: tx.hash,
@@ -798,6 +813,7 @@ export default function Chat() {
         transaction: tx.hash,
         sender: myAddress,
         position: true,
+        room: currentAddress,
         hasDelete: false,
         isSuccess: false,
         showProfile: false,
@@ -805,13 +821,17 @@ export default function Chat() {
         avatar: myAvatar,
         _type: 'Giveaway',
         isOpen: false,
-        wishesText: ''
+        wishesText: wishesText,
+        user: {
+          id: myAddress
+        }
       }
       if(chatList?.length > 0) {
         chatList.unshift(newChat)
       } else {
-        chatList?.push(newChat)
+        chatList.push(newChat)
       }
+      setNewRedEnvelope(newChat)
     }
   }
   const startChat = async (chatText) => {
@@ -845,19 +865,19 @@ export default function Chat() {
         showProfile: false,
         showOperate: false,
         avatar: myAvatar,
-        _type: 'msg'
+        _type: 'msg',
+        user: {
+          id: myAddress
+        }
       }
       if(chatList?.length > 0) {
         chatList.unshift(newChat)
       } else {
         chatList.push(newChat)
       }
-      console.log(chatList, 'chatList===2==>>>')
-      // setChatList(chatList)
-      getMemberList(currentAddress, chatList)
-      // setChatList(chatList)
+      // getMemberList(currentAddress, chatList)
       let callback = await tx.wait()
-      console.log(callback, 'callback=====')
+      console.log(callback, callback?.status === 1,'callback=====')
       if (callback?.status === 1) {
         const index = chatList?.findIndex((item) => item.id.toLowerCase() == tx.hash.toLowerCase())
         const sendIndex = memberListInfo?.findIndex((item) => item.id.toLowerCase() == tx.from.toLowerCase())
@@ -865,7 +885,8 @@ export default function Chat() {
         chatList[index].block = callback?.blockNumber
         // chatList[index].avatar = currentTabIndex === 0 ? memberListInfo[sendIndex]?.profile?.avatar : myAvatar
         chatList[index].isDecrypted = true
-        setChatListState(chatList)
+        setClickNumber(clickNumber+1)
+        // setChatListState(chatList)
         const db = await setDataBase()
         const collection = db?.collection('chatInfos')
         newChat.isSuccess = true
@@ -873,6 +894,7 @@ export default function Chat() {
         // newChat.avatar = currentTabIndex === 0 ? memberListInfo[sendIndex]?.profile?.avatar : myAvatar
         newChat.room = currentAddress
         newChat.isDecrypted = true
+        console.log(newChat, 'newChat=====')
         collection.insert(newChat)
       }
     } catch (error) {
@@ -983,7 +1005,6 @@ export default function Chat() {
     const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
     updateUnreadNum(roomAddress, res)
     const lastBlock = res?.length && +res[0]?.block + 1
-    console.log(roomAddress, lastBlock, res[0]?.index, 'getCurrentGroupChatList')
     // if(!lastBlock || chatListRef.current[0]?.block == 0) return
     const tokensQuery = `
         query{
@@ -1071,7 +1092,6 @@ export default function Chat() {
     const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, roomAddress)
     const list = [...chatListRef.current]
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && currentList.length) {
-
       setChatList(currentList.concat(list))
     }
     // insertData(currentList)
@@ -1115,7 +1135,7 @@ export default function Chat() {
     let result = [...chatList]
     result.map(item => {
       let params = {
-          avatar: item.user.profile.avatar,
+          avatar: item?.user?.profile?.avatar,
           hasDelete: false,
           isSuccess: true,
           showProfile: false,
@@ -1283,9 +1303,9 @@ export default function Chat() {
   }
   const handleOpenAward = async() => {
     console.log(giveAwayAddress, currentAddress, 'currentAddress=2')
+    setShowOpenAward(false)
     const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).register(currentAddress)
     setShowMask(true)
-    setShowOpenAward(false)
     await tx.wait()
     setShowMask(false)
     setShowAwardBonus(true)
@@ -1294,6 +1314,12 @@ export default function Chat() {
     setShowChat(true)
     setShowAwardBonus(false)
   }
+  useEffect(() => {
+    const redEnvelopId = history.location.search.split('?')[1]
+    if(hasCreateRoom && redEnvelopId) {
+      setShowRedEnvelope(true)
+    }
+  }, [hasCreateRoom])
   useEffect(() => {
     if(accounts) {
       setMyAddress(accounts)

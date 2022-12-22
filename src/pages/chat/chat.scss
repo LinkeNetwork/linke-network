@@ -72,6 +72,10 @@
   .chat-start {
     position: relative;
     align-items: flex-start;
+    div.operate-btn-share {
+      left: 60px;
+      cursor: pointer;
+    }
     .address-icon {
       top: 30px;
       left: 10px;
@@ -122,6 +126,10 @@
     .address-icon{
       top: 30px;
       right: -40px;
+    }
+    div.operate-btn-share {
+      right: 180px;
+      cursor: pointer;
     }
     .chat-ui-bubble {
       
@@ -309,10 +317,6 @@
   align-items: center;
   justify-content: space-around;
   z-index: 10;
-  &-share {
-    left: 60px;
-    cursor: pointer;
-  }
   &::after {
     position: absolute;
     content: "";

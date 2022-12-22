@@ -117,12 +117,15 @@ export default function AwardBonus(props) {
     }
   }, [authorization])
   useEffect(() => {
-    console.log(approveLoading, 'approveLoading=====>>>>')
+    console.log(approveLoading,swapButtonText, 'approveLoading=====>>>>')
     if(approveLoading) {
       setCanSend(false)
       setBtnText('APPROVE_ING')
     }
-  }, [approveLoading])
+    if(swapButtonText) {
+      setBtnText(swapButtonText)
+    }
+  }, [approveLoading, swapButtonText])
   return (
     <AwardBonusContanier>
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>

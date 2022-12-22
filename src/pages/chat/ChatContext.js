@@ -13,6 +13,7 @@ import packetImg from '../../assets/images/packet.svg'
 export default function ChatContext(props) {
   const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive, shareToTwitter} = props
   // const [chatLists, setChatLists] = useState(chatList)
+  console.log(chatList, 'chatList====2')
   const { setState } = useGlobal()
   const [showViewBtn, setShowViewBtn] = useState(false)
   const [showOperate, setShowOperate] = useState(false)
@@ -58,6 +59,7 @@ export default function ChatContext(props) {
   }
   const onOperateMenu = (e, v) => {
     e.preventDefault()
+    if(!v.isSuccess) return
     v.showOperate = true
     setShowOperate(true)
     setTimeout(() => {
@@ -166,7 +168,7 @@ export default function ChatContext(props) {
         }
 
         {
-          currentAddress && chatList && chatList.map((v, i) => {
+          currentAddress && chatList?.length > 0 && chatList?.map((v, i) => {
             return (
               <div key={i} className="chat-item-wrap">
                 {
