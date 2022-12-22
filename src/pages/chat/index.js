@@ -352,6 +352,7 @@ export default function Chat() {
       }
       setShowMask(false)
       const redEnvelopId = history.location.search.split('?')[1]
+      setCurrentRedEnvelopId(redEnvelopId)
       if(hasAccess && redEnvelopId) {
         const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(redEnvelopId, getLocal('account'))
         const isReceived = (new BigNumber(Number(tx))).toNumber()
@@ -1283,7 +1284,12 @@ export default function Chat() {
     setState({
       showOpen: false
     })
-    console.log(giveAwayAddress, currentRedEnvelopId, 'giveAwayAddress===')
+    const lastCount = await getReceiveInfo(currentRedEnvelopId)
+    if(+lastCount === 0) {
+      setShowRedEnvelope(false)
+      setShowReceiveInfo(true)
+      return
+    }
     const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).receive(currentRedEnvelopId)
     console.log(tx, 'handleReceiveConfirm====')
     setState({
@@ -1295,6 +1301,7 @@ export default function Chat() {
     const amount = callback?.events[1]?.args?.id
     const receiveAmount = (new BigNumber(Number(amount))).toNumber()
     const index = chatList?.findIndex(item => item.transaction == currentRedEnvelopTransaction)
+    console.log(chatList, currentRedEnvelopTransaction, index, 'index====')
     chatList[index].isOpen = true
     setState({
       showOpen: false

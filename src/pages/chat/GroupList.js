@@ -103,13 +103,13 @@ export default function GroupList(props) {
     let fetchData = await getCurrentGroupInfo(roomAddress)
     if(roomAddress) {
       const index = groupInfos?.findIndex((item) => item.id === roomAddress)
-      console.log(index, roomAddress, '====>findIndex>>')
+      console.log(index, roomAddress,fetchData, '====>findIndex>>')
       if(index === -1 && !hasQuitRoom) {
         groupInfos.push({
           id: roomAddress,
-          name: fetchData.name,
-          chatCount: fetchData.chatCount,
-          _type: fetchData._type
+          name: fetchData?.name,
+          chatCount: fetchData?.chatCount,
+          _type: fetchData?._type
         })
       }
     }

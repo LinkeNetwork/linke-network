@@ -4,8 +4,20 @@ import coinImg from '../../assets/images/qianbi.svg'
 import useGlobal from "../../hooks/useGlobal"
 export default function RedEnvelopeCover(props) {
   const { handleCloseRedEnvelope, handleReceiveConfirm } = props
-  const { showOpen, showReceiveBtn } = useGlobal()
+  const { showOpen, showReceiveBtn, setState } = useGlobal()
   const [isOpen, setIsOpen] = useState(false)
+  const handleReceive = () => {
+    setIsOpen(true)
+    handleReceiveConfirm()
+  }
+  const handleCloseEnvelope = () => {
+    setIsOpen(false)
+    setState({
+      showOpen: false
+    })
+    console.log(isOpen, 'isOpen====')
+    handleCloseRedEnvelope()
+  }
   useEffect(() => {
     setIsOpen(showOpen)
   }, [showOpen])
@@ -18,7 +30,7 @@ export default function RedEnvelopeCover(props) {
           <div>
           {
             !isOpen 
-              ? <div className="open-btn" onClick={handleReceiveConfirm}>Open</div>
+              ? <div className="open-btn" onClick={handleReceive}>Open</div>
               : <div className="coin-wrapper">
                   <div className="front" style={{ backgroundImage: `url(${coinImg})` }}></div>
                   <div className="back" style={{ backgroundImage: `url(${coinImg})` }}></div>
@@ -28,7 +40,7 @@ export default function RedEnvelopeCover(props) {
         }
         
         
-        <div className="close-btn" onClick={handleCloseRedEnvelope}>
+        <div className="close-btn" onClick={handleCloseEnvelope}>
           <span className="iconfont icon-guanbi"></span>
         </div>
       </div>
