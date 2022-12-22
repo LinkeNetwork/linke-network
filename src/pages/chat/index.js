@@ -350,7 +350,6 @@ export default function Chat() {
         setShowJoinGroupButton(true)
       }
       setShowMask(false)
-      const currentRedEnvelopId = history.location.search.split('?')[1]
       if(hasAccess && currentRedEnvelopId) {
         const redEnvelopId = history.location.search.split('?')[1]
         const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(currentRedEnvelopId, getLocal('account'))
@@ -362,6 +361,10 @@ export default function Chat() {
           if(!redEnvelopId) return
           setShowReceiveTips(true)
         }
+      }
+      if(!hasAccess) {
+        setShowJoinModal(true)
+        return
       }
       console.log(hasAccess, hasAccessRef.current, showJoinGroupButtonRef.current, showJoinGroupButton, showJoinGroupButtonRef.current, Boolean(hasAccess), 'hasAccess======')
     } catch(error) {
