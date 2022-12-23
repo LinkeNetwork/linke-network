@@ -11,7 +11,7 @@ import { RED_PACKET } from '../../abi/index'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function AwardBonus(props) {
-  const { giveAwayAddress, swapButtonText, approveLoading } = useGlobal()
+  const { giveAwayAddress, swapButtonText, approveLoading, setButtonText } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
   const { handleCloseAward, currentAddress, handleCloseMask, handleShowMask, handleGiveAway, handleSend } = props
   const [showBonusType, setShowBonusType] = useState(false)
@@ -113,6 +113,8 @@ export default function AwardBonus(props) {
   }, [totalAmount, quantity, amount])
   useEffect(() => {
     if(authorization) {
+      setCanSend(true)
+      setButtonText('Send')
       setBtnText('Send')
     }
   }, [authorization])
@@ -124,6 +126,9 @@ export default function AwardBonus(props) {
     }
     if(swapButtonText) {
       setBtnText(swapButtonText)
+      if(swapButtonText === 'APPROVE_ING') {
+        setCanSend(false)
+      }
     }
   }, [approveLoading, swapButtonText])
   return (
