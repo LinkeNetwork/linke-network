@@ -321,7 +321,7 @@ export default function Chat() {
       setCurrentRoomName(name)
     }
     catch (e) {
-      console.log(e, 'err====')
+      console.log(e, 'error====')
       setShowMask(false)
       if (!hasNotice) {
         if(getLocal('isConnect')) {
@@ -338,7 +338,7 @@ export default function Chat() {
   }
   const getJoinRoomAccess = async (roomAddress, groupType) => {
     try {
-      if(groupType == 1 || groupType == 2) {
+      if((groupType == 1 || groupType == 2) && getLocal('account')) {
         var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
       }
       if (groupType == 3) {
