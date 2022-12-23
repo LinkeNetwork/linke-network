@@ -599,7 +599,8 @@ export default function Chat() {
         block,
         chatText,
         to,
-        chatTextSender
+        chatTextSender,
+        _type
       }
     }
     `
@@ -611,7 +612,8 @@ export default function Chat() {
         block,
         to,
         chatText,
-        chatTextSender
+        chatTextSender,
+        _type
       }
     }
     `
@@ -682,6 +684,7 @@ export default function Chat() {
         block,
         chatText,
         to,
+        _type,
         chatTextSender
       }
     }
@@ -694,12 +697,14 @@ export default function Chat() {
         block,
         to,
         chatText,
+        _type,
         chatTextSender
       }
     }
     `
     try{
       const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, toAddress, avatar)
+      console.log(currentList, 'currentList===>>>>')
       setChatList(currentList)
       // insertData(currentList)
       setShowMask(false)
