@@ -11,9 +11,7 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import useGlobal from "../../hooks/useGlobal"
 import packetImg from '../../assets/images/packet.svg'
 export default function ChatContext(props) {
-  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, hasToBottom, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive, shareToTwitter} = props
-  // const [chatLists, setChatLists] = useState(chatList)
-  console.log(chatList, 'chatList====2')
+  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive, shareToTwitter} = props
   const { setState } = useGlobal()
   const [showViewBtn, setShowViewBtn] = useState(false)
   const [showOperate, setShowOperate] = useState(false)
@@ -43,7 +41,6 @@ export default function ChatContext(props) {
   }
   const handleEnterProfile = (e, v) => {
     if (!detectMobile()) return
-    console.log(v, 'handleEnterProfile===')
     getProfileStatus(v?.user?.id)
     e.preventDefault()
     setShowOperate(true)
@@ -55,7 +52,6 @@ export default function ChatContext(props) {
     const res = await getDaiWithSigner(networkList[0].ProfileAddress, PROFILE_ABI).defaultToken(account)
     const hasCreate = res && (new BigNumber(Number(res))).toNumber()
     setProfileId(hasCreate)
-    console.log(hasCreate, 'tokenList===')
   }
   const onOperateMenu = (e, v) => {
     e.preventDefault()
@@ -105,19 +101,6 @@ export default function ChatContext(props) {
       setCopied(true)
     }, 200)
   }
-  const documentClickHandler = (e) => {
-    if (e.target.id === 'chatItem') {
-      console.log(chatList, 'chatList===11')
-    }
-    console.log(e.target.id, 'documentClickHandler====')
-  }
-  useEffect(() => {
-    // setChatLists(chatList)
-    document.addEventListener("click", documentClickHandler)
-    return () => {
-      document.removeEventListener("click", documentClickHandler)
-    }
-  }, [hasMore])
 
   const loadingDatas = (e, v) => {
     setTimeout(() => {
@@ -172,7 +155,7 @@ export default function ChatContext(props) {
             return (
               <div key={i} className="chat-item-wrap">
                 {
-                  !v.hasDelete &&
+                  // !v.hasDelete &&
                   <div className={`chat-item ${v.position ? 'chat-end' : 'chat-start'}`} id="chatItem">
                     {
                       <div
