@@ -1,18 +1,22 @@
-import { detectMobile, formatAddress, getDaiWithSigner, getLocal } from "../../utils"
+import { detectMobile, formatAddress, getDaiWithSigner, getLocal, toThousands } from "../../utils"
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import BigNumber from 'bignumber.js'
 import networks from '../../context/networks'
 import { PROFILE_ABI } from '../../abi/index'
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { useHistory } from 'react-router-dom'
 import Image from "../../component/Image"
 import InfiniteScroll from 'react-infinite-scroll-component'
 import useGlobal from "../../hooks/useGlobal"
 import packetImg from '../../assets/images/packet.svg'
+import { TwitterShareButton } from 'react-twitter-embed'
+import { tokenListInfo } from '../../constant/tokenList'
+import { ethers } from "ethers"
 export default function ChatContext(props) {
+  var numeral = require('numeral')
   const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive, shareToTwitter} = props
-  const { setState } = useGlobal()
+  const { setState, clientInfo } = useGlobal()
   const [showViewBtn, setShowViewBtn] = useState(false)
   const [showOperate, setShowOperate] = useState(false)
   const [selectText, setSelectText] = useState('')
@@ -21,7 +25,11 @@ export default function ChatContext(props) {
   const [longClick, setLongClick] = useState(0)
   const [profileId, setProfileId] = useState()
   const [copied, setCopied] = useState(false)
+  const [receiveSymbol, setReceiveSymbol] = useState()
   const [copyText, setCopyText] = useState('copy')
+  const [optionsList, setOptionsList] = useState({})
+  const [clickNumber, setClickNumber] = useState(0)
+  const [twitterUrl, setTwitterUrl] = useState('')
   const history = useHistory()
   const handleShowProfile = (e, v) => {
     e.preventDefault()
@@ -53,7 +61,44 @@ export default function ChatContext(props) {
     const hasCreate = res && (new BigNumber(Number(res))).toNumber()
     setProfileId(hasCreate)
   }
+  const getGiveawaysInfo = async(currentRedEnvelopId) => {
+    const tokensQuery = `
+    {
+      giveaways(where: {id: "`+  currentRedEnvelopId + `"}){
+        token,
+        amount
+      }
+    }
+    `
+    const res = await clientInfo?.query(tokensQuery).toPromise()
+    return res?.data?.giveaways[0]
+  }
+  const setTwitterInfo = async(v) => {
+    const chatText = v?.chatText?.indexOf('---') ? v?.chatText?.split('---')[0] : v?.chatText
+    const res = await getGiveawaysInfo(chatText)
+    const list = [...tokenListInfo]
+    var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
+    const amount = ethers.utils.formatUnits(res?.amount, 18)
+    const totalAmount = +amount > 1000 ? numeral(amount).format() : amount
+    setReceiveSymbol(newList?.symbol)
+    const tokenList = `${'#Airdrop #ETHF #linke'}${'\xa0'}#${newList?.symbol}`
+    const wishesText = v?.wishesText ? v?.wishesText : 'Best wishes 🎁 🎁 🎁'
+    const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?${chatText}`
+    const url = `${envelopeUrl}${'\xa0'}to join & get money${'\n'}${tokenList}`
+    setTwitterUrl(url)
+    const text = `${wishesText}${'\n'}💰${newList?.symbol}${'\xa0'}${totalAmount}${'\xa0'}💰${'\n'}#Giveaway${'\n'}📍Click${'\n'}`
+    const options = {
+      buttonHashtag: undefined,
+      screenName: undefined,
+      text: text,
+      via: '',
+    }
+    setOptionsList(options)
+    setClickNumber(clickNumber+1)
+  }
   const onOperateMenu = (e, v) => {
+    setOptionsList({})
+    setTwitterInfo(v)
     e.preventDefault()
     if(!v.isSuccess) return
     v.showOperate = true
@@ -194,10 +239,18 @@ export default function ChatContext(props) {
                     {
                       (v.showOperate) && v._type === 'Giveaway' && 
                       <div className='operate-btn operate-btn-share'>
-                        <div onClick={(e) => { shareToTwitter(e, v) }}>
+                        {
+                          optionsList?.text && 
+                          <TwitterShareButton
+                            onLoad={function noRefCheck() { }}
+                            options={optionsList}
+                            url={twitterUrl}
+                          />
+                        }
+                        {/* <div onClick={(e) => { shareToTwitter(e, v) }}>
                           <span className='iconfont icon-share'></span>
                           <span>share</span>
-                        </div>
+                        </div> */}
                       </div>
                     }
                     {

@@ -1419,7 +1419,7 @@ export default function Chat() {
                           loadingData={() => loadingData()}
                           handleDecryptedMessage={(id, text) => handleDecryptedMessage(id, text)}
                           shareInfo={(e, v) => shareInfo(e, v)}
-                          shareToTwitter={(e, v) => shareToTwitter(e, v)}
+                          // shareToTwitter={(e, v) => shareToTwitter(e, v)}
                         />
 
                         <div style={{ float: "left", clear: "both" }}
