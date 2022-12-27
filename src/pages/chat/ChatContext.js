@@ -106,7 +106,7 @@ export default function ChatContext(props) {
     setTimeout(() => {
       v.showOperate = false
       setShowOperate(false)
-    }, 4000)
+    }, 5000)
   }
   const onContextMenu = (e, v) => {
     if (detectMobile()) return
