@@ -1,7 +1,7 @@
 export const tokenListInfo = [
   {
     "chainId": 513100,
-    "address": "0",
+    "address": "0x0000000000000000000000000000000000000000",
     "name": "Ethereum Fair",
     "symbol": "ETHF",
     "decimals": 18,

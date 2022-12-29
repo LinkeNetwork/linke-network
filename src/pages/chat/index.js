@@ -594,11 +594,6 @@ export default function Chat() {
     setChatList(currentList.concat(list))
     // insertData(currentList)
   }
-  const shareToTwitter = (e, v) => {
-    e.stopPropagation()
-    const chatText = v?.chatText?.indexOf('---') ? v?.chatText.split('---')[0] : v?.chatText
-    window.open(`https://twitter.com/intent/tweet?text=https://linke.network/chat/${currentAddress}/${getLocal('network')}/?${chatText}`)
-  }
   const shareInfo = (e, v) => {
     e.stopPropagation()
     v.showOperate = false

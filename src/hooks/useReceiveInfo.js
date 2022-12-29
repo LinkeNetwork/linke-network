@@ -32,7 +32,8 @@ export default function useReceiveInfo() {
     }
     `
     const res = await clientInfo?.query(tokensQuery).toPromise()
-    return res?.data?.giveaways[0].lastCount
+    const lastCount = res?.data?.giveaways[0]?.lastCount || 0
+    return lastCount
   }
 
   return { getReceiveInfo}

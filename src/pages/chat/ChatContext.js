@@ -15,7 +15,7 @@ import { tokenListInfo } from '../../constant/tokenList'
 import { ethers } from "ethers"
 export default function ChatContext(props) {
   var numeral = require('numeral')
-  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive, shareToTwitter} = props
+  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive} = props
   const { setState, clientInfo } = useGlobal()
   const [showViewBtn, setShowViewBtn] = useState(false)
   const [showOperate, setShowOperate] = useState(false)
@@ -46,6 +46,24 @@ export default function ChatContext(props) {
     e.preventDefault()
     setShowOperate(false)
     v.showProfile = false
+  }
+  const shareToTwitter = async(e, v) => {
+    e.stopPropagation()
+    const chatText = v?.chatText?.indexOf('---') ? v?.chatText?.split('---')[0] : v?.chatText
+    const res = await getGiveawaysInfo(chatText)
+    const list = [...tokenListInfo]
+    var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
+    const amount = ethers.utils.formatUnits(res?.amount, 18)
+    const totalAmount = +amount > 1000 ? numeral(amount).format() : amount
+    setReceiveSymbol(newList?.symbol)
+    const tokenList = `${'\%23'}${'Airdrop'}${'\%20'}${'\%23'}${'ETHF'}${'\%20'}${'\%23'}${'linke'}${'\%20'}${'\%23'}${newList?.symbol}`
+    const wishes = v?.wishesText ? v?.wishesText : 'Best wishes 🎁 🎁 🎁'
+    const wishesText = wishes.replace('#', "\%23")
+    const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?${chatText}`
+    const url = `${envelopeUrl}${'\xa0'}to join ${'\%26'} get money${'\%0A'}${tokenList}`
+    const text = `${wishesText}${'\%0A'}💰${newList?.symbol}${'\xa0'}${totalAmount}${'\xa0'}💰${'\%0A'}${'\%23'}Giveaway${'\%0A'}📍Click${'\%0A'}`
+    const st = text + url 
+    window.open(`https://twitter.com/intent/tweet?text=${st}`)
   }
   const handleEnterProfile = (e, v) => {
     if (!detectMobile()) return
@@ -115,14 +133,20 @@ export default function ChatContext(props) {
     onOperateMenu(e, v)
   }
   const gtouchstart = (e, v) => {
+    e.stopPropagation()
     setTimeOutEvent(setTimeout(() => {
       setLongClick(1)
+      setOptionsList({})
+      setTwitterInfo(v)
       v.showOperate = true
       onOperateMenu(e, v)
     }, 500))
   }
   const gtouchend = (e, v) => {
-    v.showOperate = false
+    setTimeout(() => {
+      v.showOperate = false
+      setShowOperate(false)
+    }, 2000)
     clearTimeout(timeOutEvent)
     setLongClick(0)
     if (timeOutEvent !== 0 && longClick === 0) {
@@ -240,17 +264,20 @@ export default function ChatContext(props) {
                       (v.showOperate) && v._type === 'Giveaway' && 
                       <div className='operate-btn operate-btn-share'>
                         {
-                          optionsList?.text && 
+                          optionsList?.text && !detectMobile() &&
                           <TwitterShareButton
                             onLoad={function noRefCheck() { }}
                             options={optionsList}
                             url={twitterUrl}
                           />
                         }
-                        {/* <div onClick={(e) => { shareToTwitter(e, v) }}>
-                          <span className='iconfont icon-share'></span>
-                          <span>share</span>
-                        </div> */}
+                        {
+                          detectMobile() && 
+                          <div onClick={(e) => { shareToTwitter(e, v) }}>
+                            <span className='iconfont icon-share'></span>
+                            <span>share</span>
+                          </div>
+                        }
                       </div>
                     }
                     {
