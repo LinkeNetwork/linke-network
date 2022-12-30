@@ -331,7 +331,7 @@ export default function Chat() {
         setShowJoinGroupButton(true)
       }
       setShowMask(false)
-      const redEnvelopId = history.location.search.split('?')[1]
+      const redEnvelopId = parseInt(history.location.search.split('?')[1])
       setCurrentRedEnvelopId(redEnvelopId)
       if(hasAccess && redEnvelopId) {
         const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(redEnvelopId, getLocal('account'))
