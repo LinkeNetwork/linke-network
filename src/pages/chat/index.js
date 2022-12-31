@@ -710,7 +710,7 @@ export default function Chat() {
   const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText) => {
     const type_ = currentBonusType === 'Random Amount' ? 2 : 1
     const address = giveAwayAddress
-    const total = ethers.utils.parseEther(totalAmount)
+    const total = ethers.utils.parseEther(String(totalAmount))
     if(!wishesText) {
       wishesText = 'Best Wishes'
     }
@@ -1261,6 +1261,7 @@ export default function Chat() {
       }
       {
         showAwardBonus && detectMobile() &&
+        showAwardBonus &&
         <AwardBonus
           handleCloseAward={() => { setShowAwardBonus(false) }}
           currentAddress={currentAddress}
