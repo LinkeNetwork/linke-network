@@ -58,8 +58,7 @@ export default function ChatContext(props) {
     setReceiveSymbol(newList?.symbol)
     const tokenList = `${'\%23'}${'Airdrop'}${'\%20'}${'\%23'}${'ETHF'}${'\%20'}${'\%23'}${'linke'}${'\%20'}${'\%23'}${newList?.symbol}`
     const wishes = v?.wishesText ? v?.wishesText : 'Best wishes 🎁 🎁 🎁'
-    const wishesTemp = wishes.replace('#', "\%23")
-    const wishesText = wishesTemp.replace('&', "\%26")
+    const wishesText = encodeURIComponent(wishes)
     const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?${chatText}`
     const url = `${envelopeUrl}${'\xa0'}to join ${'\%26'} get money${'\%0A'}${tokenList}`
     const text = `${wishesText}${'\%0A'}💰${newList?.symbol}${'\xa0'}${totalAmount}${'\xa0'}💰${'\%0A'}${'\%23'}Giveaway${'\%0A'}📍Click${'\%0A'}`
