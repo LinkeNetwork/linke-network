@@ -1,4 +1,5 @@
 import metaURL from '../../assets/images/MetaMask_Fox.svg';
+import okexURL from '../../assets/images/okex.svg';
 import styled from 'styled-components'
 import { detectMobile } from '../../utils';
 import Image from '../../component/Image';
@@ -8,6 +9,11 @@ export default function ChangeNetwork(props) {
     {
       image: metaURL,
       name: 'MetaMask',
+      network: 'ETHF',
+    },
+    {
+      image: okexURL,
+      name: 'MetaX',
       network: 'ETHF',
     }
   ]
