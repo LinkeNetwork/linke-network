@@ -223,12 +223,14 @@ export default function Chat() {
     const path = history.location.pathname.split('/chat/')[1]
     const address = path?.split('/')[0]
     const network = path?.split('/')[1] || getLocal('network')
+    
     if (network) {
       setState({
         currNetwork: network
       })
     }
     if (address) {
+      await getInitChatList(address)
       setCurrentAddress(address)
       setState({
         currentAddress: address
@@ -236,7 +238,7 @@ export default function Chat() {
       if(!hash) {
         await isRoom(address)
       }
-      await getInitChatList(address)
+      
     }
   }
   const updateGroupList = async (name, roomAddress, type) => {
@@ -399,11 +401,13 @@ export default function Chat() {
   }
 
   const insertData = async (datas) => {
+    console.log(datas, 'datas=====')
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
     for (let i = 0; i < datas?.length; i++) {
       datas[i].block = parseInt(datas[i].block)
       collection?.findOne({ id: datas[i].id }).then((doc) => {
+        console.log(doc, 'doc======')
         if (doc) {
           collection.update({ id: datas[i].id }, { $set: datas[i] })
         } else {
@@ -416,6 +420,7 @@ export default function Chat() {
   }
 
   const initCurrentAddress = (list) => {
+    console.log('11111111')
     clearInterval(timer.current)
     clearInterval(allTimer.current)
     setCurrentAddress(list)
@@ -909,6 +914,7 @@ export default function Chat() {
     const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
     updateUnreadNum(roomAddress, res)
     const lastBlock = res?.length && +res[0]?.block + 1
+    console.log(lastBlock, 'lastBlock====')
     // if(!lastBlock || chatListRef.current[0]?.block == 0) return
     const tokensQuery = `
         query{
@@ -934,6 +940,7 @@ export default function Chat() {
     const data = await client.query(tokensQuery).toPromise()
     if (!data?.data?.chatInfos.length) return
     const newList = data?.data?.chatInfos && await getMemberList(data?.data?.chatInfos)
+    console.log(newList, 'newList=======')
     const list = chatListRef ? chatListRef.current : []
     collection.insert(newList, (error) => {
       updateNewList(roomAddress, collection)
