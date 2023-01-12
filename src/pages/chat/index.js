@@ -230,8 +230,8 @@ export default function Chat() {
       })
     }
     if (address) {
-      await getInitChatList(address)
       setCurrentAddress(address)
+      await getInitChatList(address)
       setState({
         currentAddress: address
       })
@@ -390,6 +390,7 @@ export default function Chat() {
     // const result = formateData(chatList, roomAddress)
     const result = await getMemberList(chatList) || []
     await insertData(result)
+    console.log(roomAddress, currentAddressRef, 'currentAddressRef====')
     if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
       if (res?.length > 0) {
         setChatList(res)
