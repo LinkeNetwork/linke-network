@@ -9,6 +9,22 @@ export const tokenListInfo = [
   },
   {
     "chainId": 513100,
+    "address": "0x6593900a9BEc57c5B80a12d034d683e2B89b7C99",
+    "name": "ETHF ClassZZ",
+    "symbol": "FCZZ",
+    "decimals": 18,
+    "logoURI": "https://docsclasszz.s3.ap-southeast-1.amazonaws.com/docs.classzz.com/svg/logo.svg",
+  },
+  {
+    "chainId": 513100,
+    "address": "0x68934bC0F08e7B93ba0A18fe9a9c35898bFD0d47",
+    "name": "ClassZZ USD",
+    "symbol": "USDZ",
+    "decimals": 18,
+    "logoURI": "https://docsclasszz.s3.ap-southeast-1.amazonaws.com/docs.classzz.com/svg/USDZ-LOGO.svg",
+  },
+  {
+    "chainId": 513100,
     "address": "0x5014Cfd635bC53D6DF109Dc7803d7F872eE44696",
     "name": "Bitcoin",
     "symbol": "BTC",
@@ -30,7 +46,7 @@ export const tokenListInfo = [
     "symbol": "ETC",
     "decimals": 18,
     "logoURI": "https://www.gate.io/images/coin_icon/64/etc.png",
-  }, 
+  },
   {
     "chainId": 513100,
     "address": "0x3Eee5d2Ed0205f93969A59f7c8597fB614264436",
@@ -54,7 +70,7 @@ export const tokenListInfo = [
     "symbol": "FDAO",
     "decimals": 18,
     "logoURI": "https://ethf.mdaoswap.com/FDAO.png",
-  }, 
+  },
   {
     "chainId": 513100,
     "address": "0x7127deeff734cE589beaD9C4edEFFc39C9128771",
