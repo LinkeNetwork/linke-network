@@ -17,7 +17,7 @@ import HomeHeader from '../home/Header'
 import useWallet from "../../hooks/useWallet";
 import useGlobal from "../../hooks/useGlobal";
 export default function HeaderInfo() {
-  const { balance, chainId, network, changeNetwork, disConnect } = useWallet()
+  const { balance, chainId, network, changeNetwork, disConnect, connectOkexchain } = useWallet()
   const locations = useLocation()
   const [showMenu, setShowMenu] = useState(false)
   const { setState, showConnectNetwork, accounts, showHeader } = useGlobal()
@@ -25,8 +25,15 @@ export default function HeaderInfo() {
   const [showConnectWallet, setShowConnectWallet] = useState(false)
   const [showHomeHeader, setShowHomeHeader] = useState(true)
   const [showMenulist, setShowMenulist] = useState(false)
-  const selectNetwrok = (network) => {
-    changeNetwork(network)
+  const selectNetwrok = (item) => {
+    switch(item.name) {
+      case 'MetaX':
+        connectOkexchain()
+        break;
+      case 'MetaMask':
+        changeNetwork(item.network)
+        break;
+    }
     setShowConnectWallet(false)
   }
   const handleDisconnect = () => {
@@ -51,7 +58,7 @@ export default function HeaderInfo() {
         <ConnectionInfo account={accounts} handleDisconnect={() => handleDisconnect()} />
       </Modal>
       <Modal title="Connect Wallet" visible={showConnectWallet} onClose={() => setShowConnectWallet(false)}>
-        <ChangeNetwork handleChangeNetWork={(network) => selectNetwrok(network)} closeNetworkContainer={() => setShowConnectWallet(false)} />
+        <ChangeNetwork handleChangeNetWork={(item) => selectNetwrok(item)} closeNetworkContainer={() => setShowConnectWallet(false)} />
       </Modal>
       {
         showHomeHeader && <Nav showMenulist={showMenulist} hiddenMenuList={() => { setShowMenulist(false) }} />

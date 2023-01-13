@@ -45,6 +45,32 @@ export default function useWallet() {
       }
     }
   }
+  const connectOkexchain = async () => {
+    setState({
+      showConnectNetwork: false
+    })
+    try{
+      if (typeof window !== 'undefined' && window.okexchain) {
+        const accounts = await window.okexchain.request({ method: 'eth_requestAccounts' })
+        console.log(accounts, 'accounts===')
+        handleNewAccounts(accounts)
+        getAccounInfo(accounts)
+        if(path.includes('/profile')) {
+          history.push(`/profile/${accounts}`)
+        }
+        return accounts
+      } else {
+        window.location.href = 'https://chrome.google.com/webstore/detail/okx-wallet/mcohilncbfahbmgdjkbpemcciiolgcge/related'
+        // if(detectMobile()) {
+        //   // connectWallet()
+        // } else {
+         
+        // }
+      }
+    } catch (error) {
+      throw error
+    }
+  }
   const changeNetwork = async (network) => {
     setState({
       showConnectNetwork: false
@@ -192,5 +218,5 @@ export default function useWallet() {
   useLayoutEffect(() => {
     initWallet()
   }, [getLocal('account')])
-  return { disConnect, chainId, balance ,network, changeNetwork}
+  return { disConnect, chainId, balance ,network, changeNetwork, connectOkexchain}
 }

@@ -23,7 +23,7 @@ export default function ChangeNetwork(props) {
         {
           networkList.map((item,index) => {
             return (
-              <li onClick={() => handleChangeNetWork(item.network)} key={index}>
+              <li onClick={() => handleChangeNetWork(item)} key={index}>
                 <div className='img-wrap'>
                   <Image src={item.image} size={detectMobile() ? 30 : 108}/>
                 </div>
