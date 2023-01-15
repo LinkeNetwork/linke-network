@@ -915,7 +915,6 @@ export default function Chat() {
     const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
     updateUnreadNum(roomAddress, res)
     const lastBlock = res?.length && +res[0]?.block + 1
-    console.log(lastBlock, 'lastBlock====')
     // if(!lastBlock || chatListRef.current[0]?.block == 0) return
     const tokensQuery = `
         query{
