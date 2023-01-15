@@ -12,7 +12,6 @@ import useGlobal from "../../hooks/useGlobal"
 import Loading from '../../component/Loading'
 import { ethers } from "ethers"
 import ewmLogo from '../../assets/images/ewm.png'
-import { StickyContainer, Sticky } from 'react-sticky'
 export default function GroupMember(props) {
   const { currentAddress, closeGroupMember, handleShowMask, handleHiddenMask, handlePrivateChat, hasAccess, shareGroup } = props
   const { setState, currentNetworkInfo } = useGlobal()
