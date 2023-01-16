@@ -22,7 +22,7 @@ import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
 import { detectMobile, throttle } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
-import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET } from '../../abi/index'
+import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET } from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
 import SearchChat from './SearchChat'
@@ -55,6 +55,7 @@ export default function Chat() {
   const [currentAddress, setCurrentAddress] = useState()
   const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
   const currentAddressRef = useRef(null)
+  const [showCanReceiveTips, setCanReceiveTips] = useState(false)
   const [currentRedEnvelopId, setCurrentRedEnvelopId] = useState()
   const [memberCount, setMemberCount] = useState()
   const [myAddress, setMyAddress] = useState()
@@ -1006,7 +1007,18 @@ export default function Chat() {
     }
     // insertData(currentList)
   }
+  const getProfileStatus = async(account) => {
+    const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
+    const hasCreate = res && (new BigNumber(Number(res))).toNumber()
+    return hasCreate
+  }
   const handleReceive = async(v) => {
+    const hasCreateProfile = await getProfileStatus(accounts)
+    console.log(hasCreateProfile, Boolean,'handleReceive====2')
+    if(!Boolean(hasCreateProfile)) {
+      setCanReceiveTips(true)
+      return
+    }
     if(!hasAccess) {
       setShowJoinModal(true)
       return
@@ -1242,6 +1254,15 @@ export default function Chat() {
       {
         <Modal title="Join the group" visible={showJoinModal} onClose={() => { setShowJoinModal(false) }}>
           <div>Please Join the group first</div>
+        </Modal>
+      }
+      {
+        <Modal title="Tips" visible={showCanReceiveTips} onClose={() => { setCanReceiveTips(false) }}>
+          <div>You should create profile first</div>
+          <div className='btn-operate-award' style={{marginTop: '16px'}}>
+            <div className='btn btn-primary' onClick={() => {history.push(`/profile/${accounts}`)}}>Confirm</div>
+            <div className='btn btn-light' onClick={() => { setShowReceiveTips(false) }}>Cancel</div>
+          </div>
         </Modal>
       }
       {
