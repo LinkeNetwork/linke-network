@@ -142,6 +142,17 @@ export default function Chat() {
     groupListRef.current = groupLists
   }, [currentTabIndex, groupLists])
   useEffect(() => {
+    const path = history.location.pathname.split('/chat/')[1]
+    const address = path?.split('/')[0]
+    const network = path?.split('/')[1] || getLocal('network')
+    if(address && network) {
+      setShowChat(true)
+      setState({
+        showHeader: false
+      })
+    }
+  }, [groupLists])
+  useEffect(() => {
     if (currentTabIndex === 1) {
       getMyAvatar()
       localForage.getItem('publicKeyList').then(res => {
@@ -1421,7 +1432,7 @@ export default function Chat() {
               <div className={`tab-content ${showChat ? 'translate-tab' : ''} ${ showAwardBonus ? 'display': ''}`}>
                 <div className='tab-pane'>
                   {
-                    ((groupLists.length > 0 && currentAddress)) &&
+                    ((groupLists.length > 0 && currentAddress) || showChat) &&
                     <div className='d-flex flex-column h-100'>
                       <RoomHeader
                         showChat={showChat}
