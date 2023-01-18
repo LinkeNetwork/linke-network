@@ -377,8 +377,11 @@ export default function Chat() {
     }
     `
     if (!clientInfo) {
-      const item = networks.filter(i => i.name === getLocal('network'))[0]
-      if(!item?.APIURL) return
+      const path = history.location.pathname.split('/chat/')[1]
+      const network = path?.split('/')[1] || getLocal('network') || currentChain
+      const item = networks.filter(i => i.name === (getLocal('network') || network))[0]
+      setCurrNetwork(network)
+      // if(!item?.APIURL) return
       var clientInfo = createClient({
         url: item?.APIURL
       })
@@ -391,7 +394,6 @@ export default function Chat() {
     // const result = formateData(chatList, roomAddress)
     const result = await getMemberList(chatList) || []
     await insertData(result)
-    console.log(roomAddress, currentAddressRef, 'currentAddressRef====')
     if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
       if (res?.length > 0) {
         setChatList(res)
@@ -403,7 +405,6 @@ export default function Chat() {
   }
 
   const insertData = async (datas) => {
-    console.log(datas, 'datas=====')
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
     for (let i = 0; i < datas?.length; i++) {
@@ -422,7 +423,6 @@ export default function Chat() {
   }
 
   const initCurrentAddress = (list) => {
-    console.log('11111111')
     clearInterval(timer.current)
     clearInterval(allTimer.current)
     setCurrentAddress(list)
@@ -478,7 +478,7 @@ export default function Chat() {
       getManager(item.id, item._type)
       handleReadMessage(item.id)
       getJoinRoomAccess(item.id, item._type)
-      history.push(`/chat/${item.id}`)
+      history.push(`/chat/${item.id}/${currNetwork}`)
     }
     setShowChat(true)
     if (detectMobile()) {
@@ -1087,7 +1087,6 @@ export default function Chat() {
           return item
       })
     )
-    console.log(result, 'chatList====')
     setShowMask(false)
     return result
   }
@@ -1160,6 +1159,9 @@ export default function Chat() {
     const network = path?.split('/')[1] || getLocal('network') || currentChain
     const hash = history.location.hash
     hash ? setCurrentTabIndex(1) : setCurrentTabIndex(0)
+    if(!getLocal('isConnect')) {
+      fetchPublicChatList(address)
+    }
     if(network) {
       initRoomAddress(hash)
     }
