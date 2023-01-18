@@ -50,11 +50,30 @@ export default function GroupList(props) {
     const res = await clientInfo?.query(tokensQuery).toPromise()
     return res?.data?.groupInfo
   }
+  const getCurrentGroup = async() => {
+    if(!currentAddress?.toLowerCase() || getLocal('isConnect')) return
+    let fetchData = await getCurrentGroupInfo(currentAddress)
+    const { chatCount, id, name, _type } = fetchData
+    const index = groupList?.findIndex(item => item.id == currentAddress?.toLowerCase())
+    if(index === -1) {
+      groupList.push({
+        newChatCount: 0,
+        chatCount: chatCount,
+        id: id,
+        name: name,
+        _type: _type
+      })
+      setGroupList(groupList)
+      setState({
+        groupLists: groupList
+      })
+    }
+  }
   const updateChatCount = async() => {
     if(!currentAddress?.toLowerCase()) return
     let fetchData = await getCurrentGroupInfo(currentAddress)
     localForage.getItem('chatListInfo').then(res => {
-      if(currNetwork) {
+      if(currNetwork && getLocal('isConnect')) {
         const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
         const publicRooms = account ? account['publicRooms'] : []
         const privateRooms = account ? account['privateRooms'] : []
@@ -114,7 +133,6 @@ export default function GroupList(props) {
         })
       }
     }
-    console.log(groupInfos, 'groupInfos=====>>>')
     setGroupList([...groupInfos] || [])
     setState({
       groupLists: [...groupInfos]
@@ -301,11 +319,9 @@ export default function GroupList(props) {
         const privateRooms = account ? account['privateRooms'] : []
         if(currentTabIndex === 0) {
           if(!publicRooms?.length || hasCreateRoom || hasQuitRoom) {
-            console.log(hasCreateRoom, 'hasCreateRoom===')
             getGroupList()
           } else {
             const groupList = [...publicRooms]
-            console.log(publicRooms, 'publicRooms======')
             setGroupList(groupList)
             setState({
               groupLists: groupList
@@ -342,9 +358,13 @@ export default function GroupList(props) {
       setGroupList([])
     }
     if(!getLocal('isConnect') && clientInfo) {
+
       setGroupList(newGroupList)
     }
   }, [getLocal('isConnect'), chainId, newGroupList])
+  useEffect(() => {
+    getCurrentGroup()
+  }, [currentAddress])
   return (
     <ListGroupContainer>
       {

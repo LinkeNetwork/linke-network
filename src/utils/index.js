@@ -82,6 +82,7 @@ export const isInstalledMetaMask = () => {
 }
 
 export const getDaiWithSigner = (address, abi) => {
+  if(!window.ethereum) return
   const provider = new ethers.providers.Web3Provider(window.ethereum)
   const signer = provider.getSigner()
   if(address) {

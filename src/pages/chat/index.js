@@ -136,6 +136,9 @@ export default function Chat() {
     if (groupLists?.length) {
       setGroupLists([...groupLists])
     }
+    if(!getLocal('isConnect') && groupLists?.length) {
+      setCurrentRoomName(groupLists[0].name)
+    }
     groupListRef.current = groupLists
   }, [currentTabIndex, groupLists])
   useEffect(() => {
@@ -304,13 +307,15 @@ export default function Chat() {
       setCurrentRoomName(name)
     }
     catch (e) {
-      console.log(e, 'error====')
+      console.log(e, 'error==========')
       setShowMask(false)
       if (!hasNotice) {
         if(getLocal('isConnect')) {
           alert('This is not a chat room.')
         } else {
-          alert('Please connect wallet first')
+          if(!currentNetwork) {
+            alert('Please connect wallet first')
+          }
         }
         setHasNotice(true)
         setShowMask(false)
@@ -474,11 +479,11 @@ export default function Chat() {
     setHasAccess()
     setChatList([])
     setHasMore(true)
-    if (currentTabIndex === 0) {
+    if (currentTabIndex === 0 && window.ethereum) {
       getManager(item.id, item._type)
       handleReadMessage(item.id)
       getJoinRoomAccess(item.id, item._type)
-      history.push(`/chat/${item.id}/${currNetwork}`)
+      history.push(`/chat/${item.id}/${getLocal('network')}`)
     }
     setShowChat(true)
     if (detectMobile()) {
