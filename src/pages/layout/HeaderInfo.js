@@ -76,7 +76,10 @@ export default function HeaderInfo() {
             <a href='/'>
               <img src={homeIcon} alt="" />
             </a>
-            {/* <TopMenu handleMenu={() => setShowMenulist(true)}/> */}
+            {
+              locations.pathname !== '/' &&
+              <TopMenu handleMenu={() => setShowMenulist(true)}/>
+            }
           </div>
 
         }
