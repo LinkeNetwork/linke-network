@@ -145,7 +145,7 @@ export default function Chat() {
     const path = history.location.pathname.split('/chat/')[1]
     const address = path?.split('/')[0]
     const network = path?.split('/')[1] || getLocal('network')
-    if(address && network) {
+    if(address && network && !getLocal('isConnect')) {
       setShowChat(true)
       setState({
         showHeader: false
