@@ -34,10 +34,11 @@ import JoinGroupButton from './JoinGroupButton'
 import { useHistory } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
 import useWallet from '../../hooks/useWallet'
-
+import packetImg from '../../assets/images/packet.svg'
 
 export default function Chat() {
   const { collection, setDataBase } = useDataBase()
+  const [collectedRedEnvelope, setCollectedRedEnvelope] = useState([])
   const history = useHistory()
   const { getReceiveInfo } = useReceiveInfo()
   const { getGroupMember } = useGroupMember()
@@ -48,6 +49,7 @@ export default function Chat() {
   const allTimer = useRef()
   const messagesEnd = useRef(null)
   const { chainId } = useWallet()
+  const [showEnvelopesList, setShowEnvelopesList] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
   const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom} = useGlobal()
@@ -145,7 +147,7 @@ export default function Chat() {
     const path = history.location.pathname.split('/chat/')[1]
     const address = path?.split('/')[0]
     const network = path?.split('/')[1] || getLocal('network')
-    if(address && network && !getLocal('isConnect')) {
+    if(address && network) {
       setShowChat(true)
       setState({
         showHeader: false
@@ -1070,6 +1072,8 @@ export default function Chat() {
     {
       giveaways(where: {id: "`+  currentRedEnvelopId + `"}){
         sender,
+        lastCount,
+        count,
         profile {
           name,
           avatar
@@ -1083,11 +1087,21 @@ export default function Chat() {
   const getMemberList = async(chatList) => {
     if(currentTabIndex === 1 || !chatList.length) return
     let result = [...chatList]
+    let collectedRedEnvelope = []
     await Promise.all(
       result.map(async(item) => {
         if(item?._type ==='Giveaway') {
           const id = item?.chatText?.indexOf('---') ? item?.chatText.split('---')[0] : item?.chatText
           var res = await getGiveawaysInfo(id)
+          if(+res?.lastCount > 0) {
+            collectedRedEnvelope.push({
+              id: id,
+              lastCount: res.lastCount,
+              count: res.count
+            })
+            setCollectedRedEnvelope(collectedRedEnvelope)
+          }
+          console.log(id, res, collectedRedEnvelope, 'getMemberList====<<<lastCount')
         }
         let params = {
             avatar: item?._type ==='Giveaway' ? res?.profile?.avatar : item?.user?.profile?.avatar,
@@ -1289,6 +1303,21 @@ export default function Chat() {
         </Modal>
       }
       {
+        <Modal title="List of red envelopes to be claimed" visible={showEnvelopesList} onClose={() => { setShowEnvelopesList(false) }}>
+          <div>You've already received it11111</div>
+          {
+            collectedRedEnvelope.map((item,index) => {
+              return(
+                <div key={index}>
+                  <span>{index+1}</span>
+                  <span>{item.lastCount}/{item.count}</span>
+                </div>
+              )
+            })
+          }
+        </Modal>
+      }
+      {
         showRedEnvelope &&
         <RedEnvelopeCover handleCloseRedEnvelope={() => {setShowRedEnvelope(false)}} handleReceiveConfirm={(e, id) => {handleReceiveConfirm(e, id)}}></RedEnvelopeCover>
       }
@@ -1448,6 +1477,9 @@ export default function Chat() {
                         className={`chat-conetent ${detectMobile() ? 'chat-conetent-client' : ''}`}
                         id="chatConetent"
                       >
+                        {/* <div className='bottom-envelope-list' onClick={() => {setShowEnvelopesList(true)}}>
+                          <img src={packetImg} alt="" style={{ 'width': '40px' }} />
+                        </div> */}
                         <ChatContext
                           getScrollParent={() => this.scrollParentRef}
                           currentAddress={currentAddress}

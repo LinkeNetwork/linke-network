@@ -6,6 +6,16 @@
   display: flex;
   height: 100%;
   flex-direction: column;
+  .bottom-envelope-list {
+    cursor: pointer;
+    background: #f6f6f6;
+    z-index: 10;
+    position: absolute;
+    padding: 10px;
+    border-radius: 50%;
+    right: 20px;
+    bottom: 20px;
+  }
   .chat-content-box {
     display: flex;
     margin-top: 60px;
