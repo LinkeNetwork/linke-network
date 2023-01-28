@@ -84,7 +84,7 @@ export default function HeaderInfo() {
 
         }
         {
-          showHomeHeader && accounts &&
+          showHomeHeader && (accounts || getLocal('account')) &&
           <div className='header-top-info'>
             {
               chainId !== 513100 &&
