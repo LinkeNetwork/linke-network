@@ -37,7 +37,7 @@ export default function ReceiveInfo(props) {
             }
             {
               receiveList[index]?.profile?.name
-                ? <span className="name">{receiveList[index]?.profile?.name}</span>
+                ? <span className="name">{receiveList[index]?.profile?.name?.indexOf('0x') !== -1 ? formatAddress(receiveList[index]?.profile?.name) : receiveList[index]?.profile?.name}</span>
                 : <span className="name">{formatAddress(receiveList[index]?.sender)}</span>
             }
           </div>
