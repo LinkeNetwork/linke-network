@@ -150,5 +150,13 @@ export const tokenListInfo = [
     "symbol": "FST",
     "decimals": 18,
     "logoURI": "https://linke.infura-ipfs.io/ipfs/QmXurQ1NKUWDGgUqZNq7ySZmp9BZHMLYy3ZPWXuzym4GeB?filename=fst.png",
+  },
+  {
+    "chainId": 513100,
+    "address": "0xed11c9bcf69fdd2eefd9fe751bfca32f171d53ae",
+    "name": "CTT",
+    "symbol": "CTT",
+    "decimals": 18,
+    "logoURI": 'https://bafybeidb2igqvrt4gw2mp3z7qfjfrsy2gway425bq5b2cx5adjq6kvs26u.ipfs.dweb.link/?filename=ctt.jpg'
   }
 ]
