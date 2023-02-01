@@ -1108,7 +1108,7 @@ export default function Chat() {
             hasDelete: false,
             isSuccess: true,
             showProfile: false,
-            position: item?._type ==='Giveaway' ? (res?.sender)?.toLowerCase() === (getLocal('account'))?.toLowerCase() : (item?.user?.id).toLowerCase() === (getLocal('account'))?.toLowerCase(),
+            position: getLocal('isConnect') ? (item?._type ==='Giveaway' ? (res?.sender)?.toLowerCase() === (getLocal('account'))?.toLowerCase() : (item?.user?.id).toLowerCase() === (getLocal('account'))?.toLowerCase()) : false,
             showOperate: false,
             isOpen: false, 
             wishesText: item.chatText.split('---')[1]
