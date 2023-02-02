@@ -36,7 +36,7 @@ export const tokenListInfo = [
     "address": "0x16c82b59a784c96d43081BB7Ad576F5Ce6f222eD",
     "name": "Doge Coin",
     "symbol": "DOGE",
-    "decimals": 18,
+    "decimals": 8,
     "logoURI": "https://www.gate.io/images/coin_icon/64/doge.png",
   },
   {
