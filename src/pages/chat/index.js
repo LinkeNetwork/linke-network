@@ -20,7 +20,7 @@ import AwardBonus from './AwardBonus'
 import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
-import { detectMobile, throttle } from '../../utils'
+import { detectMobile, throttle, uniqueChatList } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
 import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET } from '../../abi/index'
 import localForage from "localforage"
@@ -708,7 +708,8 @@ export default function Chat() {
       }
     } else {
       if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-        setChatList(res)
+        const list = uniqueChatList(res, 'block')
+        setChatList(list)
       }
       setShowMask(false)
     }
