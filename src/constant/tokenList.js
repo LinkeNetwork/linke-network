@@ -28,7 +28,7 @@ export const tokenListInfo = [
     "address": "0x5014Cfd635bC53D6DF109Dc7803d7F872eE44696",
     "name": "Bitcoin",
     "symbol": "BTC",
-    "decimals": 18,
+    "decimals": 8,
     "logoURI": "https://www.gate.io/images/coin_icon/64/btc.png",
   },
   {
@@ -108,7 +108,7 @@ export const tokenListInfo = [
     "address": "0xBa1458971F73c4b730a1f09D29713619CDa793Cf",
     "name": "USD Coin",
     "symbol": "USDC",
-    "decimals": 18,
+    "decimals": 6,
     "logoURI": "https://www.gate.io/images/coin_icon/64/usdc.png",
   },
   {
@@ -116,7 +116,7 @@ export const tokenListInfo = [
     "address": "0x7Bf88d2c0e32dE92CdaF2D43CcDc23e8Edfd5990",
     "name": "Tether USDT",
     "symbol": "USDT",
-    "decimals": 18,
+    "decimals": 6,
     "logoURI": "https://www.gate.io/images/coin_icon/64/usdt.png",
   },
   {
@@ -140,7 +140,7 @@ export const tokenListInfo = [
     "address": "0x2282443a094bd107f0c6d0070146b123c4a02013",
     "name": "HuaFashiye",
     "symbol": "HF",
-    "decimals": 18,
+    "decimals": 6,
     "logoURI": "https://linke.infura-ipfs.io/ipfs/QmW3tQsdAYFdqvbdKDYexJaHeFUub6HLSF447CqUkd71YG?filename=hf.jpg",
   },
   {
