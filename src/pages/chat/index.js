@@ -35,6 +35,7 @@ import { useHistory } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
 import useWallet from '../../hooks/useWallet'
 import packetImg from '../../assets/images/packet.svg'
+import {parseUnits} from "@ethersproject/units/src.ts";
 
 export default function Chat() {
   const { collection, setDataBase } = useDataBase()
@@ -240,7 +241,7 @@ export default function Chat() {
     const path = history.location.pathname.split('/chat/')[1]
     const address = path?.split('/')[0]
     const network = path?.split('/')[1] || getLocal('network')
-    
+
     if (network) {
       setState({
         currNetwork: network
@@ -255,7 +256,7 @@ export default function Chat() {
       if(!hash) {
         await isRoom(address)
       }
-      
+
     }
   }
   const updateGroupList = async (name, roomAddress, type) => {
@@ -736,7 +737,7 @@ export default function Chat() {
   const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText) => {
     const type_ = currentBonusType === 'Random Amount' ? 2 : 1
     const address = giveAwayAddress
-    const total = ethers.utils.parseEther(String(totalAmount))
+    const total = ethers.utils.parseUnits(String(totalAmount), 18)
     if(!wishesText) {
       wishesText = 'Best Wishes'
     }
@@ -1111,7 +1112,7 @@ export default function Chat() {
             showProfile: false,
             position: getLocal('isConnect') ? (item?._type ==='Giveaway' ? (res?.sender)?.toLowerCase() === (getLocal('account'))?.toLowerCase() : (item?.user?.id).toLowerCase() === (getLocal('account'))?.toLowerCase()) : false,
             showOperate: false,
-            isOpen: false, 
+            isOpen: false,
             wishesText: item.chatText.split('---')[1]
           }
           Object.assign(item, params)
