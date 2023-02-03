@@ -16,6 +16,7 @@ export default function ReceiveInfo(props) {
   const [receivedAmount, setReceivedAmount] = useState()
   const [receiveSymbol, setReceiveSymbol] = useState()
   const [listHeight, setListHeight] = useState(240)
+  const [receiveDecimals, setReceiveDecimals] = useState('')
   const { clientInfo } = useGlobal()
 
   const rowRenderer = ({
@@ -41,7 +42,7 @@ export default function ReceiveInfo(props) {
                 : <span className="name">{formatAddress(receiveList[index]?.sender)}</span>
             }
           </div>
-          <div className="right">{(Math.floor(ethers.utils.formatUnits(receiveList[index]?.amount, 18) * 10000) / 10000)}<span className="symbol">{receiveSymbol}</span></div>
+          <div className="right">{(Math.floor(ethers.utils.formatUnits(receiveList[index]?.amount, receiveDecimals) * 10000) / 10000)}<span className="symbol">{receiveSymbol}</span></div>
         </div>
       </div>
     )
@@ -99,10 +100,10 @@ export default function ReceiveInfo(props) {
     const list = [...tokenListInfo]
     var newList = list.filter(item => item.address.toUpperCase().includes(receivedInfo?.token.toUpperCase()))[0]
     setReceiveSymbol(newList?.symbol)
+    setReceiveDecimals(newList?.decimals)
     setHasRedPacket(item)
     if (item) {
-      const amount = ethers.utils.formatUnits(item?.amount, 18)
-      console.log(amount, 'amount=====')
+      const amount = ethers.utils.formatUnits(item?.amount, newList.decimals)
       setReceivedAmount((Math.floor(amount * 10000) / 10000))
     }
     setReceiveList(userList)

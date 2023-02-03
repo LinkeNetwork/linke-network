@@ -53,7 +53,7 @@ export default function ChatContext(props) {
     const res = await getGiveawaysInfo(chatText)
     const list = [...tokenListInfo]
     var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
-    const amount = ethers.utils.formatUnits(res?.amount, 18)
+    const amount = ethers.utils.formatUnits(res?.amount, newList.decimals)
     const totalAmount = +amount > 1000 ? numeral(amount).format() : amount
     setReceiveSymbol(newList?.symbol)
     const tokenList = `${'\%23'}${'Airdrop'}${'\%20'}${'\%23'}${'ETHF'}${'\%20'}${'\%23'}${'linke'}${'\%20'}${'\%23'}${newList?.symbol}`
@@ -96,7 +96,7 @@ export default function ChatContext(props) {
     const res = await getGiveawaysInfo(chatText)
     const list = [...tokenListInfo]
     var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
-    const amount = ethers.utils.formatUnits(res?.amount, 18)
+    const amount = ethers.utils.formatUnits(res?.amount, newList.decimals)
     const totalAmount = +amount > 1000 ? numeral(amount).format() : amount
     setReceiveSymbol(newList?.symbol)
     const tokenList = `${'#Airdrop #ETHF #linke'}${'\xa0'}#${newList?.symbol}`
