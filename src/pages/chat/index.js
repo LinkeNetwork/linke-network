@@ -1113,7 +1113,7 @@ export default function Chat() {
             position: getLocal('isConnect') ? (item?._type ==='Giveaway' ? (res?.sender)?.toLowerCase() === (getLocal('account'))?.toLowerCase() : (item?.user?.id).toLowerCase() === (getLocal('account'))?.toLowerCase()) : false,
             showOperate: false,
             isOpen: false,
-            wishesText: item.chatText.split('---')[1]
+            wishesText: item?.chatText?.split('---')[1]
           }
           Object.assign(item, params)
           return item

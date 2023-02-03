@@ -159,7 +159,7 @@ export default function ChatInputBox(props) {
       selection.removeAllRanges()
       selection.addRange(range)
     }
-    lastEditRange = selection.getRangeAt(0)
+    setLastEditRange(selection.getRangeAt(0))
   }
   const addEmoji = (emoji) => {
     getTextRange(emoji)
@@ -174,6 +174,7 @@ export default function ChatInputBox(props) {
   }
   const sendText = () => {
     if (!canSendMessage) return
+    setChatText('')
     setIsClickSend(true)
     startChat(chatText)
   }
