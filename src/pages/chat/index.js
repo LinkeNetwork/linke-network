@@ -35,7 +35,6 @@ import { useHistory } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
 import useWallet from '../../hooks/useWallet'
 import packetImg from '../../assets/images/packet.svg'
-import {parseUnits} from "@ethersproject/units/src.ts";
 
 export default function Chat() {
   const { collection, setDataBase } = useDataBase()
@@ -735,10 +734,10 @@ export default function Chat() {
     )
     return encryptedMessage
   }
-  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText) => {
+  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {
     const type_ = currentBonusType === 'Random Amount' ? 2 : 1
     const address = giveAwayAddress
-    const total = ethers.utils.parseUnits(String(totalAmount), 18)
+    const total = ethers.utils.parseUnits(String(totalAmount), tokenDecimals)
     if(!wishesText) {
       wishesText = 'Best Wishes'
     }
@@ -1343,7 +1342,7 @@ export default function Chat() {
         <AwardBonus
           handleCloseAward={() => { setShowAwardBonus(false) }}
           currentAddress={currentAddress}
-          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText)}}
+          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)}}
           handleGiveAway={(tx) => {handleGiveAway(tx)}}
         ></AwardBonus>
       }
@@ -1353,7 +1352,7 @@ export default function Chat() {
           <AwardBonus
             handleCloseAward={() => { setShowAwardBonus(false) }}
             currentAddress={currentAddress}
-            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText)}}
+            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)}}
             handleGiveAway={(tx) => {handleGiveAway(tx)}}
           ></AwardBonus>
         </Modal>

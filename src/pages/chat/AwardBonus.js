@@ -29,16 +29,16 @@ export default function AwardBonus(props) {
   const [wishesText, setWishesText] = useState()
   const [canSend, setCanSend] = useState(false)
   const [btnText, setBtnText] = useState('Send')
+  const [tokenDecimals, setTokenDecimals] = useState()
   const amountRef = useRef()
   const BonusList = [
     'Random Amount',
     'Identical Amount'
   ]
   const buttonActions = () => {
-    console.log(btnText, 'buttonActions====')
     switch (btnText) {
       case "Send":
-        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText)
+        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)
         break;
       case "Approve":
         approveActions(selectedTokenInfo)
@@ -65,6 +65,7 @@ export default function AwardBonus(props) {
     setSelectedToken(item.symbol)
     setTokenBalance(item.balance)
     setTokenLogo(item.logoURI)
+    setTokenDecimals(item.decimals)
     setSelectTokenAddress(item.address)
     if(item.symbol === 'ETHF') return
     const authorization = await getAuthorization(item)
