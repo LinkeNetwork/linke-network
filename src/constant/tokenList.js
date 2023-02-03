@@ -158,5 +158,13 @@ export const tokenListInfo = [
     "symbol": "CTT",
     "decimals": 18,
     "logoURI": 'https://bafybeidb2igqvrt4gw2mp3z7qfjfrsy2gway425bq5b2cx5adjq6kvs26u.ipfs.dweb.link/?filename=ctt.jpg'
+  },
+  {
+    "chainId": 513100,
+    "address": "0x3562ddf1f5ce2c02ef109e9d5a72e2fdb702711d",
+    "name": "STB",
+    "symbol": "STB",
+    "decimals": 18,
+    "logoURI": 'https://linkenetwork.s3.us-east-2.amazonaws.com/STB.jpg'
   }
 ]
