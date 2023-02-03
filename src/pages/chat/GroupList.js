@@ -122,7 +122,7 @@ export default function GroupList(props) {
     // debugger
     const res = await clientInfo?.query(tokensQuery).toPromise()
     var groupInfos = res?.data?.groupUser?.groupInfos || []
-    const roomAddress = path.split('/chat/')[1]?.toLowerCase()
+    const roomAddress = path.split('/chat/')[1]?.toLowerCase()?.split('/')[0]
     let fetchData = await getCurrentGroupInfo(roomAddress)
     if (roomAddress) {
       const index = groupInfos?.findIndex((item) => item.id === roomAddress)
