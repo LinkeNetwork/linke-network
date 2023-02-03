@@ -396,6 +396,7 @@ export default function Chat() {
     `
     if (!clientInfo) {
       const path = history.location.pathname.split('/chat/')[1]
+      if(!path) return
       const network = path?.split('/')[1] || getLocal('network') || currentChain
       const item = networks.filter(i => i.name === (getLocal('network') || network))[0]
       setCurrNetwork(network)
@@ -698,7 +699,7 @@ export default function Chat() {
   const getInitChatList = async(toAddress, avatar) => {
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
-    const res = await collection?.find({ room: toAddress }).project({}).sort({ block: -1 }).toArray()
+    const res = await collection?.find({ room: toAddress })?.project({})?.sort({ block: -1 })?.toArray()
     if (!res || res?.length === 0) {
       if (currentTabIndex == 0) {
         await fetchPublicChatList(toAddress)
