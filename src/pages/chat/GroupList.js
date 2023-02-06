@@ -309,9 +309,6 @@ export default function GroupList(props) {
     })
   }
   useEffect(() => {
-    updateChatCount()
-  }, [newGroupList, hasChatCount, hasCreateRoom])
-  useEffect(() => {
     if (accounts && chainId) {
       // debugger
       const currNetwork = currentNetworkInfo?.name || getLocal('network')
@@ -355,19 +352,22 @@ export default function GroupList(props) {
         console.log(error, 'error===')
       })
     }
-  }, [accounts, chainId, newGroupList, currentTabIndex, hasCreateRoom, transactionRoomHash])
+  }, [accounts, chainId, currentTabIndex, hasCreateRoom, transactionRoomHash])
   useEffect(() => {
     if ((!getLocal('isConnect') || !chainId) && !clientInfo) {
       setGroupList([])
     }
     if (!getLocal('isConnect') && clientInfo) {
-
       setGroupList(newGroupList)
     }
   }, [getLocal('isConnect'), chainId, newGroupList])
   useEffect(() => {
     getCurrentGroup()
   }, [currentAddress])
+  useEffect(() => {
+    updateChatCount()
+    setGroupList(newGroupList)
+  }, [newGroupList, hasChatCount, hasCreateRoom])
   return (
     <ListGroupContainer>
       {

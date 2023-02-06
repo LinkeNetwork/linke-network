@@ -1209,6 +1209,11 @@ export default function Chat() {
       setShowAwardBonus(true)
     }
   }
+  const handleSearch = (event) => {
+    const value = event.target.value
+    var newList = groupList.filter(item => item.name.includes(value) || item.id.toUpperCase().includes(value.toUpperCase()))
+    setRoomList(newList)
+  }
   const handleReceiveConfirm = async(e, id) => {
     setState({
       showOpen: false
@@ -1433,7 +1438,7 @@ export default function Chat() {
                     myAddress &&
                     <div className="chat-ui-header">
                       <div className='chat-search-wrap'>
-                        <SearchChat />
+                        <SearchChat handleSearch={handleSearch}/>
                         <AddChatRoom
                           showSettingList={showSettingList}
                           onClickSetting={() => { setShowSettingList(!showSettingList) }}
