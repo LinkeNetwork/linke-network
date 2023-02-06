@@ -103,7 +103,7 @@ export default function ReceiveInfo(props) {
     setReceiveDecimals(newList?.decimals)
     setHasRedPacket(item)
     if (item) {
-      const amount = ethers.utils.formatUnits(item?.amount, newList.decimals)
+      const amount = ethers.utils.formatUnits(item?.amount, newList?.decimals)
       setReceivedAmount((Math.floor(amount * 10000) / 10000))
     }
     setReceiveList(userList)
