@@ -452,7 +452,7 @@ textarea.form-control {
   top:50%;
   transform: translate(-50%,-50%);
   .share-text-wrapper {
-    padding-bottom: 20px;
+    // padding-bottom: 20px;
     border-radius: 8px 8px 0 0;
   }
   .logo-wrapper {
@@ -517,11 +517,12 @@ textarea.form-control {
   }
   .share-info {
     text-align: left;
+    word-break: break-all;
     padding: 20px 10px 10px;
     color: #29293b;
     line-height: 22px;
     background: #fff;
-    margin: 20px 10px;
+    margin: 20px 10px 0;
     border-radius: 5px;
   }
   .qrcode-dom{
