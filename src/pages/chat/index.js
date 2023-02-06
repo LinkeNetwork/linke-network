@@ -1103,7 +1103,6 @@ export default function Chat() {
             })
             setCollectedRedEnvelope(collectedRedEnvelope)
           }
-          console.log(id, res, collectedRedEnvelope, 'getMemberList====<<<lastCount')
         }
         let params = {
             avatar: item?._type ==='Giveaway' ? res?.profile?.avatar : item?.user?.profile?.avatar,

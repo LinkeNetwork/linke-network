@@ -366,8 +366,10 @@ export default function GroupList(props) {
   }, [currentAddress])
   useEffect(() => {
     updateChatCount()
-    setGroupList(newGroupList)
   }, [newGroupList, hasChatCount, hasCreateRoom])
+  useEffect(() => {
+    setGroupList(newGroupList)
+  }, [newGroupList])
   return (
     <ListGroupContainer>
       {

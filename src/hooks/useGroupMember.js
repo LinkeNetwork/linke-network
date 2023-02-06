@@ -36,7 +36,6 @@ export default function useGroupMember() {
     })
     const res = await client.query(tokensQuery).toPromise()
     const data = res?.data?.groupInfo
-    console.log(data, 'getGroupMember====')
     return data
   }, [currentAddress])
 
