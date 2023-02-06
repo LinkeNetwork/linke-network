@@ -134,7 +134,6 @@ export default function Chat() {
     groupLists?.map(item => {
       startInterval(item.id)
     })
-
     if (groupLists?.length) {
       setGroupLists([...groupLists])
     }
@@ -868,7 +867,7 @@ export default function Chat() {
     setHasScroll(true)
   }
   const startInterval = (currentAddress) => {
-    let index = groupLists && groupLists.findIndex((item) => item.id.toLowerCase() == currentAddress.toLowerCase())
+    let index = groupLists && groupLists.findIndex((item) => item.id.toLowerCase() == currentAddress?.toLowerCase())
     const groupList = [...groupLists]
     let newRoomList = groupList.splice(index, 1)
     groupList.unshift(newRoomList[0])
@@ -930,7 +929,7 @@ export default function Chat() {
       setRoomList(publicRooms)
     }
   }
-  const getCurrentGroupChatList = async(client, roomAddress) => {
+  const getCurrentGroupChatList = async(roomAddress) => {
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
     const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
@@ -958,7 +957,11 @@ export default function Chat() {
           }
         }
       `
-    const data = await client.query(tokensQuery).toPromise()
+    // const data = await client.query(tokensQuery).toPromise()
+    const client = createClient({
+      url: getLocal('currentGraphqlApi')
+    })
+    const data = await client?.query(tokensQuery).toPromise()
     if (!data?.data?.chatInfos.length) return
     const newList = data?.data?.chatInfos && await getMemberList(data?.data?.chatInfos)
     console.log(newList, 'newList=======')
@@ -968,7 +971,10 @@ export default function Chat() {
       if (error) { throw error; }
     })
     if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
-      setChatList(newList.concat(list))
+      const index = list?.findIndex(item => item.id == newList[0]?.id)
+      if(index === -1) {
+        setChatList(newList.concat(list))
+      }
     }
   }
   const updateNewList = async(roomAddress, collection) => {
@@ -982,12 +988,12 @@ export default function Chat() {
       setHasChatCount(true)
     }
 
-    setRoomList(groupLists)
+    setRoomList([...groupLists])
   }
   const getCurrentChatList = async (roomAddress) => {
     if(!chainId) return
     if(currentTabIndex === 0) {
-      await getCurrentGroupChatList(clientInfo, roomAddress)
+      await getCurrentGroupChatList(roomAddress)
     }
     if(currentTabIndex === 1) {
       await getCurrentPrivateChatList(roomAddress)

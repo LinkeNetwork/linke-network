@@ -52,7 +52,6 @@ export default function useWallet() {
     try{
       if (typeof window !== 'undefined' && window.okexchain) {
         const accounts = await window.okexchain.request({ method: 'eth_requestAccounts' })
-        console.log(accounts, 'accounts===')
         handleNewAccounts(accounts)
         getAccounInfo(accounts)
         if(path.includes('/profile')) {
@@ -123,7 +122,6 @@ export default function useWallet() {
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     const balance = await provider.getBalance(account)
     const etherString = ethers.utils.formatEther(balance)
-    console.log(etherString, 'etherString====>>')
     setBalance(etherString)
     setState({
       currentTokenBalance: etherString
@@ -158,12 +156,10 @@ export default function useWallet() {
   }
   const setNetworkInfo = (chainId) => {
     const item = networks.filter(i=> i.chainId === parseInt(chainId, 16))[0]
-    console.log(item, '==setNetworkInfo===111')
     if(!item) {
       setChainId()
       return
     }
-    console.log(item, '==setNetworkInfo===222')
     const client = createClient({
       url: item?.APIURL
     })
@@ -199,16 +195,16 @@ export default function useWallet() {
         changeProfileUrl()
       })
       window.ethereum.on('connect', id => {
-        console.log('connect',id)
+        // console.log('connect',id)
       })
       window.ethereum.on('disconnect', () => {
-        console.log('wallet disconnect')
+        // console.log('wallet disconnect')
       })
       window.ethereum.on('message', message => {
-        console.log('wallet message', message)
+        // console.log('wallet message', message)
       })
       window.ethereum.on('notification', message => {
-        console.log('wallet notification', message)
+        // console.log('wallet notification', message)
       })
       return () => {
         window.ethereum.off('accountsChanged', handleNewAccounts)
