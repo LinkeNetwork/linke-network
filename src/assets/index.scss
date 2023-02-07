@@ -51,6 +51,9 @@ html, body {
     margin-right: 20px;
   }
 }
+#scrollableDiv > div{
+  width: 100%
+ }
 .numeric-keyboard-actionsheet {
   .numeric-keyboard-key[data-key=enter] {
     color: #fff;

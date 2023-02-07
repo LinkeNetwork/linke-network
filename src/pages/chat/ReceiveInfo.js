@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { ethers } from "ethers";
 import { detectMobile, getLocal, formatAddress } from '../../utils'
 import { tokenListInfo } from '../../constant/tokenList'
+import InfiniteScroll from 'react-infinite-scroll-component'
 import Image from "../../component/Image"
 import { List } from 'react-virtualized'
 export default function ReceiveInfo(props) {
@@ -12,40 +13,43 @@ export default function ReceiveInfo(props) {
   const [receivedInfo, setReceivedInfo] = useState()
   const [profileInfo, setProfileInfo] = useState()
   const [receiveList, setReceiveList] = useState([])
-  const [hasRedPacket, setHasRedPacket] = useState(true)
+  const [hasRedPacket, setHasRedPacket] = useState(false)
   const [receivedAmount, setReceivedAmount] = useState()
   const [receiveSymbol, setReceiveSymbol] = useState()
   const [listHeight, setListHeight] = useState(240)
   const [receiveDecimals, setReceiveDecimals] = useState('')
   const { clientInfo } = useGlobal()
+  const [skipNum, setSkipNum] = useState(0)
 
-  const rowRenderer = ({
-    key,
-    index,
-    style,
-  }) => {
+  const rowRenderer = () => {
     return (
-      <div className="receive-list" key={key} style={style}>
-        <div className="receive-list-item">
-          <div className="left">
-            {
-              receiveList[index]?.profile?.avatar &&
-              <Image src={receiveList[index]?.profile?.avatar} size={30} style={{ margin: '0 4px' }} />
-            }
-            {
-              receiveList[index]?.sender && !receiveList[index]?.profile?.avatar &&
-              <Jazzicon address={receiveList[index]?.sender} className="avatar-image" />
-            }
-            {
-              receiveList[index]?.profile?.name
-                ? <span className="name">{receiveList[index]?.profile?.name?.indexOf('0x') !== -1 ? formatAddress(receiveList[index]?.profile?.name) : receiveList[index]?.profile?.name}</span>
-                : <span className="name">{formatAddress(receiveList[index]?.sender)}</span>
-            }
+      receiveList?.map((item, index) => {
+        return (
+          <div className="receive-list" key={index}>
+            <div className="receive-list-item">
+              <div className="left">
+                {
+                  item?.profile?.avatar &&
+                  <Image src={item?.profile?.avatar} size={30} style={{ margin: '0 4px' }} />
+                }
+                {
+                  item?.sender && !item?.profile?.avatar &&
+                  <Jazzicon address={item?.sender} className="avatar-image" />
+                }
+                {
+                  item?.profile?.name
+                    ? <span className="name">{item?.profile?.name?.indexOf('0x') !== -1 ? formatAddress(item?.profile?.name) : item?.profile?.name}</span>
+                    : <span className="name">{formatAddress(item?.sender)}</span>
+                }
+              </div>
+              <div className="right">{(Math.floor(ethers.utils.formatUnits(item?.amount, receiveDecimals) * 10000) / 10000)}<span className="symbol">{receiveSymbol}</span></div>
+            </div>
           </div>
-          <div className="right">{(Math.floor(ethers.utils.formatUnits(receiveList[index]?.amount, receiveDecimals) * 10000) / 10000)}<span className="symbol">{receiveSymbol}</span></div>
-        </div>
-      </div>
+        )
+      })
+
     )
+
   }
 
   const getReceiveInfo = async (skip = 0) => {
@@ -81,33 +85,28 @@ export default function ReceiveInfo(props) {
     return res
   }
   const handleReceiveInfo = async () => {
-    const res = await getReceiveInfo(0)
+    const res = await getReceiveInfo(skipNum)
+    setSkipNum(skipNum + 50)
     const receivedInfo = res?.data?.giveaways[0]
+    const currentReceiveList = receivedInfo?.receiveProfile
+    setReceiveList(receiveList.concat([...currentReceiveList]))
     setReceivedInfo(receivedInfo)
     const profileInfo = receivedInfo?.profile
     setProfileInfo(profileInfo)
-    const page = Math.ceil((+receivedInfo?.count - (+receivedInfo?.lastCount)) / 50)
-    let skipNum = 0
-    let userList = []
-    for (let i = 0; i < page; i++) {
-      skipNum = i === 0 ? skipNum : skipNum + 50
-      const res = await getReceiveInfo(skipNum)
-      const receivedInfo = res?.data?.giveaways[0]
-      const receiveList = receivedInfo?.receiveProfile
-      userList = userList.concat([...receiveList])
-    }
-    const item = userList.filter(i => i?.sender?.toLowerCase() === getLocal('account')?.toLowerCase())[0]
+    const item = receiveList.filter(i => i?.sender?.toLowerCase() === getLocal('account')?.toLowerCase())[0]
     const list = [...tokenListInfo]
     var newList = list.filter(item => item.address.toUpperCase().includes(receivedInfo?.token.toUpperCase()))[0]
     setReceiveSymbol(newList?.symbol)
     setReceiveDecimals(newList?.decimals)
-    setHasRedPacket(item)
     if (item) {
       const amount = ethers.utils.formatUnits(item?.amount, newList?.decimals)
       setReceivedAmount((Math.floor(amount * 10000) / 10000))
     }
-    setReceiveList(userList)
-    console.log(userList, 'handleReceiveInfo====')
+  }
+  const loadingDatas = () => {
+    setTimeout(() => {
+      handleReceiveInfo()
+    }, 10)
   }
   useEffect(() => {
     handleReceiveInfo()
@@ -145,14 +144,25 @@ export default function ReceiveInfo(props) {
         <div className="divider"></div>
         {
           hasRedPacket &&
-          <List
-            width={360}
-            height={listHeight}
-            rowCount={receiveList?.length}
-            rowHeight={50}
-            rowRenderer={rowRenderer}
-          />
+          <div id="scrollableDiv"
+            style={{
+              height: 300,
+              overflow: 'auto',
+              display: 'flex'
+            }}>
+
+            <InfiniteScroll
+              className="list-item"
+              scrollableTarget="scrollableDiv"
+              dataLength={receiveList?.length}
+              next={loadingDatas}
+              hasMore={true}
+            >
+              {rowRenderer()}
+            </InfiniteScroll>
+          </div>
         }
+
         {
           +receivedInfo?.lastCount === 0 && !hasRedPacket &&
           <div className="view-text" onClick={() => { setHasRedPacket(true) }}>View details<span className="iconfont icon-expand"></span></div>
