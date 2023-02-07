@@ -17,7 +17,7 @@ export default function UseTokenBalance() {
     if(provider && getLocal('account')) {
       try {
         const res = await getBalance(provider, item.address, getLocal('account'))
-        const tokenBalance = getBalanceNumber(new BigNumber(Number(res)), item.decimals)
+        const tokenBalance = getBalanceNumber(new BigNumber(Number(res)), item?.decimals)
         setPoolBalance(tokenBalance)
         const list = [...arr]
         list[index].balance = tokenBalance.toFixed(4)

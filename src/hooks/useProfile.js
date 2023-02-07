@@ -16,7 +16,7 @@ export default function useProfile() {
       try{
         if(currentNetworkInfo && currentNetworkInfo?.ProfileAddress) {
           const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
-          const hasCreate = res && (new BigNumber(Number(res))).toNumber()
+          var hasCreate = res && (new BigNumber(Number(res))).toNumber()
           setLocal('hasCreate', Boolean(hasCreate))
           setState({
             profileId: hasCreate
@@ -28,7 +28,7 @@ export default function useProfile() {
       } catch(error) {
         console.log(error, '===error')
       }
-      return hasCreate
+      return Boolean(hasCreate)
     }
   }
   const getMyprofileInfo = async(profileId) => {

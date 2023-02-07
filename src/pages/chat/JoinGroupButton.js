@@ -1,20 +1,26 @@
 import Modal from  '../../component/Modal'
 import styled from "styled-components"
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI } from '../../abi'
 import { getDaiWithSigner } from '../../utils'
 import useGroupMember from '../../hooks/useGroupMember'
 import useGlobal from '../../hooks/useGlobal'
 import Loading from '../../component/Loading'
-import { ethers } from "ethers";
+import { ethers } from "ethers"
+import { useLocation, useHistory } from 'react-router-dom'
+import useProfile from '../../hooks/useProfile'
 export default function JoinGroupButton(props) {
-  const { setState } = useGlobal()
+  const { setState, accounts } = useGlobal()
+  const locations = useLocation()
+  const history = useHistory()
+  const { getProfileStatus } = useProfile()
   const { getGroupMember } = useGroupMember()
   const { currentAddress, changeJoinStatus, hasAccess } = props
   const [showJoinRoom, setShowJoinRoom] = useState(false)
   const [showLoading, setShowLoading] = useState(false)
   const [transactionHash, setTransactionHash] = useState()
   const [name, setName] = useState()
+  const [showCanJoinTips, setCanJoinTips] = useState(false)
   const skip = 0
   const changeNameInput = (e) => {
     setName(e.target.value)
@@ -52,8 +58,35 @@ export default function JoinGroupButton(props) {
       }
     }
   }
+  const handleJoinRoomPermissions = async() => {
+    const hasCreateProfile = await getProfileStatus(accounts)
+    const isShare = locations.search.split('share=')[1]
+    if(isShare && !hasCreateProfile) {
+      setCanJoinTips(true)
+    } else {
+      setShowJoinRoom(true)
+    }
+  }
+  const handleJumpProfile = () => {
+    history.push({
+      pathname: `/profile/${accounts}`,
+      state: {
+        room: currentAddress,
+        share: 1
+      }
+    })
+  }
   return (
     <JoinGroupButtonContainer>
+      {
+        <Modal title="Tips" visible={showCanJoinTips} onClose={() => { setCanJoinTips(false) }}>
+          <div>You should create profile first</div>
+          <div className='btn-operate-award' style={{marginTop: '16px'}}>
+            <div className='btn btn-primary' onClick={handleJumpProfile}>Confirm</div>
+            <div className='btn btn-light' onClick={() => { setCanJoinTips(false) }}>Cancel</div>
+          </div>
+        </Modal>
+      }
       <Modal title="Join Room" visible={showJoinRoom} onClose={() => setShowJoinRoom(false)}>
       <div className="form-wrap">
           <legend className="name" style={{fontSize: '13px', fontWeight: 'bold'}}>Nick Name
@@ -74,7 +107,7 @@ export default function JoinGroupButton(props) {
       </Modal>
       {
         hasAccess!== undefined &&
-        <div onClick={() => setShowJoinRoom(true)}>
+        <div onClick={handleJoinRoomPermissions}>
           Join
         </div>
       }

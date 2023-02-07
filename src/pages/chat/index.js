@@ -43,6 +43,7 @@ export default function Chat() {
   const { getReceiveInfo } = useReceiveInfo()
   const { getGroupMember } = useGroupMember()
   const [showReceiveTips, setShowReceiveTips] = useState(false)
+  const [showGroupList, setShowGroupList] = useState(true)
   const skip = 0
   const [clickNumber, setClickNumber] = useState(0)
   const timer = useRef()
@@ -143,6 +144,13 @@ export default function Chat() {
     groupListRef.current = groupLists
   }, [currentTabIndex, groupLists])
   useEffect(() => {
+    const isShare = history.location.search.split('share=')[1] || history?.location?.state?.share
+    if(Boolean(isShare)) {
+      setShowGroupList(false)
+    }
+    console.log(history.location, isShare, 'history.location==2')
+  }, [history.location])
+  useEffect(() => {
     const path = history.location.pathname.split('/chat/')[1]
     const address = path?.split('/')[0]
     const network = path?.split('/')[1] || getLocal('network')
@@ -222,10 +230,9 @@ export default function Chat() {
     setPrivateKey(res)
   }
   const initRoomAddress = async(hash) => {
-
     let data = history.location?.state
     if (data) {
-      const { currentIndex, address, name, avatar, privateKey } = data
+      const { currentIndex, address, name, avatar, privateKey, share } = data
       setCurrentTabIndex(currentIndex)
       setCurrentAddress(address)
       setState({
@@ -234,7 +241,9 @@ export default function Chat() {
       setPrivateKey(privateKey)
       setCurrentRoomName(name)
       setRoomAvatar(avatar)
-      return
+      if(!share) {
+        return
+      }
     }
     const path = history.location.pathname.split('/chat/')[1]
     const address = path?.split('/')[0]
@@ -351,7 +360,7 @@ export default function Chat() {
         setShowJoinGroupButton(true)
       }
       setShowMask(false)
-      const redEnvelopId = parseInt(history.location.search.split('?')[1])
+      const redEnvelopId = parseInt(history.location.search.split("?id=")[1])
       setCurrentRedEnvelopId(redEnvelopId)
       if(hasAccess && redEnvelopId) {
         const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(redEnvelopId, getLocal('account'))
@@ -1190,7 +1199,7 @@ export default function Chat() {
   }
   useEffect(() => {
     const path = history.location.pathname.split('/chat/')[1]
-    const currentRedEnvelopId = history.location.search.split('?')[1]
+    const currentRedEnvelopId = history.location.search.split("?id=")[1]
     setCurrentRedEnvelopId(currentRedEnvelopId)
     const address = path?.split('/')[0]
     const network = path?.split('/')[1] || getLocal('network') || currentChain
@@ -1414,7 +1423,7 @@ export default function Chat() {
       {
         showCreateNewRoom &&
         <Modal title="Create New Room" visible={showCreateNewRoom} onClose={() => { setShowCreateNewRoom(false) }}>
-          <CreateNewRoom createNewRoom={(address, name, currentGroupType) => createNewRoom(address, name, currentGroupType)} hiddenCreateInfo={() => { setShowCreateNewRoom(false) }} />
+          <CreateNewRoom createNewRoom={(address, name, currentGroupType) => createNewRoom(address, name, currentGroupType)} hiddenCreateInfo={() => { setShowCreateNewRoom(false) }} showGroupList={showGroupList}/>
         </Modal>
       }
       {
@@ -1435,9 +1444,11 @@ export default function Chat() {
       }
       {
         <div className='chat-content-wrap'>
-          <div className={`chat-ui ${detectMobile() ? 'chat-ui-client' : ''}`}>
-            <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''}`}>
-              <div className={`user-search-wrapper ${showChat ? 'hidden' : ''}`}>
+          <div className={`chat-ui ${detectMobile() ? 'chat-ui-client' : ''} ${!showGroupList ? 'chat-ui-share' : ''}`}>
+            <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''} ${!showGroupList ? 'chat-content-share' : ''}`}>
+              {
+                showGroupList &&
+                <div className={`user-search-wrapper ${showChat ? 'hidden' : ''}`}>
                 <div className='chat-ui-offcanvas' id='chatOffcanvas'>
                   {
                     myAddress &&
@@ -1470,6 +1481,8 @@ export default function Chat() {
                   </ListGroup>
                 </div>
               </div>
+              }
+             
               <div className={`tab-content ${showChat ? 'translate-tab' : ''} ${ showAwardBonus ? 'display': ''}`}>
                 <div className='tab-pane'>
                   {
@@ -1484,6 +1497,7 @@ export default function Chat() {
                         currentTabIndex={currentTabIndex}
                         getGroupMember={() => {setShowGroupMember(true)}}
                         hiddenChat={hiddenChat}
+                        showGroupList={showGroupList}
                       />
                       <div
                         className={`chat-conetent ${detectMobile() ? 'chat-conetent-client' : ''}`}

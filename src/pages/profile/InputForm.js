@@ -8,7 +8,7 @@ import { useState } from "react"
 import UserInfo from './UserInfo'
 import Loading from '../../component/Loading'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
-import { getDaiWithSigner } from '../../utils'
+import { getDaiWithSigner, getLocal } from '../../utils'
 import useGlobal from "../../hooks/useGlobal"
 
 const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
@@ -25,7 +25,7 @@ const client = create({
 })
 
 export default function InputForm(props) {
-    const { myAddress } = props
+    const { myAddress, showNav, roomAddress } = props
     const { currentNetworkInfo } = useGlobal()
     const history = useHistory()
     const [bgImage, setBgImage] = useState()
@@ -38,16 +38,26 @@ export default function InputForm(props) {
     const expandInfo = []
     try {
         const address = currentNetworkInfo?.ProfileAddress
-        debugger
        // string memory name, string memory description, string memory image, MapInfo[] memory attribute, string memory avatar, string memory name_, string memory symbol_
         const tx = await getDaiWithSigner(address, PROFILE_ABI).register(name, describe, expandInfo, avatarUrl, "FOLLOW", "FOLLOW")
         console.log(tx, 'tx====')
         await tx.wait()
         setName('')
         setDescribe('')
-        window.location.reload()
         setShowLoading(false)
-        history.push('/profile')
+        if(!showNav){
+          const network = getLocal('network')
+          history.push({
+            pathname: `/chat/${roomAddress}/${network}?share=1`,
+            state: {
+              share: 1,
+              hasProfile: true
+            }
+          })
+        } else {
+          window.location.reload()
+          history.push('/profile')
+        }
    } catch {
         setShowLoading(false)
    }
@@ -94,7 +104,7 @@ export default function InputForm(props) {
           onChange={val => changeDescribeInput(val)}
         />
       </div>
-      <button className="submit-btn" onClick={() => handleSave()}>Save</button>
+      <button className="submit-btn" onClick={handleSave}>Save</button>
       {
         showLoading && <Loading />
       }

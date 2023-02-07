@@ -49,6 +49,21 @@ export default function HeaderInfo() {
     }
     setShowHomeHeader(locations.pathname !== '/')
   }, [locations.pathname, showConnectNetwork, getLocal('isConnect')])
+  useEffect(() => {
+    const isShare = locations.search.split('share=')[1] || locations?.state?.share
+    if(Boolean(isShare)) {
+      setState({
+        showHeader: false
+      })
+      setShowHomeHeader(false)
+    }
+  }, [locations?.search])
+  useEffect(() => {
+    let data = locations?.state?.share
+    if (data) {
+      setShowHomeHeader(false)
+    }
+  }, [locations])
   return (
     <HeaderInfoContanier>
       {

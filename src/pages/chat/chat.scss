@@ -6,6 +6,9 @@
   display: flex;
   height: 100%;
   flex-direction: column;
+  &-share {
+    margin-left: 0;
+  }
   .bottom-envelope-list {
     cursor: pointer;
     background: #f6f6f6;
@@ -22,6 +25,10 @@
     flex-direction: row;
     height: calc(100vh - 60px);
     &-client {
+      height: 100vh;
+      margin-top: 0;
+    }
+    &.chat-content-share {
       height: 100vh;
       margin-top: 0;
     }

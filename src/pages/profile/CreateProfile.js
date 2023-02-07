@@ -1,15 +1,29 @@
 import styled from "styled-components"
 import InputForm from './InputForm'
 import { detectMobile } from "../../utils"
+import { useLocation } from 'react-router-dom'
 import './index.scss'
+import { useState, useEffect } from "react"
 export default function CreateProfile(props) {
   const { newAccounts } = props
+  const [showNav, setShowNav] = useState(true)
+  const locations = useLocation()
+  const [roomAddress, setRoomAddress] = useState()
+  useEffect(() => {
+    let data = locations?.state
+    if(!data) return
+    const { share, room } = data
+    if (share) {
+      setShowNav(false)
+      setRoomAddress(room)
+    }
+  }, [locations])
   return (
     <CreateProfileContanier>
-      <div className={`profile-wrap ${detectMobile() ? 'profile-wrap-client': ''}`}>
+      <div className={`profile-wrap ${detectMobile() ? 'profile-wrap-client': ''} ${!showNav ? 'profile-wrap-share' : ''}`}>
         <div className="content">
           <div className="create-wrap">
-            <InputForm myAddress={newAccounts}/>
+            <InputForm myAddress={newAccounts} showNav={showNav} roomAddress={roomAddress}/>
           </div>
         </div>
       </div>

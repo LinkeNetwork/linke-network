@@ -59,7 +59,7 @@ export default function ChatContext(props) {
     const tokenList = `${'\%23'}${'Airdrop'}${'\%20'}${'\%23'}${'ETHF'}${'\%20'}${'\%23'}${'linke'}${'\%20'}${'\%23'}${newList?.symbol}`
     const wishes = v?.wishesText ? v?.wishesText : 'Best wishes 🎁 🎁 🎁'
     const wishesText = encodeURIComponent(wishes)
-    const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?${chatText}`
+    const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?id=${chatText}`
     const url = `${envelopeUrl}${'\xa0'}to join ${'\%26'} get money${'\%0A'}${tokenList}`
     const text = `${wishesText}${'\%0A'}💰${newList?.symbol}${'\xa0'}${totalAmount}${'\xa0'}💰${'\%0A'}${'\%23'}Giveaway${'\%0A'}📍Click${'\%0A'}`
     const st = text + url 
@@ -96,12 +96,12 @@ export default function ChatContext(props) {
     const res = await getGiveawaysInfo(chatText)
     const list = [...tokenListInfo]
     var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
-    const amount = ethers.utils.formatUnits(res?.amount, newList.decimals)
+    const amount = ethers.utils.formatUnits(res?.amount, newList?.decimals)
     const totalAmount = +amount > 1000 ? numeral(amount).format() : amount
     setReceiveSymbol(newList?.symbol)
     const tokenList = `${'#Airdrop #ETHF #linke'}${'\xa0'}#${newList?.symbol}`
     const wishesText = v?.wishesText ? v?.wishesText : 'Best wishes 🎁 🎁 🎁'
-    const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?${chatText}`
+    const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?id=${chatText}`
     const url = `${envelopeUrl}${'\xa0'}to join & get money${'\n'}${tokenList}`
     setTwitterUrl(url)
     const text = `${wishesText}${'\n'}💰${newList?.symbol}${'\xa0'}${totalAmount}${'\xa0'}💰${'\n'}#Giveaway${'\n'}📍Click${'\n'}`
