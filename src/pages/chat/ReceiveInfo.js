@@ -89,11 +89,12 @@ export default function ReceiveInfo(props) {
     setSkipNum(skipNum + 50)
     const receivedInfo = res?.data?.giveaways[0]
     const currentReceiveList = receivedInfo?.receiveProfile
-    setReceiveList(receiveList.concat([...currentReceiveList]))
+    const receiveLists = receiveList.concat([...currentReceiveList])
+    setReceiveList(receiveLists)
     setReceivedInfo(receivedInfo)
     const profileInfo = receivedInfo?.profile
     setProfileInfo(profileInfo)
-    const item = receiveList.filter(i => i?.sender?.toLowerCase() === getLocal('account')?.toLowerCase())[0]
+    const item = receiveLists.filter(i => i?.sender?.toLowerCase() === getLocal('account')?.toLowerCase())[0]
     const list = [...tokenListInfo]
     var newList = list.filter(item => item.address.toUpperCase().includes(receivedInfo?.token.toUpperCase()))[0]
     setReceiveSymbol(newList?.symbol)
@@ -101,6 +102,9 @@ export default function ReceiveInfo(props) {
     if (item) {
       const amount = ethers.utils.formatUnits(item?.amount, newList?.decimals)
       setReceivedAmount((Math.floor(amount * 10000) / 10000))
+    }
+    if(receivedInfo?.lastCount > 0 || item?.sender?.toLowerCase() === getLocal('account')?.toLowerCase()) {
+      setHasRedPacket(true)
     }
   }
   const loadingDatas = () => {
@@ -146,7 +150,7 @@ export default function ReceiveInfo(props) {
           hasRedPacket &&
           <div id="scrollableDiv"
             style={{
-              height: 300,
+              height: 240,
               overflow: 'auto',
               display: 'flex'
             }}>

@@ -1380,14 +1380,14 @@ export default function Chat() {
       {
         hasClickPlace && <Loading />
       }
-      {
+      {/* {
         showPlaceWrapper &&
         <div className='place-wrapper'>
           <span className='iconfont icon-guanbi' onClick={() => { setShowPlaceWrapper(false) }}></span>
           <iframe src="https://place.linke.network/" frameBorder="0" width="100%" height="100%" scrolling="no">
           </iframe>
         </div>
-      }
+      } */}
       {
         showGroupMember &&
         <div className='group-member-wrap'>

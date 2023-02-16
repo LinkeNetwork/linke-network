@@ -73,7 +73,7 @@ export default function ChatInputBox(props) {
   const resize = () => {
     let height = document.documentElement.clientHeight || document.body.clientHeight
     if (clientHeight > height) {
-      this.inputClickHandle()
+      inputClickHandle()
     }
   }
 
@@ -219,9 +219,9 @@ export default function ChatInputBox(props) {
           <div className='btn btn-icon btn-sm btn-light rounded-circle' id='buttonSmile' onClick={onClickPicker}>
             <span className='iconfont icon-smile' id="iconSmile"></span>
           </div>
-          <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handlePlaceClick}>
+          {/* <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handlePlaceClick}>
             <span className='iconfont icon-yanse'></span>
-          </div>
+          </div> */}
           <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleAwardBonus}>
             <span className='iconfont icon-hongbao'></span>
           </div>
