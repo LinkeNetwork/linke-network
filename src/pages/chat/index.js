@@ -1303,7 +1303,7 @@ export default function Chat() {
     }
   }, [getLocal('isConnect')])
   return(
-    <div className="chat-ui-wrapper">
+    <div className={`chat-ui-wrapper ${!showGroupList ? 'chat-ui-wrapper-share' : ''}`}>
       {
         <Modal title="Join the group" visible={showJoinModal} onClose={() => { setShowJoinModal(false) }}>
           <div>Please Join the group first</div>
@@ -1325,7 +1325,7 @@ export default function Chat() {
       }
       {
         <Modal title="List of red envelopes to be claimed" visible={showEnvelopesList} onClose={() => { setShowEnvelopesList(false) }}>
-          <div>You've already received it11111</div>
+          <div>You've already received it</div>
           {
             collectedRedEnvelope.map((item,index) => {
               return(
