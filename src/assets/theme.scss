@@ -321,6 +321,11 @@ img, svg {
   .tab-content {
     display: none;
   }
+  .chat-content-share{
+    .tab-content {
+      display: block;
+    }
+  }
   .translate-tab {
     display: block;
     width: 100%;
