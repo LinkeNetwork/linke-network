@@ -48,6 +48,9 @@
       height: 100%;
       .chat-conetent{
         height: calc(100vh - 148px - 56px);
+        &-client {
+          height: calc(100vh - 148px);
+        }
       }
     }
   }
