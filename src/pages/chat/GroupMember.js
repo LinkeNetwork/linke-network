@@ -180,7 +180,7 @@ export default function GroupMember(props) {
   }, [])
 
   return (
-    <GroupMemberContainer className={detectMobile() ? 'member-wrap-client' : ''} id="scrollableDiv">
+    <GroupMemberContainer className={detectMobile() ? 'member-wrap-client' : ''} id="scrollableList">
       {
         showAddManager &&
         addManagerWrapper()
@@ -219,7 +219,7 @@ export default function GroupMember(props) {
       </div>
 
       <InfiniteScroll
-        scrollableTarget="scrollableDiv"
+        scrollableTarget="scrollableList"
         dataLength={memberList?.length}
         next={loadingDatas}
         hasMore={true}

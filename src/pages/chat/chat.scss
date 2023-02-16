@@ -46,6 +46,18 @@
     max-height: 100vh;
     &-share {
       height: 100%;
+      .group-member-wrap {
+        .title {
+          left: 0;
+        }
+        #scrollableList {
+          left: 0;
+          height: calc(100vh - 56px);
+        }
+        .member-wrap-client#scrollableList{
+          height: 100vh;
+        }
+      }
       .chat-conetent{
         height: calc(100vh - 148px - 56px);
         &-client {
