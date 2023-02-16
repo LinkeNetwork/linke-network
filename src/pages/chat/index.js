@@ -1497,6 +1497,7 @@ export default function Chat() {
                         currentTabIndex={currentTabIndex}
                         getGroupMember={() => {setShowGroupMember(true)}}
                         hiddenChat={hiddenChat}
+                        showGroupList={showGroupList}
                       />
                       <div
                         className={`chat-conetent ${detectMobile() ? 'chat-conetent-client' : ''}`}
