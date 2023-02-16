@@ -2,11 +2,11 @@ import { Jazzicon } from '@ukstv/jazzicon-react';
 import { detectMobile } from '../../utils';
 import Image from "../../component/Image"
 export default function RoomHeader(props) {
-  const {showChat, currentRoomName, currentAddress, userCount, hiddenChat, getGroupMember, memberCount, roomAvatar, currentTabIndex, showGroupList} = props
+  const {showChat, currentRoomName, currentAddress, userCount, hiddenChat, getGroupMember, memberCount, roomAvatar, currentTabIndex} = props
   return (
     <div className={`right-header-content ${showChat ? 'translate-header-content' : ''}`}>
       {
-        showChat && showGroupList &&
+        showChat &&
         <i className='iconfont icon-arrow-left-circle' onClick={hiddenChat}></i>
       }
 
