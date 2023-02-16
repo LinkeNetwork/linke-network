@@ -1140,10 +1140,14 @@ export default function Chat() {
     setShowMask(false)
   }
   const hiddenChat = () => {
-    setShowChat(false)
-    setState({
-      showHeader: true
-    })
+    if(showGroupList) {
+      setShowChat(false)
+      setState({
+        showHeader: true
+      })
+    } else {
+      history.goBack()
+    }
   }
   const getDecryptedMessage = async(id, message) => {
     const db = await setDataBase()
