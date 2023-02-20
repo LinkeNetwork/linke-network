@@ -58,10 +58,19 @@
           height: 100vh;
         }
       }
+      
       .chat-conetent{
         height: calc(100vh - 148px - 56px);
         &-client {
           height: calc(100vh - 148px);
+        }
+      }
+      .chat-conetent-no-access {
+        .chat-conetent{
+          height: calc(100vh - 148px - 16px);
+          &-client {
+            height: calc(100vh - 108px);
+          }
         }
       }
     }

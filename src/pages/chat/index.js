@@ -148,7 +148,6 @@ export default function Chat() {
     if(Boolean(isShare)) {
       setShowGroupList(false)
     }
-    console.log(history.location, isShare, 'history.location==2')
   }, [history.location])
   useEffect(() => {
     const path = history.location.pathname.split('/chat/')[1]
@@ -1447,7 +1446,7 @@ export default function Chat() {
         </ShareInfo>
       }
       {
-        <div className='chat-content-wrap'>
+        <div className={`chat-content-wrap ${hasAccess ? '' : 'chat-conetent-no-access'}`}>
           <div className={`chat-ui ${detectMobile() ? 'chat-ui-client' : ''} ${!showGroupList ? 'chat-ui-share' : ''}`}>
             <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''} ${!showGroupList ? 'chat-content-share' : ''}`}>
               {
@@ -1491,7 +1490,7 @@ export default function Chat() {
                 <div className='tab-pane'>
                   {
                     ((groupLists.length > 0 && currentAddress) || showChat) &&
-                    <div className='d-flex flex-column h-100'>
+                    <div className={"d-flex flex-column h-100"}>
                       <RoomHeader
                         showChat={showChat}
                         currentAddress={currentAddress}
@@ -1501,7 +1500,6 @@ export default function Chat() {
                         currentTabIndex={currentTabIndex}
                         getGroupMember={() => {setShowGroupMember(true)}}
                         hiddenChat={hiddenChat}
-                        showGroupList={showGroupList}
                       />
                       <div
                         className={`chat-conetent ${detectMobile() ? 'chat-conetent-client' : ''}`}
