@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import './chat.scss'
 import 'emoji-mart/css/emoji-mart.css'
+import ConnectButton from './ConnectButton'
 import BigNumber from 'bignumber.js'
 import Loading from '../../component/Loading'
 import ListGroup from './GroupList'
@@ -145,10 +146,19 @@ export default function Chat() {
   }, [currentTabIndex, groupLists])
   useEffect(() => {
     const isShare = history.location.search.split('share=')[1] || history?.location?.state?.share
+    getAccount()
     if(Boolean(isShare)) {
       setShowGroupList(false)
     }
-  }, [history.location])
+  }, [])
+  const getAccount = async() => {
+    const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
+    window.localStorage.setItem('account', account[0])
+    setLocal('account', account[0])
+    if(account[0]) {
+      setLocal('isConnect', 1)
+    }
+  }
   useEffect(() => {
     const path = history.location.pathname.split('/chat/')[1]
     const address = path?.split('/')[0]
@@ -319,12 +329,11 @@ export default function Chat() {
       } else {
         var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
       }
-      setCurrentRoomName(name)
-
+      setCurrentRoomName(name || groupInfo?.name)
       if (name) {
         updateGroupList(name, roomAddress, groupType)
       }
-      setCurrentRoomName(name)
+      // setCurrentRoomName(name)
     }
     catch (e) {
       console.log(e, 'error==========')
@@ -1139,14 +1148,10 @@ export default function Chat() {
     setShowMask(false)
   }
   const hiddenChat = () => {
-    if(showGroupList) {
-      setShowChat(false)
-      setState({
-        showHeader: true
-      })
-    } else {
-      history.goBack()
-    }
+    setShowChat(false)
+    setState({
+      showHeader: true
+    })
   }
   const getDecryptedMessage = async(id, message) => {
     const db = await setDataBase()
@@ -1450,7 +1455,7 @@ export default function Chat() {
           <div className={`chat-ui ${detectMobile() ? 'chat-ui-client' : ''} ${!showGroupList ? 'chat-ui-share' : ''}`}>
             <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''} ${!showGroupList ? 'chat-content-share' : ''}`}>
               {
-                showGroupList &&
+                showGroupList && Boolean(Number(getLocal('isConnect'))) &&
                 <div className={`user-search-wrapper ${showChat ? 'hidden' : ''}`}>
                 <div className='chat-ui-offcanvas' id='chatOffcanvas'>
                   {
@@ -1486,7 +1491,7 @@ export default function Chat() {
               </div>
               }
              
-              <div className={`tab-content ${showChat ? 'translate-tab' : ''} ${ showAwardBonus ? 'display': ''}`}>
+              <div className={`tab-content ${showChat ? 'translate-tab' : ''} ${ showAwardBonus ? 'display': ''} ${Number(getLocal('isConnect')) === 0 && detectMobile() ? 'tab-content-show' : ''}`}>
                 <div className='tab-pane'>
                   {
                     ((groupLists.length > 0 && currentAddress) || showChat) &&
@@ -1500,6 +1505,7 @@ export default function Chat() {
                         currentTabIndex={currentTabIndex}
                         getGroupMember={() => {setShowGroupMember(true)}}
                         hiddenChat={hiddenChat}
+                        showGroupList={showGroupList}
                       />
                       <div
                         className={`chat-conetent ${detectMobile() ? 'chat-conetent-client' : ''}`}

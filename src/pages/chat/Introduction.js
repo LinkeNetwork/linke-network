@@ -1,9 +1,10 @@
 import styled from 'styled-components';
+import { getLocal } from '../../utils';
 import ConnectButton from './ConnectButton'
 export default function Introduction(props) {
   const { onClickDialog, connectWallet } = props
   return (
-    <IntroductionWrapper className="conversation-tips">
+    <IntroductionWrapper className={`conversation-tips ${Number(getLocal('isConnect')) === 0 ? 'conversation-tips-show' : ''}`}>
       <div className="row justify-content-center my-auto">
         <div className="col-md-8">
           <img className="d-block mx-auto my-4 no-chat-image" src="https://chat.blockscan.com/assets/svg/message.svg" alt="Message" />

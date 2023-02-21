@@ -8,6 +8,12 @@
  .conversation-tips {
    visibility: visible;
  }
+ .profile-wrapper {
+  display: flex;
+  margin-top: 60px;
+  flex-direction: row;
+  height: calc(100vh - 60px);
+ }
 }
 .photo-provider-pc {
   .PhotoView__Photo {
@@ -93,7 +99,7 @@
   }
   &-client{
     padding-top: 3rem;
-    margin-left: 0;
+    margin: 0;
     .conversation-tips {
       visibility: initial;
       margin-top: -48px;

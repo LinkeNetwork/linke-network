@@ -373,7 +373,7 @@ export default function GroupList(props) {
   return (
     <ListGroupContainer>
       {
-        (groupList?.length === 0) &&
+        (groupList?.length === 0) && Boolean(Number(localStorage.getItem('isConnect'))) &&
         <EmptyInfo onClickDialog={onClickDialog}></EmptyInfo>
       }
       <div className={`list-group ${detectMobile() ? 'list-group-client' : ''}`}>

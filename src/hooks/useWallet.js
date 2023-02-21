@@ -36,7 +36,7 @@ export default function useWallet() {
       setState({
         accounts: null
       })
-      setLocal('isConnect', false)
+      setLocal('isConnect', 0)
       if(path.includes('/chat')) {
         history.push('/chat')
       }
@@ -97,7 +97,7 @@ export default function useWallet() {
     getCurrentBalance(newAccounts[0])
     updateAccounts(newAccounts[0])
     setLocal('account', newAccounts[0])
-    setLocal('isConnect', true)
+    setLocal('isConnect', 1)
   }
 
   const getAccounInfo = async(account) => {
@@ -106,7 +106,7 @@ export default function useWallet() {
     if(path.includes('/profile')) {
       getProfileStatus()
     }
-    setLocal('isConnect', true)
+    setLocal('isConnect', 1)
   }
   const changeProfileUrl = async() => {
     const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
