@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
+import Web3 from 'web3'
 import './chat.scss'
 import 'emoji-mart/css/emoji-mart.css'
 import ConnectButton from './ConnectButton'
@@ -152,6 +153,9 @@ export default function Chat() {
     }
   }, [])
   const getAccount = async() => {
+    const web3 = new Web3(window.ethereum)
+    const accounts = await web3.eth.getAccounts()
+    console.log(accounts, window.ethereum, 'accounts===>>>>>++++')
     const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
     window.localStorage.setItem('account', account[0])
     setLocal('account', account[0])
