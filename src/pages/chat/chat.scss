@@ -46,6 +46,9 @@
     max-height: 100vh;
     &-share {
       height: 100%;
+      .cover-wrapper,.receive-wrapper {
+        top: 40%
+      }
       .group-member-wrap {
         .title {
           left: 0;
