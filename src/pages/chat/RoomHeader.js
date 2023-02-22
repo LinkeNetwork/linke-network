@@ -6,7 +6,7 @@ export default function RoomHeader(props) {
   return (
     <div className={`right-header-content ${showChat ? 'translate-header-content' : ''}`}>
       {
-        showChat && showGroupList &&
+        showChat &&
         <i className='iconfont icon-arrow-left-circle' onClick={hiddenChat}></i>
       }
 

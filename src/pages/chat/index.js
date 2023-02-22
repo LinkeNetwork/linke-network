@@ -153,9 +153,6 @@ export default function Chat() {
     }
   }, [])
   const getAccount = async() => {
-    const web3 = new Web3(window.ethereum)
-    const accounts = await web3.eth.getAccounts()
-    console.log(accounts, window.ethereum, 'accounts===>>>>>++++')
     const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
     window.localStorage.setItem('account', account[0])
     setLocal('account', account[0])
@@ -1152,10 +1149,14 @@ export default function Chat() {
     setShowMask(false)
   }
   const hiddenChat = () => {
-    setShowChat(false)
-    setState({
-      showHeader: true
-    })
+    if(!showGroupList) {
+      history.goBack()
+    } else {
+      setShowChat(false)
+      setState({
+        showHeader: true
+      })
+    }
   }
   const getDecryptedMessage = async(id, message) => {
     const db = await setDataBase()
