@@ -1333,7 +1333,7 @@ export default function Chat() {
     }
   }, [showPlaceWrapper])
   useEffect(() => {
-    const path = history.location.pathname.split('/chat/')[1].split('/')[0]
+    const path = history?.location?.pathname?.split('/chat/')[1]?.split('/')[0]
     isRoom(path)
   }, [chainId])
   useEffect(() => {
