@@ -51,11 +51,10 @@ export default function Chat() {
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
-  const { chainId } = useWallet()
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom} = useGlobal()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentAddress, setCurrentAddress] = useState()
   const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
@@ -149,14 +148,14 @@ export default function Chat() {
     const isShare = history.location.search.split('share=')[1] || history?.location?.state?.share
     getAccount()
     if(Boolean(isShare)) {
+      setShowChat(true)
       setShowGroupList(false)
     }
   }, [])
   const getAccount = async() => {
-    const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    window.localStorage.setItem('account', account[0])
-    setLocal('account', account[0])
-    if(account[0]) {
+    const account = await window?.ethereum?.request({ method: 'eth_requestAccounts' })
+    if(account && account[0]) {
+      setLocal('account', account[0])
       setLocal('isConnect', 1)
     }
   }
@@ -308,7 +307,7 @@ export default function Chat() {
   const isRoom = async (roomAddress) => {
     try {
       initCurrentAddress(roomAddress)
-      setShowMask(true)
+      // setShowMask(true)
       if (!getLocal('isConnect')) {
         const path = history.location.pathname.split('/chat/')[1]
         var currentNetwork = path?.split('/')[1]
@@ -322,14 +321,32 @@ export default function Chat() {
       }
       const groupInfo = await getGroupMember(roomAddress, skip)
       const groupType = groupInfo?._type
-      getJoinRoomAccess(roomAddress, groupType)
+      if(chainId !== 513100 && groupInfo) {
+        const { chatCount, id, name, __typename, _type } = groupInfo
+        const roomInfo = [
+          {
+            chatCount: chatCount,
+            id: id,
+            name: name,
+            __typename: __typename,
+            _type: _type
+          }
+        ]
+        setCurrentRoomName(name)
+        setRoomList([...roomInfo])
+      }
+      if(getLocal('isConnect') || accounts || chainId) {
+        getJoinRoomAccess(roomAddress, groupType)
+      }
       setGroupType(groupType)
-      if (groupType == 3) {
+      if (groupType == 3 && chainId === 513100) {
         var { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
         updateGroupList(name, roomAddress, groupType)
       } else {
+        if(chainId !== 513100) return
         var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
       }
+      
       setCurrentRoomName(name || groupInfo?.name)
       if (name) {
         updateGroupList(name, roomAddress, groupType)
@@ -356,11 +373,15 @@ export default function Chat() {
   }
   const getJoinRoomAccess = async (roomAddress, groupType) => {
     try {
-      if((groupType == 1 || groupType == 2) && getLocal('account')) {
+      if((groupType == 1 || groupType == 2) && getLocal('account') && chainId === 513100) {
         var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
       }
       if (groupType == 3) {
+        if(chainId !== 513100) return
         var res = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
+      }
+      if(!res && chainId !== 513100) {
+        setHasAccess(false)
       }
       if(!res) return
       const hasAccess= ethers.BigNumber.from(res) > 0
@@ -415,7 +436,10 @@ export default function Chat() {
       const path = history.location.pathname.split('/chat/')[1]
       if(!path) return
       const network = path?.split('/')[1] || getLocal('network') || currentChain
-      const item = networks.filter(i => i.name === (getLocal('network') || network))[0]
+      const currentNetwork = getLocal('network') || network
+      const item = networks.filter(i => i.name === currentNetwork.toUpperCase())[0]
+      setLocal('network', currentNetwork.toUpperCase())
+      setShowMask(false)
       setCurrNetwork(network)
       // if(!item?.APIURL) return
       var clientInfo = createClient({
@@ -569,7 +593,6 @@ export default function Chat() {
     `
     const data = await clientInfo?.query(tokensQuery).toPromise()
     const loadingList = data?.data?.chatInfos || []
-    console.log(loadingList.length, 'loadingList.length====')
     if (loadingList.length < 20) {
       setHasMore(false)
     }
@@ -976,13 +999,13 @@ export default function Chat() {
         }
       `
     // const data = await client.query(tokensQuery).toPromise()
+    if(!getLocal('currentGraphqlApi')) return
     const client = createClient({
       url: getLocal('currentGraphqlApi')
     })
     const data = await client?.query(tokensQuery).toPromise()
     if (!data?.data?.chatInfos.length) return
     const newList = data?.data?.chatInfos && await getMemberList(data?.data?.chatInfos)
-    console.log(newList, 'newList=======')
     const list = chatListRef ? chatListRef.current : []
     collection.insert(newList, (error) => {
       updateNewList(roomAddress, collection)
@@ -1058,7 +1081,6 @@ export default function Chat() {
   }
   const handleReceive = async(v) => {
     const hasCreateProfile = await getProfileStatus(accounts)
-    console.log(hasCreateProfile, Boolean,'handleReceive====2')
     if(!Boolean(hasCreateProfile)) {
       setCanReceiveTips(true)
       return
@@ -1215,7 +1237,7 @@ export default function Chat() {
     const currentRedEnvelopId = history.location.search.split("?id=")[1]
     setCurrentRedEnvelopId(currentRedEnvelopId)
     const address = path?.split('/')[0]
-    const network = path?.split('/')[1] || getLocal('network') || currentChain
+    const network = path?.split('/')[1] || getLocal('network') || currentChain   
     const hash = history.location.hash
     hash ? setCurrentTabIndex(1) : setCurrentTabIndex(0)
     if(!getLocal('isConnect')) {
@@ -1310,6 +1332,10 @@ export default function Chat() {
       }, 10)
     }
   }, [showPlaceWrapper])
+  useEffect(() => {
+    const path = history.location.pathname.split('/chat/')[1].split('/')[0]
+    isRoom(path)
+  }, [chainId])
   useEffect(() => {
     if(!getLocal('isConnect')) {
       getclientInfo()
@@ -1460,7 +1486,7 @@ export default function Chat() {
           <div className={`chat-ui ${detectMobile() ? 'chat-ui-client' : ''} ${!showGroupList ? 'chat-ui-share' : ''}`}>
             <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''} ${!showGroupList ? 'chat-content-share' : ''}`}>
               {
-                showGroupList && Boolean(Number(getLocal('isConnect'))) &&
+                showGroupList &&
                 <div className={`user-search-wrapper ${showChat ? 'hidden' : ''}`}>
                 <div className='chat-ui-offcanvas' id='chatOffcanvas'>
                   {
@@ -1495,7 +1521,7 @@ export default function Chat() {
                 </div>
               </div>
               }
-             
+
               <div className={`tab-content ${showChat ? 'translate-tab' : ''} ${ showAwardBonus ? 'display': ''} ${Number(getLocal('isConnect')) === 0 && detectMobile() ? 'tab-content-show' : ''}`}>
                 <div className='tab-pane'>
                   {
@@ -1551,7 +1577,7 @@ export default function Chat() {
                       }
                       {
                         !hasAccess && currentGroupTypeRef.current != 3 && currentTabIndex != 1 &&
-                        <JoinGroupButton hasAccess={hasAccess} currentAddress={currentAddress} changeJoinStatus={(groupType) => changeJoinStatus(groupType)} />
+                        <JoinGroupButton hasAccess={hasAccess} currentAddress={currentAddress} changeJoinStatus={(groupType) => changeJoinStatus(groupType)} chainId={chainId} />
                       }
                     </div>
                   }

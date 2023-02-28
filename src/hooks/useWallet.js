@@ -132,8 +132,11 @@ export default function useWallet() {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const network = await provider.getNetwork()
       const item = networks.filter(i=> i.chainId === network.chainId)[0]
+      setState({
+        chainId: network.chainId
+      })
       if(!item) {
-        setChainId()
+        setChainId(network.chainId)
         return
       }
       const currNetwork = networkList[network.chainId]
@@ -179,12 +182,14 @@ export default function useWallet() {
   }
   const initWallet = async () => {
     if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined' && MetaMaskOnboarding.isMetaMaskInstalled() && getLocal('account')) {
-      const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
+      const account = await window?.ethereum?.request({ method: 'eth_requestAccounts' })
       handleNewAccounts(account)
       getAccounInfo(account)
       console.log(account, 'initWallet====')
       window.ethereum.on('chainChanged', chainId => {
-        console.log('chainChanged====')
+        setState({
+          chainId: parseInt(chainId, 16)
+        })
         handleChainChanged(chainId)
       })
       window.ethereum.on('accountsChanged', (account) => {

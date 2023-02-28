@@ -8,6 +8,7 @@ const state = {
   groupLists: [],
   tokenId: '',
   profileAvatar: '',
+  chainId: '',
   profileId: '',
   currentProfileAddress: '',
   showShareContent: false,

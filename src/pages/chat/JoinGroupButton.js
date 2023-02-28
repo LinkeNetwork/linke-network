@@ -10,7 +10,7 @@ import { ethers } from "ethers"
 import { useLocation, useHistory } from 'react-router-dom'
 import useProfile from '../../hooks/useProfile'
 export default function JoinGroupButton(props) {
-  const { setState, accounts } = useGlobal()
+  const { setState, accounts, chainId } = useGlobal()
   const locations = useLocation()
   const history = useHistory()
   const { getProfileStatus } = useProfile()
@@ -24,6 +24,16 @@ export default function JoinGroupButton(props) {
   const skip = 0
   const changeNameInput = (e) => {
     setName(e.target.value)
+  }
+  const changeNetWork = async() => {
+    const nativeCurrency = { name: "ETHF", decimals: 18, symbol: "ETHF" }
+    const params = [{
+      chainId: "0x7d44c",
+      rpcUrls: ["https://rpc.etherfair.org"],
+      chainName: "Ethereum Fair",
+      nativeCurrency
+    }]
+    await window.ethereum?.request({ method: 'wallet_addEthereumChain', params })
   }
   const handleJoinRoom = async() => {
     const groupInfo = await getGroupMember(currentAddress, skip)
@@ -106,10 +116,14 @@ export default function JoinGroupButton(props) {
         </button>
       </Modal>
       {
-        hasAccess!== undefined &&
+        hasAccess!== undefined && chainId === 513100 &&
         <div onClick={handleJoinRoomPermissions}>
           Join
         </div>
+      }
+      {
+        chainId !== 513100 &&
+        <div onClick={changeNetWork}>Chat</div>
       }
       {
         showLoading && <Loading />
