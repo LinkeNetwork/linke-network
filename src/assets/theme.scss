@@ -349,14 +349,16 @@ img, svg {
       height: 100vh;
     }
   }
-  .translate-header-content {
-    justify-content: center;
-    // margin-top: 60px;
-    .icon-arrow-left-circle {
-      position: absolute;
-      left: 20px;
-      color: #212529;
-      font-size: 20px;
+  &-client {
+    .translate-header-content {
+      justify-content: center;
+      // margin-top: 60px;
+      .icon-arrow-left-circle {
+        position: absolute;
+        left: 20px;
+        color: #212529;
+        font-size: 20px;
+      }
     }
   }
 }
