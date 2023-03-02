@@ -340,13 +340,13 @@ export default function Chat() {
       }
       setGroupType(groupType)
       if (groupType == 3 && chainId === 513100) {
-        var { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
+        var  name  = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
         updateGroupList(name, roomAddress, groupType)
       } else {
         if(chainId !== 513100) return
-        var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
+        var  name  = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
       }
-      
+
       setCurrentRoomName(name || groupInfo?.name)
       if (name) {
         updateGroupList(name, roomAddress, groupType)
@@ -1237,7 +1237,7 @@ export default function Chat() {
     const currentRedEnvelopId = history.location.search.split("?id=")[1]
     setCurrentRedEnvelopId(currentRedEnvelopId)
     const address = path?.split('/')[0]
-    const network = path?.split('/')[1] || getLocal('network') || currentChain   
+    const network = path?.split('/')[1] || getLocal('network') || currentChain
     const hash = history.location.hash
     hash ? setCurrentTabIndex(1) : setCurrentTabIndex(0)
     if(!getLocal('isConnect')) {
