@@ -239,12 +239,12 @@ export default function ChatInputBox(props) {
           <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleAwardBonus}>
             <span className='iconfont icon-hongbao'></span>
           </div>
-          {
+          {/* {
             manager?.toLowerCase() == accounts?.toLowerCase() &&
             <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleOpenSign}>
               <span className='iconfont icon-sign'></span>
             </div>
-          }
+          } */}
           
           {/* <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleSignIn}>
             <span className='iconfont icon-sign2'></span>
