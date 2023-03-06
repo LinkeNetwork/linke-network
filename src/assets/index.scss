@@ -51,6 +51,24 @@ html, body {
     margin-right: 20px;
   }
 }
+.sign-in-wrapper {
+  .content-client {
+   margin-top: 0;
+   padding: 0;
+  }
+  .token-wrapper {
+    margin-top: 0;
+  }
+  .btn-operate-sign {
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    margin-bottom: 10px;
+  }
+  .btn {
+    width: 48%;
+  }
+ }
 #scrollableDiv > div{
   width: 100%
  }

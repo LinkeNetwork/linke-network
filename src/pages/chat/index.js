@@ -24,7 +24,7 @@ import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
 import { detectMobile, throttle, uniqueChatList } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
-import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET } from '../../abi/index'
+import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI } from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
 import SearchChat from './SearchChat'
@@ -35,6 +35,8 @@ import GroupMember from './GroupMember'
 import JoinGroupButton from './JoinGroupButton'
 import { useHistory } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
+import OpenSignIn from './OpenSignIn'
+import SignIn from './SignIn'
 import useWallet from '../../hooks/useWallet'
 import packetImg from '../../assets/images/packet.svg'
 
@@ -51,6 +53,7 @@ export default function Chat() {
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
+  const [showOpenSignIn, setShowOpenSignIn] = useState(false)
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
@@ -75,6 +78,7 @@ export default function Chat() {
   const hasScrollRef = useRef(null)
   const [hasNotice, setHasNotice] = useState(false)
   const [showMask, setShowMask] = useState(false)
+  const [showSignIn, setShowSignIn] = useState(false)
   const [showGroupMember, setShowGroupMember] = useState(false)
   const [currNetwork, setCurrNetwork] = useState()
   const [showJoinRoom, setShowJoinRoom] = useState(false)
@@ -140,6 +144,7 @@ export default function Chat() {
       setGroupLists([...groupLists])
     }
     if(!getLocal('isConnect') && groupLists?.length) {
+      debugger
       setCurrentRoomName(groupLists[0].name)
     }
     groupListRef.current = groupLists
@@ -248,6 +253,7 @@ export default function Chat() {
         currentAddress: address
       })
       setPrivateKey(privateKey)
+      debugger
       setCurrentRoomName(name)
       setRoomAvatar(avatar)
       if(!share) {
@@ -332,6 +338,7 @@ export default function Chat() {
             _type: _type
           }
         ]
+        debugger
         setCurrentRoomName(name)
         setRoomList([...roomInfo])
       }
@@ -340,18 +347,19 @@ export default function Chat() {
       }
       setGroupType(groupType)
       if (groupType == 3 && chainId === 513100) {
-        var { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
+        var { name }  = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
         updateGroupList(name, roomAddress, groupType)
       } else {
         if(chainId !== 513100) return
-        var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
+        var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI)?.profile()
       }
       
-      setCurrentRoomName(name || groupInfo?.name)
+      // setCurrentRoomName(name || groupInfo?.name)
       if (name) {
         updateGroupList(name, roomAddress, groupType)
       }
-      // setCurrentRoomName(name)
+      debugger
+      setCurrentRoomName(name)
     }
     catch (e) {
       console.log(e, 'error==========')
@@ -563,6 +571,7 @@ export default function Chat() {
     setState({
       currentAddress: item.id
     })
+    debugger
     setCurrentRoomName(item.name)
     setShowMask(true)
     setHasScroll(false)
@@ -1215,6 +1224,9 @@ export default function Chat() {
       getManager(currentAddress, groupType)
     }
   }
+  const handleOpenSignIn = () => {
+    setShowOpenSignIn(true)
+  }
   const handleDecryptedMessage = (id, text) => {
     getDecryptedMessage(id, text)
   }
@@ -1405,6 +1417,24 @@ export default function Chat() {
         ></AwardBonus>
       }
       {
+        <Modal title="Open sign in" visible={showOpenSignIn} onClose={() => { setShowOpenSignIn(false) }}>
+          <div className="sign-in-wrapper">
+            <OpenSignIn />
+            <div className='btn-operate-sign'>
+              <div className='btn btn-primary' onClick={handleOpenSignIn}>Open</div>
+              <div className='btn btn-light' onClick={() => { setShowOpenSignIn(false) }}>Cancel</div>
+            </div>
+          </div>
+        </Modal>
+      }
+      {
+        <Modal title="Sign in" visible={showSignIn} onClose={() => { setShowSignIn(false) }}>
+          <div className="sign-in-wrapper">
+            <SignIn />
+          </div>
+        </Modal>
+      }
+      {
         !detectMobile() &&
         <Modal title="Award Bonus" visible={showAwardBonus} onClose={handleCloseAward}>
           <AwardBonus
@@ -1522,7 +1552,7 @@ export default function Chat() {
               </div>
               }
 
-              <div className={`tab-content ${showChat ? 'translate-tab' : ''} ${ showAwardBonus ? 'display': ''} ${Number(getLocal('isConnect')) === 0 && detectMobile() ? 'tab-content-show' : ''}`}>
+              <div className={`tab-content ${showChat ? 'translate-tab' : ''} ${ showAwardBonus ? 'display': ''} ${ showOpenSignIn ? 'display': ''} ${Number(getLocal('isConnect')) === 0 && detectMobile() ? 'tab-content-show' : ''}`}>
                 <div className='tab-pane'>
                   {
                     ((groupLists.length > 0 && currentAddress) || showChat) &&
@@ -1568,10 +1598,13 @@ export default function Chat() {
                       {
                         ((hasAccess || currentTabIndex == 1) || (canSendText && currentGroupTypeRef.current == 3)) &&
                         <ChatInputBox
+                          currentAddress={currentAddress}
                           startChat={(text) => startChat(text)}
                           clearChatInput={clearChatInput}
                           handleShowPlace={() => { setShowPlaceWrapper(true) }}
                           handleAwardBonus={handleAwardBonus}
+                          handleOpenSign={() => { setShowOpenSignIn(true) }}
+                          handleSignIn={() => { setShowSignIn(true) }}
                           resetChatInputStatus={() => { setClearChatInput(false) }}
                         ></ChatInputBox>
                       }

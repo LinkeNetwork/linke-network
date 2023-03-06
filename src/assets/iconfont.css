@@ -13,6 +13,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-sign:before {
+  content: "\e607";
+}
+
+.icon-sign1:before {
+  content: "\e61c";
+}
+
+.icon-sign2:before {
+  content: "\e60d";
+}
+
 .icon-hongbao:before {
   content: "\e89a";
 }

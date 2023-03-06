@@ -7,7 +7,7 @@ import {List} from 'react-virtualized'
 import { tokenListInfo } from '../../constant/tokenList'
 import useGlobal from "../../hooks/useGlobal"
 export default function TokenList(props) {
-  const { selectToken } = props
+  const { selectToken, showBalance } = props
   const { currentTokenBalance } = useGlobal()
   const { getTokenBalance, tokenList } = UseTokenBalance()
   const [listHeight, setListHeight] = useState(450)
@@ -55,7 +55,10 @@ export default function TokenList(props) {
               <div className="token-list-name">{tokenInfo[index]?.name}</div>
             </div>
           </div>
-          <span className="token-balance">{tokenInfo[index]?.balance}</span>
+          {
+            showBalance && <span className="token-balance">{tokenInfo[index]?.balance}</span>
+          }
+          
         </div>
       </div>
     )
@@ -86,13 +89,22 @@ export default function TokenList(props) {
           <span className="icon-search-wrapper">
             <i className="iconfont icon-search"></i>
           </span>
-          <input
+          {
+            showBalance 
+            ? <input
+              className="search-input"
+              onBlur={()=>setContentHeight(450)}
+              onFocus={setHeight}
+              placeholder="Search Name or Paste Address"
+              onInput={handleSearch}
+            />
+            : <input
             className="search-input"
-            onBlur={()=>setContentHeight(450)}
-            onFocus={setHeight}
             placeholder="Search Name or Paste Address"
             onInput={handleSearch}
           />
+          }
+          
         </div>
     )
   }

@@ -1,14 +1,16 @@
 import React, { Component, useEffect, useState } from 'react'
 import { Picker } from 'emoji-mart'
+import { PUBLIC_GROUP_ABI, REGISTER_ABI } from '../../abi'
 import styled from "styled-components"
 import emoji from 'emoji-mart/dist-es/components/emoji/emoji'
-import { detectMobile } from '../../utils'
+import { detectMobile, getDaiWithSigner, getLocal } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus } = props
-  const { setState } = useGlobal()
+  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleOpenSign, handleSignIn, currentAddress } = props
+  const { setState, accounts } = useGlobal()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
+  const [manager, setManager] = useState()
   const [emoji, setEmoji] = useState()
   const [editorBacker, setEditorBacker] = useState(null)
   const [textCounter, setTextCounter] = useState(null)
@@ -36,6 +38,15 @@ export default function ChatInputBox(props) {
     setEditorArea(editorArea)
     setEditorBacker(editorBacker)
     setTextCounter(counter)
+  }
+  const isOpenSignIn = async() => {
+    const tx = await getDaiWithSigner(REGISTER_ABI).register(currentAddress)
+    console.log(tx, '===tx====')
+
+  }
+  const getManager = async() => {
+    const tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
+    setManager(tx.manager)
   }
 
   const getLength = (val) => {
@@ -201,13 +212,16 @@ export default function ChatInputBox(props) {
     clearInput()
   }, [clearChatInput])
   useEffect(() => {
+    isOpenSignIn()
     initClientHeight()
     initTextArea()
     return () => {
       window.removeEventListener('resize', resize)
     }
   }, [])
-
+  useEffect(() => {
+    getManager()
+  }, [currentAddress])
   return (
     <ChatInputBoxContanier>
       <div className={`chat-bottom ${!detectMobile() ? 'chat-bottom-pc' : ''}`}>
@@ -224,6 +238,16 @@ export default function ChatInputBox(props) {
           </div> */}
           <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleAwardBonus}>
             <span className='iconfont icon-hongbao'></span>
+          </div>
+          {
+            manager?.toLowerCase() == accounts?.toLowerCase() &&
+            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleOpenSign}>
+              <span className='iconfont icon-sign'></span>
+            </div>
+          }
+          
+          <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleSignIn}>
+            <span className='iconfont icon-sign2'></span>
           </div>
         </div>
         <div className={`rich-editor chat-input ${!detectMobile() ? 'chat-input-pc' : 'chat-input-client'}`}>

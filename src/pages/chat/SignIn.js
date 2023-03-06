@@ -28,17 +28,14 @@ export default function AwardBonus(props) {
   const [tokenLogo, setTokenLogo] = useState('')
   const [wishesText, setWishesText] = useState()
   const [canSend, setCanSend] = useState(false)
-  const [btnText, setBtnText] = useState('Send')
+  const [btnText, setBtnText] = useState('Mint')
   const [tokenDecimals, setTokenDecimals] = useState()
   const amountRef = useRef()
-  const BonusList = [
-    'Random Amount',
-    'Identical Amount'
-  ]
+  const nftImageList = [1,1,1,1]
   const buttonActions = () => {
     switch (btnText) {
-      case "Send":
-        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)
+      case "Mint":
+        handleSend(totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)
         break;
       case "Approve":
         approveActions(selectedTokenInfo)
@@ -52,11 +49,6 @@ export default function AwardBonus(props) {
   }
   const handleAmountInput = (key) => {
     setAmount(key)
-  }
-  const [currentBonusType, setCurrentBonusType] = useState(BonusList[0])
-  const handleSelecType = (i) => {
-    setCurrentBonusType(BonusList[i])
-    setShowBonusType(false)
   }
   const selectToken = async(item) => {
     setQuantity()
@@ -82,33 +74,24 @@ export default function AwardBonus(props) {
     type === 0 ? setQuantity(tokenValue) : setAmount(tokenValue)
     
   }
-  useEffect(() => {
-    currentBonusType === 'Random Amount' ? setAmountText('Total') : setAmountText('Amount Each') 
-    if(currentBonusType === 'Identical Amount') {
-      if(totalAmount && quantity) {
-        const amount = totalAmount/quantity < 1 ? (totalAmount/quantity).toFixed(2) : Math.floor((totalAmount/quantity) * 100)/100
-        setAmount(amount)
-      }
-    }
-    if(currentBonusType === 'Random Amount') {
-      const result = totalAmount
-      if(result > 0) {
-        setAmount(result)
-      }
-    }
-  }, [currentBonusType])
-  useEffect(() => {
-    if(currentBonusType === 'Random Amount' && quantity && amount) {
-      setTotalAmount(amount)
-    }
-    if(!quantity || !amount) {
-      setTotalAmount(0)
-    }
-  }, [currentBonusType, amount, quantity])
-  useEffect(() => {
-    amountRef.current = amount
-    setClickNumber(clickNumber+1)
-  }, [currentBonusType, amount])
+  const nftList = () => {
+    return(
+      <div>
+        <ul className="list-wrapper">
+          {
+            nftImageList.map((index) => {
+              return (
+                <li key={index}>
+                  <span>NFT</span>
+                  <div>#18</div>
+                </li>
+              )
+            })
+          }
+        </ul>
+      </div>
+    )
+  }
   useEffect(() => {
     ( tokenBalance > totalAmount && quantity && amount) ? setCanSend(true) : setCanSend(false)
   }, [totalAmount, quantity, amount])
@@ -133,29 +116,12 @@ export default function AwardBonus(props) {
     }
   }, [approveLoading, swapButtonText])
   return (
-    <AwardBonusContanier>
+    <SignInSignIn>
+      {nftList()}
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
         <div className="token-list-title">Choose Token</div>
         <TokenList selectToken={(item) => selectToken(item)} showBalance={true}></TokenList>
       </Modal>
-      <Modal visible={showBonusType} onClose={() => setShowBonusType(false)} className={`modal bonus-type-modal ${detectMobile() ? 'modal-client' : ''}`}>
-        {
-          BonusList.map((v, i) => {
-            return (
-              <div className="bonus-type" key={i} onClick={() => { handleSelecType(i) }}>{v}</div>
-            )
-          })
-        }
-      </Modal>
-      {
-        detectMobile() && 
-        <div className="header">
-          <span className="iconfont icon-close" onClick={handleCloseAward}></span>
-          <span>Award Bonus</span>
-          {/* <span className="iconfont icon-more"></span> */}
-      </div>
-      }
-      
       <div className={`content ${detectMobile() ? 'content-client' : ''}`}>
         <div className="token-wrapper">
           <div className="token-detail">
@@ -175,45 +141,32 @@ export default function AwardBonus(props) {
             <i className="iconfont icon-expand"></i>
           </div>
         </div>
-        <div className="bonus-type-wrapper" onClick={() => { setShowBonusType(true) }}>
-          <span>{currentBonusType}</span>
-          <span className="iconfont icon-expand"></span>
-        </div>
         <div className="amount-wrapper quantity-wrapper">
           {
-            detectMobile() 
-            ? <NumericInput layout="tel" placeholder="Enter quantity" onInput={(key) => { handleQuantityInput(key) }} />
-            : <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity}/>
+            <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity}/>
           }
-          <span><span className="iconfont icon-hongbao2"></span>Quantity</span>
-        </div>
-        <div className="amount-wrapper">
-          {
-            detectMobile() && (amount == 0 || amount == 'NaN' || !amount) &&
-            <NumericInput layout="number" placeholder="0.00" onInput={(key) => { handleAmountInput(key) }}/>
-          }
-          {
-            detectMobile() && Number(amount) > 0 &&
-            <NumericInput layout="number" placeholder="0.00" onInput={(key) => { handleAmountInput(key) }} value={amountRef.current} key={`${currentBonusType}`}/>
-          }
-          {
-            !detectMobile() && 
-            <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 1)} defaultValue={amount}/>
-          }
-          <div>{amountText}</div>
-        </div>
-        <div className="amount-wrapper">
-          <input placeholder="Best Wishes" defaultValue={wishesText} onChange={(e) => {setWishesText(e.target.value)}} maxLength={512}/>
+          <span>Quantity</span>
         </div>
       </div>
-      <div className="total">{totalAmount}</div>
-      <div className={`send-btn-wrapper ${detectMobile() ? 'send-btn-wrapper-client': ''}`} onClick={buttonActions}>
-        <span className={`send-btn btn btn-primary ${ canSend ? 'send-allowed' : ''}`}>{btnText}</span>
+      <div className="btn-wrapper">
+        <div className='btn btn-primary' onClick={buttonActions}>
+          <span className={`btn-default ${ canSend ? 'send-allowed' : ''}`}>{btnText}</span>
+        </div>
+        <div className='btn btn-primary' onClick={buttonActions}>
+          <span className={`btn-default ${ canSend ? 'send-allowed' : ''}`}>Sign in</span>
+        </div>
+        <div className='btn btn-light' onClick={buttonActions}>
+          <span className={`${ canSend ? 'send-allowed' : ''}`}>Remove Mint</span>
+        </div>
+        {/* <div className='btn btn-light' onClick={buttonActions}>
+          <span className="btn-cancel">Cancel</span>
+        </div> */}
       </div>
-    </AwardBonusContanier>
+      
+    </SignInSignIn>
   )
 }
-const AwardBonusContanier = styled.div`
+const SignInSignIn = styled.div`
 height: 100%;
 width: 100%;
 background: #fff;
@@ -230,6 +183,11 @@ background: #fff;
 .icon-hongbao2 {
   color: red;
   margin-right: 2px;
+}
+.btn-wrapper {
+  display: flex;
+  justify-content: space-around;
+  margin: 30px 0 20px;
 }
 .token-wrapper {
   height: 74px;
@@ -255,31 +213,26 @@ background: #fff;
     margin-left: 4px;
   }
 }
+.btn-cancel {
+  font-size: 18px;
+}
+.btn-default {
+  opacity: 0.4;
+  cursor: not-allowed;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  font-size: 18px;
+}
 .send-btn-wrapper {
   width: 100%;
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
-}
-.send-btn {
-  opacity: 0.4;
-  cursor: not-allowed;
-  width: 200px;
-  height: 50px;
-  align-items: center;
-  display: flex;
-  justify-content: center;
-  font-size: 20px;
+  margin: 30px 0;
 }
 .send-allowed {
   cursor: pointer;
   opacity: 1;
-}
-.total {
-  text-align: center;
-  margin: 10px;
-  font-size: 20px;
-  font-weight: bold;
 }
 .header {
   height: 60px;
@@ -327,5 +280,32 @@ background: #fff;
   font-size: 18px;
   position: relative;
   background: #fff;
+}
+.list-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  li {
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    border-radius: 10px;
+    margin: 10px 10px 0;
+    padding: 15px;
+    animation: 1.5s ease-in-out 0.5s infinite normal none running animation-c7515d;
+    background: #f6f6f6;
+    border: 1px solid #ececec;
+    span {
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 110px;
+      width: 110px;
+      background-color: rgba(0, 0, 0, 0.11);
+    }
+  }
 }
 `
