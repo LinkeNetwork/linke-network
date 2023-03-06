@@ -212,7 +212,7 @@ export default function ChatInputBox(props) {
     clearInput()
   }, [clearChatInput])
   useEffect(() => {
-    isOpenSignIn()
+    // isOpenSignIn()
     initClientHeight()
     initTextArea()
     return () => {
@@ -246,9 +246,9 @@ export default function ChatInputBox(props) {
             </div>
           }
           
-          <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleSignIn}>
+          {/* <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleSignIn}>
             <span className='iconfont icon-sign2'></span>
-          </div>
+          </div> */}
         </div>
         <div className={`rich-editor chat-input ${!detectMobile() ? 'chat-input-pc' : 'chat-input-client'}`}>
           <div className={`wrapper ${!detectMobile() ? 'wrapper-pc' : 'wrapper-client'}`}>
