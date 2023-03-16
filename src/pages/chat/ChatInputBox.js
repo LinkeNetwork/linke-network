@@ -1,27 +1,33 @@
 import React, { Component, useEffect, useState } from 'react'
 import { Picker } from 'emoji-mart'
+import { Modal, Loading } from '../../component/index'
 import { PUBLIC_GROUP_ABI, REGISTER_ABI } from '../../abi'
 import styled from "styled-components"
-import emoji from 'emoji-mart/dist-es/components/emoji/emoji'
+import { ethers } from "ethers";
 import { detectMobile, getDaiWithSigner, getLocal } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
+import OpenSignIn from './OpenSignIn'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleOpenSign, handleSignIn, currentAddress } = props
-  const { setState, accounts } = useGlobal()
+  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, currentAddress } = props
+  const { setState, accounts, signInAddress, groupType } = useGlobal()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
-  const [manager, setManager] = useState()
   const [emoji, setEmoji] = useState()
+  const [showLoding, setShowLoding] = useState(false)
   const [editorBacker, setEditorBacker] = useState(null)
   const [textCounter, setTextCounter] = useState(null)
   const [limitCnt, setLimitCnt] = useState(2048)
+  const [tokenAddress, setTokenAddress] = useState()
   const [isComposing, setIsComposing] = useState(false)
   const [chatText, setChatText] = useState()
   const [canSendMessage, setCanSendMessage] = useState(true)
   const [isClickSend, setIsClickSend] = useState(false)
   const [lastEditRange, setLastEditRange] = useState(null)
   const [showPicker, setShowPicker] = useState(false)
-
+  const [showOpenSignIcon, setShowOpenSignIcon] = useState(false)
+  const [showSignInIcon, setShowSignInIcon] = useState(false)
+  const [showOpenSignIn, setShowOpenSignIn] = useState(false)
+  const [nftAddress, setNftAddress] = useState('')
   const initTextArea = () => {
     var editorArea = document.querySelector('.editor-area')
     var editorBacker = document.querySelector('.editor-backer')
@@ -40,15 +46,22 @@ export default function ChatInputBox(props) {
     setTextCounter(counter)
   }
   const isOpenSignIn = async() => {
-    const tx = await getDaiWithSigner(REGISTER_ABI).register(currentAddress)
-    console.log(tx, '===tx====')
-
+    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
+    console.log(tx, tx.nft, 'tx==isOpenSignIn==')
+    setNftAddress(tx.nft)
+    setState({
+      nftAddress: tx.nft
+    })
+    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
+    if(tx && tx[0] == 0 && res?.manager?.toLowerCase() == accounts?.toLowerCase() && +groupType === 4) {
+      setShowOpenSignIcon(true)
+    }
+    if(tx && tx[0] != 0 && +groupType === 4) {
+      setShowSignInIcon(true)
+    } else {
+      setShowSignInIcon(false)
+    }
   }
-  const getManager = async() => {
-    const tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
-    setManager(tx.manager)
-  }
-
   const getLength = (val) => {
     var bytesCount = 0
     if (val && val.length > 0) {
@@ -102,7 +115,6 @@ export default function ChatInputBox(props) {
     let text = editorArea.innerText.trim()
     setChatText(text)
     let remainingCnt = limitCnt - currentCnt
-    // debugger
     if (currentCnt > limitCnt) {
       setCanSendMessage(false)
       let allowedText = substr(text, limitCnt)
@@ -202,6 +214,24 @@ export default function ChatInputBox(props) {
       resetChatInputStatus()
     }
   }
+  const handleSelectedToken = (item) => {
+    setTokenAddress(item.address)
+    console.log(item, '====1handleSelectedToken')
+  }
+  const handleOpenSign = async() => {
+    setShowOpenSignIn(false)
+    const params = ethers.utils.defaultAbiCoder.encode(["address", "address", "string", "string"], [tokenAddress, currentAddress, "Register","register"]);
+    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).mint(currentAddress, 1, params)
+    setShowLoding(true)
+    let callback = await tx.wait()
+    setShowOpenSignIn(false)
+    setShowLoding(false)
+    console.log(tx, callback, '===etx==')
+  }
+  const handleClose = () => {
+    setShowOpenSignIn(false)
+    setTokenAddress('')
+  }
   const handlePlaceClick = () => {
     setState({
       hasClickPlace: true
@@ -212,18 +242,32 @@ export default function ChatInputBox(props) {
     clearInput()
   }, [clearChatInput])
   useEffect(() => {
-    // isOpenSignIn()
+    isOpenSignIn()
+  }, [groupType, currentAddress])
+  useEffect(() => {
     initClientHeight()
     initTextArea()
     return () => {
       window.removeEventListener('resize', resize)
     }
   }, [])
-  useEffect(() => {
-    getManager()
-  }, [currentAddress])
   return (
     <ChatInputBoxContanier>
+      {
+        showLoding && <Loading></Loading>
+      }
+      
+      {
+        <Modal title="Open sign in" visible={showOpenSignIn} onClose={handleClose}>
+          <div className="sign-in-wrapper">
+            <OpenSignIn handleSelectedToken={(item) => {handleSelectedToken(item)}} />
+            <div className='btn-operate-sign'>
+              <div className={`btn btn-primary ${!tokenAddress ? 'btn-not-allowed' : ''}`} onClick={handleOpenSign}>Open</div>
+              <div className='btn btn-light' onClick={() => { setShowOpenSignIn(false) }}>Cancel</div>
+            </div>
+          </div>
+        </Modal>
+      }
       <div className={`chat-bottom ${!detectMobile() ? 'chat-bottom-pc' : ''}`}>
         {
           showPicker &&
@@ -239,16 +283,18 @@ export default function ChatInputBox(props) {
           <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleAwardBonus}>
             <span className='iconfont icon-hongbao'></span>
           </div>
-          {/* {
-            manager?.toLowerCase() == accounts?.toLowerCase() &&
-            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleOpenSign}>
+          {
+            showOpenSignIcon &&
+            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={() => { setShowOpenSignIn(true) }}>
               <span className='iconfont icon-sign'></span>
             </div>
-          } */}
-          
-          {/* <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleSignIn}>
-            <span className='iconfont icon-sign2'></span>
-          </div> */}
+          }
+          {
+            showSignInIcon &&
+            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={() => { handleSignIn(nftAddress) }}>
+              <span className='iconfont icon-sign2'></span>
+            </div>
+          }
         </div>
         <div className={`rich-editor chat-input ${!detectMobile() ? 'chat-input-pc' : 'chat-input-client'}`}>
           <div className={`wrapper ${!detectMobile() ? 'wrapper-pc' : 'wrapper-client'}`}>

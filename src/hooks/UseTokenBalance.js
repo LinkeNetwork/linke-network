@@ -5,7 +5,7 @@ import useGlobal from './useGlobal'
 import { ethers } from "ethers"
 import { getBalanceNumber, getLocal, getBalance, allowance, approve } from '../utils'
 export default function UseTokenBalance() {
-  const { accounts, giveAwayAddress, setButtonText } = useGlobal()
+  const { accounts, giveAwayAddress, setButtonText, currentTokenBalance } = useGlobal()
   const [authorization, setAuthorization] = useState(false)
   const [poolBalance,setPoolBalance] = useState(0)
   const [approveLoading, setApproveLoading] = useState(false)
@@ -32,16 +32,17 @@ export default function UseTokenBalance() {
   const allowanceAction = async (from) => {
     let account = accounts || localStorage.getItem('account')
     const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
-    const { address: tokenAddress, balance: tokenValue} = from
+    const { address: tokenAddress } = from
     const spender = giveAwayAddress
     const allowanceTotal = await allowance({provider, tokenAddress, spender, account})
-    console.log(allowanceTotal, 'allowanceTotal====')
+    const tokenValue = from.address == 0 ? currentTokenBalance : from.balance
     const amountToken = ethers.utils.parseEther(tokenValue)
     const allonceNum = ethers.utils.parseEther(allowanceTotal)
-    console.log("allowanceAction", amountToken, allonceNum, allonceNum.gte(amountToken))
+    console.log("allowanceAction", allowanceTotal, amountToken, allonceNum, allonceNum.gte(amountToken))
     return allonceNum.gte(amountToken)
   }
   const getAuthorization = async(from) => {
+    console.log(from, '===room')
     const allowanceResult = from.address ? await allowanceAction(from) : true
     setAuthorization(allowanceResult)
     return allowanceResult

@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
-import Web3 from 'web3'
 import './chat.scss'
 import 'emoji-mart/css/emoji-mart.css'
-import ConnectButton from './ConnectButton'
 import BigNumber from 'bignumber.js'
 import Loading from '../../component/Loading'
 import ListGroup from './GroupList'
@@ -24,7 +22,7 @@ import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
 import { detectMobile, throttle, uniqueChatList } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
-import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI } from '../../abi/index'
+import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI } from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
 import SearchChat from './SearchChat'
@@ -35,10 +33,7 @@ import GroupMember from './GroupMember'
 import JoinGroupButton from './JoinGroupButton'
 import { useHistory } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
-import OpenSignIn from './OpenSignIn'
 import SignIn from './SignIn'
-import useWallet from '../../hooks/useWallet'
-import packetImg from '../../assets/images/packet.svg'
 
 export default function Chat() {
   const { collection, setDataBase } = useDataBase()
@@ -46,6 +41,7 @@ export default function Chat() {
   const history = useHistory()
   const { getReceiveInfo } = useReceiveInfo()
   const { getGroupMember } = useGroupMember()
+  const [showNftList, setShowNftList] = useState(false)
   const [showReceiveTips, setShowReceiveTips] = useState(false)
   const [showGroupList, setShowGroupList] = useState(true)
   const skip = 0
@@ -57,7 +53,7 @@ export default function Chat() {
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId} = useGlobal()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, signInClientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentAddress, setCurrentAddress] = useState()
   const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
@@ -150,7 +146,9 @@ export default function Chat() {
   }, [currentTabIndex, groupLists])
   useEffect(() => {
     const isShare = history.location.search.split('share=')[1] || history?.location?.state?.share
-    getAccount()
+    if(detectMobile()) {
+      getAccount()
+    }
     if(Boolean(isShare)) {
       setShowChat(true)
       setShowGroupList(false)
@@ -324,6 +322,10 @@ export default function Chat() {
         var networkInfo = networks.filter(i => i.name === currentNetwork)[0]
       }
       const groupInfo = await getGroupMember(roomAddress, skip)
+      console.log(groupInfo?._type, 'groupInfo?._type=====')
+      setState({
+        groupType: groupInfo?._type
+      })
       const groupType = groupInfo?._type
       if(chainId !== 513100 && groupInfo) {
         const { chatCount, id, name, __typename, _type } = groupInfo
@@ -343,11 +345,11 @@ export default function Chat() {
         getJoinRoomAccess(roomAddress, groupType)
       }
       setGroupType(groupType)
-      if (groupType == 3 && chainId === 513100) {
+      if (groupType == 3 && chainId === 513100 && roomAddress) {
         var  { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
         updateGroupList(name, roomAddress, groupType)
       } else {
-        if(chainId !== 513100) return
+        if(chainId !== 513100 || !roomAddress) return
         var  { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
       }
 
@@ -377,12 +379,13 @@ export default function Chat() {
   }
   const getJoinRoomAccess = async (roomAddress, groupType) => {
     try {
-      if((groupType == 1 || groupType == 2) && getLocal('account') && chainId === 513100) {
-        var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
-      }
       if (groupType == 3) {
         if(chainId !== 513100) return
         var res = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
+      } else {
+        if(getLocal('account') && chainId === 513100 && roomAddress) {
+          var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
+        }
       }
       if(!res && chainId !== 513100) {
         setHasAccess(false)
@@ -555,6 +558,9 @@ export default function Chat() {
     setRoomAvatar(item.avatar)
     getInitChatList(item.id, item.avatar)
     setCurrentGroupType(item._type)
+    setState({
+      groupType: item._type
+    })
     if (currentTabIndex === 1) {
       getPrivateChatStatus(item.id)
       history.push(`/chat/${item.id}#p`)
@@ -1213,14 +1219,11 @@ export default function Chat() {
       .catch((error) => console.log(error.message));
   }
   const changeJoinStatus = (groupType) => {
-    if (groupType == 1 || groupType == 2) {
-      setHasAccess(true)
-    } else {
+    if (groupType == 3) {
       getManager(currentAddress, groupType)
+    } else {
+      setHasAccess(true)
     }
-  }
-  const handleOpenSignIn = () => {
-    setShowOpenSignIn(true)
   }
   const handleDecryptedMessage = (id, text) => {
     getDecryptedMessage(id, text)
@@ -1306,6 +1309,32 @@ export default function Chat() {
   const handleCloseAward = () => {
     setShowChat(true)
     setShowAwardBonus(false)
+  }
+  const handleSignIn = async(nftAddress) => {
+    const tokensQuery = `
+    {
+      registerInfos(
+        where: {manager: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress+`"}
+      ) {
+        id
+        lastDate
+        manager
+        score
+        count
+        tokenId
+        register
+      }
+    }
+    `
+    const res = await signInClientInfo?.query(tokensQuery).toPromise()
+    const registerNftInfos = res?.data?.registerInfos
+    setShowNftList(Boolean(registerNftInfos.length))
+    console.log(nftAddress, accounts,res.data, 'nftAddress====')
+    setShowSignIn(true) 
+  }
+  const handleMint = async(quantity) => {
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity))
+    console.log(tx,nftAddress, '11=22quantity')
   }
   useEffect(() => {
     const redEnvelopId = history.location.search.split('?')[1]
@@ -1412,20 +1441,9 @@ export default function Chat() {
         ></AwardBonus>
       }
       {
-        <Modal title="Open sign in" visible={showOpenSignIn} onClose={() => { setShowOpenSignIn(false) }}>
-          <div className="sign-in-wrapper">
-            <OpenSignIn />
-            <div className='btn-operate-sign'>
-              <div className='btn btn-primary' onClick={handleOpenSignIn}>Open</div>
-              <div className='btn btn-light' onClick={() => { setShowOpenSignIn(false) }}>Cancel</div>
-            </div>
-          </div>
-        </Modal>
-      }
-      {
         <Modal title="Sign in" visible={showSignIn} onClose={() => { setShowSignIn(false) }}>
           <div className="sign-in-wrapper">
-            <SignIn />
+            <SignIn showNftList={showNftList} handleMint={(num) => {handleMint(num)}}/>
           </div>
         </Modal>
       }
@@ -1599,7 +1617,7 @@ export default function Chat() {
                           handleShowPlace={() => { setShowPlaceWrapper(true) }}
                           handleAwardBonus={handleAwardBonus}
                           handleOpenSign={() => { setShowOpenSignIn(true) }}
-                          handleSignIn={() => { setShowSignIn(true) }}
+                          handleSignIn={(nftAddress) => { handleSignIn(nftAddress) }}
                           resetChatInputStatus={() => { setClearChatInput(false) }}
                         ></ChatInputBox>
                       }

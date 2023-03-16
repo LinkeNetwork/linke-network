@@ -52,6 +52,10 @@ html, body {
   }
 }
 .sign-in-wrapper {
+  .btn-not-allowed {
+    opacity: .4;
+    cursor: not-allowed;
+  }
   .content-client {
    margin-top: 0;
    padding: 0;

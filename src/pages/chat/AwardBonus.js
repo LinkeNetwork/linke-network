@@ -69,6 +69,7 @@ export default function AwardBonus(props) {
     setSelectTokenAddress(item.address)
     if(item.symbol === 'ETHF') return
     const authorization = await getAuthorization(item)
+    console.log(item,authorization, '===2=2221')
     if(!authorization) {
       setBtnText('Approve')
     }

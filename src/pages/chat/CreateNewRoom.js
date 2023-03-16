@@ -54,7 +54,7 @@ export default function CreateNewRoom(props) {
   const typeList = [
     {
       label: 'Public Group',
-      value: 1
+      value: 4
     },
     {
       label: 'Subscribe Group',
@@ -84,8 +84,10 @@ export default function CreateNewRoom(props) {
     }
   }
   const handleCreate = async () => {
-    console.log(currentNetworkInfo, handleSelectBlur(), 'handleCreate===')
-    if(handleBlur() || handleSelectBlur()) {
+    if(!currentGroup) {
+      setShowTypeError(true)
+    }
+    if(handleBlur()) {
       setMessageText('Please fill in the required fields')
       setShowMessage(true)
       setTimeout(() => {
@@ -97,7 +99,6 @@ export default function CreateNewRoom(props) {
     const avatar = getLocal('account') + name
     const info = await client.add(multiavatar(avatar))
     const avatarUrl = `https://linke.infura-ipfs.io/ipfs/${info.path}`
-    console.log(avatarUrl, 'avatarUrl=====')
     const style = {
       avatar: groupLogo,
       backgroundColor: currentColor,
@@ -106,7 +107,6 @@ export default function CreateNewRoom(props) {
       footerTips: footerTips,
       qrCodeBg: qrCodeBg
     }
-    console.log(style, JSON.stringify(style), 'style======')
     const name_ = 'group'
     const symbol_ = 'GROUP'
     debugger
@@ -120,6 +120,7 @@ export default function CreateNewRoom(props) {
       history.push(`/chat/${callback.logs[0].address}`)
       hiddenCreateInfo()
       setState({
+        groupType: currentGroupType,
         hasCreateRoom: true,
         transactionRoomHash: callback?.transactionHash
       })
@@ -176,15 +177,6 @@ export default function CreateNewRoom(props) {
       return false
     }
   }
-  const handleSelectBlur = () => {
-    if(!currentGroupType) {
-      setShowTypeError(true)
-      return true
-    } else {
-      setShowTypeError(false)
-      return false
-    }
-  }
   return (
     <CreateNewRoomContainer>
       {
@@ -199,7 +191,7 @@ export default function CreateNewRoom(props) {
           <Select
             value={currentGroup}
             onChange={handleSelectChange}
-            onBlur={handleSelectBlur}
+            // onBlur={handleSelectBlur}
             options={typeList}
             theme={(theme) => ({
               ...theme,

@@ -1,19 +1,24 @@
 import { useEffect, useRef, useState } from "react"
 import styled from "styled-components"
+import Web3 from 'web3'
+import BigNumber from 'bignumber.js'
 import { Modal, Image }  from "../../component/index"
 import { NumericInput } from "numeric-keyboard"
-import { detectMobile, getDaiWithSigner } from "../../utils"
+import { tokenListInfo } from '../../constant/tokenList'
+import { detectMobile, getDaiWithSigner, getBalance, getLocal, getBalanceNumber } from "../../utils"
 import TokenList from "./TokenList"
 import { ethers } from "ethers"
 import useGlobal from "../../hooks/useGlobal"
 import UseTokenBalance from "../../hooks/UseTokenBalance"
-import { RED_PACKET } from '../../abi/index'
+import useWallet from "../../hooks/useWallet"
+import { SIGN_IN_ABI, REGISTER_ABI } from '../../abi/index'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-export default function AwardBonus(props) {
-  const { giveAwayAddress, swapButtonText, approveLoading, setButtonText } = useGlobal()
-  const { getAuthorization, approveActions, authorization } = UseTokenBalance()
-  const { handleCloseAward, currentAddress, handleCloseMask, handleShowMask, handleGiveAway, handleSend } = props
+export default function SignIn(props) {
+  const { balance } = useWallet()
+  const { giveAwayAddress, swapButtonText, approveLoading, setButtonText, nftAddress, tokenList, currentTokenBalance } = useGlobal()
+  const { getAuthorization, approveActions, authorization, getTokenBalance } = UseTokenBalance()
+  const { handleCloseAward, currentAddress, handleCloseMask, handleShowMask, handleMint,showNftList } = props
   const [showBonusType, setShowBonusType] = useState(false)
   const [totalAmount, setTotalAmount] = useState()
   const [amount, setAmount] = useState()
@@ -35,7 +40,7 @@ export default function AwardBonus(props) {
   const buttonActions = () => {
     switch (btnText) {
       case "Mint":
-        handleSend(totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)
+        handleMint(quantity)
         break;
       case "Approve":
         approveActions(selectedTokenInfo)
@@ -44,6 +49,31 @@ export default function AwardBonus(props) {
         return null;
     }
   }
+  const getSelectedToken = async() => {
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).token()
+    const tokenList = [...tokenListInfo]
+    const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == tx.toLocaleLowerCase())
+    const { symbol, logoURI } = selectedToken[0]
+    if(tx == 0) {
+      setTokenBalance(Number(currentTokenBalance).toFixed(4))
+    } else {
+      const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
+      const res = await getBalance(provider, selectedToken[0].address, getLocal('account'))
+      const tokenBalance = getBalanceNumber(new BigNumber(Number(res)), selectedToken[0]?.decimals)
+      setTokenBalance(Number(tokenBalance).toFixed(4))
+      selectedToken[0].balance = String(tokenBalance)
+    }
+    setSelectedTokenInfo(selectedToken[0])
+    setTokenLogo(logoURI)
+    setSelectedToken(symbol)
+    console.log(selectedToken[0], 'selectedToken[0]==1')
+    const authorization = await getAuthorization(selectedToken[0])
+    if(!authorization) {
+      setCanSend(true)
+      setBtnText('Approve')
+    }
+    
+  }
   const handleQuantityInput = (key) => {
     setQuantity(key)
   }
@@ -51,6 +81,7 @@ export default function AwardBonus(props) {
     setAmount(key)
   }
   const selectToken = async(item) => {
+    console.log(item, '====>>>>>>selectToken')
     setQuantity()
     setSelectedTokenInfo(item)
     setShowTokenList(false)
@@ -93,13 +124,21 @@ export default function AwardBonus(props) {
     )
   }
   useEffect(() => {
-    ( tokenBalance > totalAmount && quantity && amount) ? setCanSend(true) : setCanSend(false)
-  }, [totalAmount, quantity, amount])
-  useEffect(() => {
-    if(authorization) {
+    console.log(quantity,tokenBalance, 'quantity=====', quantity > 0 && quantity <= tokenBalance)
+    if(quantity > 0 && quantity <= tokenBalance) {
       setCanSend(true)
-      setButtonText('Send')
-      setBtnText('Send')
+    } else {
+      setCanSend(false)
+    }
+  }, [quantity])
+  useEffect(() => {
+    getSelectedToken()
+  }, [])
+  useEffect(() => {
+    if(authorization && !showNftList) {
+      setCanSend(true)
+      setButtonText('Mint')
+      setBtnText('Mint')
     }
   }, [authorization])
   useEffect(() => {
@@ -116,11 +155,13 @@ export default function AwardBonus(props) {
     }
   }, [approveLoading, swapButtonText])
   return (
-    <SignInSignIn>
-      {nftList()}
+    <SignInWrapper>
+      {
+        showNftList && nftList()
+      }
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
         <div className="token-list-title">Choose Token</div>
-        <TokenList selectToken={(item) => selectToken(item)} showBalance={true}></TokenList>
+        <TokenList showBalance={true}></TokenList>
       </Modal>
       <div className={`content ${detectMobile() ? 'content-client' : ''}`}>
         <div className="token-wrapper">
@@ -131,42 +172,47 @@ export default function AwardBonus(props) {
             }
             <div className="balance">{tokenBalance}</div>
           </div>
-          <div onClick={() => {setShowTokenList(true)}} className="token-info">
+          <div className="token-info">
             {
               tokenLogo && <Image size={24} src={tokenLogo} style={{ 'borderRadius': '50%'}} />
             }
             {
               !selectedToken ?  <span>Select a Token</span> : <div className="name">{selectedToken}</div>
             }
-            <i className="iconfont icon-expand"></i>
           </div>
         </div>
-        <div className="amount-wrapper quantity-wrapper">
-          {
-            <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity}/>
-          }
-          <span>Quantity</span>
-        </div>
+        {
+          btnText !== 'Approve' && btnText !== 'APPROVE_ING' &&
+          <div className="amount-wrapper quantity-wrapper">
+            {
+              <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity}/>
+            }
+            <span>Quantity</span>
+          </div>
+        }
+        
       </div>
       <div className="btn-wrapper">
         <div className='btn btn-primary' onClick={buttonActions}>
           <span className={`btn-default ${ canSend ? 'send-allowed' : ''}`}>{btnText}</span>
         </div>
-        <div className='btn btn-primary' onClick={buttonActions}>
-          <span className={`btn-default ${ canSend ? 'send-allowed' : ''}`}>Sign in</span>
+        {
+          showNftList && 
+          <div className='btn btn-primary' onClick={buttonActions}>
+            <span className={`btn-default ${ canSend ? 'send-allowed' : ''}`}>Sign in</span>
+          </div>
+        }
+        {
+          showNftList && 
+          <div className='btn btn-light' onClick={buttonActions}>
+            <span className={`${ canSend ? 'send-allowed' : ''}`}>Remove Mint</span>
         </div>
-        <div className='btn btn-light' onClick={buttonActions}>
-          <span className={`${ canSend ? 'send-allowed' : ''}`}>Remove Mint</span>
-        </div>
-        {/* <div className='btn btn-light' onClick={buttonActions}>
-          <span className="btn-cancel">Cancel</span>
-        </div> */}
+        }
       </div>
-      
-    </SignInSignIn>
+    </SignInWrapper>
   )
 }
-const SignInSignIn = styled.div`
+const SignInWrapper = styled.div`
 height: 100%;
 width: 100%;
 background: #fff;

@@ -10,6 +10,7 @@ const networks =  [
     ProfileAddress: "0x68A92c93807E8E07Ae1A89F59D7C0A5e877C57b0",
     GroupProfileAddress: "0x07B588De7Ba7415b033bdD2Ab6Bb286Aed016F7e",
     APIURL: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
+    signInGraphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
     PrivateChatAddress: '0x55Ccf906741dF31a8663B8a5a2bA65FA9756468f'
   }
   // {

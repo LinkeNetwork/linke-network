@@ -4,11 +4,13 @@ import { Modal, Image }  from "../../component/index"
 import { detectMobile } from "../../utils"
 import TokenList from "./TokenList"
 export default function OpenSign(props) {
+  const { handleSelectedToken } = props
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
   const [tokenLogo, setTokenLogo] = useState('')
   const selectToken = async(item) => {
     setShowTokenList(false)
+    handleSelectedToken(item)
     setSelectedToken(item.symbol)
     setTokenLogo(item.logoURI)
     if(item.symbol === 'ETHF') return

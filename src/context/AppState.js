@@ -20,14 +20,18 @@ const state = {
   accounts: null,
   isJumpToProfile: false,
   clientInfo: null,
+  signInClientInfo: null,
   showHeader: true,
   currentTokenBalance: '',
   giveAwayAddress: '0x71d17da8b8a90F94528A7557E34b30Df041F278f',
+  signInAddress: '0xD6425022DC33C6b5bf339AC873430b442d50D63b',
   currentChain: '',
   showOpen: false,
   showReceiveBtn: true,
   currentChatInfo: {},
-  transactionRoomHash: ''
+  transactionRoomHash: '',
+  groupType: '',
+  nftAddress: ''
 }
 
 export default state

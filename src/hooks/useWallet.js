@@ -143,13 +143,17 @@ export default function useWallet() {
       const client = createClient({
         url: item?.APIURL
       })
+      const signInClient = createClient({
+        url: item?.signInGraphUrl
+      })
       setLocal('network', currNetwork)
       setNetwork(currNetwork)
       setChainId(network.chainId)
       setState({
         currentChain: currNetwork,
         currentNetworkInfo:item,
-        clientInfo: client
+        clientInfo: client,
+        signInClientInfo: signInClient
       })
       setLocal('clientInfo', client)
       setLocal('currentGraphqlApi', item?.APIURL)
