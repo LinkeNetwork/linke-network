@@ -1334,7 +1334,10 @@ export default function Chat() {
   }
   const handleMint = async(quantity) => {
     const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity))
-    console.log(tx,nftAddress, '11=22quantity')
+    setShowSignIn(false)
+    setShowMask(true)
+    await tx.wait()
+    setShowMask(false)
   }
   useEffect(() => {
     const redEnvelopId = history.location.search.split('?')[1]

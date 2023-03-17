@@ -67,7 +67,7 @@ export default function SignIn(props) {
     setTokenLogo(logoURI)
     setSelectedToken(symbol)
     console.log(selectedToken[0], 'selectedToken[0]==1')
-    const authorization = await getAuthorization(selectedToken[0])
+    const authorization = await getAuthorization(selectedToken[0], 'signIn')
     if(!authorization) {
       setCanSend(true)
       setBtnText('Approve')
@@ -79,22 +79,6 @@ export default function SignIn(props) {
   }
   const handleAmountInput = (key) => {
     setAmount(key)
-  }
-  const selectToken = async(item) => {
-    console.log(item, '====>>>>>>selectToken')
-    setQuantity()
-    setSelectedTokenInfo(item)
-    setShowTokenList(false)
-    setSelectedToken(item.symbol)
-    setTokenBalance(item.balance)
-    setTokenLogo(item.logoURI)
-    setTokenDecimals(item.decimals)
-    setSelectTokenAddress(item.address)
-    if(item.symbol === 'ETHF') return
-    const authorization = await getAuthorization(item)
-    if(!authorization) {
-      setBtnText('Approve')
-    }
   }
   const enforcer = (nextUserInput, type) => {
     if (nextUserInput === '' || inputRegex.test(escapeRegExp(nextUserInput))) {
