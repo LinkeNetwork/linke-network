@@ -41,7 +41,7 @@ export default function AwardBonus(props) {
         handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)
         break;
       case "Approve":
-        approveActions(selectedTokenInfo)
+        approveActions(selectedTokenInfo, 'envelope')
         break;
       default:
         return null;

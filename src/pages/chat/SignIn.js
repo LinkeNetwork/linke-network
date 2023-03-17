@@ -43,7 +43,7 @@ export default function SignIn(props) {
         handleMint(quantity)
         break;
       case "Approve":
-        approveActions(selectedTokenInfo)
+        approveActions(selectedTokenInfo, 'signIn')
         break;
       default:
         return null;
@@ -67,6 +67,7 @@ export default function SignIn(props) {
     setTokenLogo(logoURI)
     setSelectedToken(symbol)
     console.log(selectedToken[0], 'selectedToken[0]==1')
+    if(symbol === 'ETHF') return
     const authorization = await getAuthorization(selectedToken[0], 'signIn')
     if(!authorization) {
       setCanSend(true)

@@ -8,8 +8,8 @@ import { detectMobile, getDaiWithSigner, getLocal } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, currentAddress } = props
-  const { setState, accounts, signInAddress, groupType } = useGlobal()
+  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, currentAddress, handleOpenSign } = props
+  const { setState, accounts, signInAddress, groupType, hasOpenedSignIn } = useGlobal()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
   const [emoji, setEmoji] = useState()
@@ -47,7 +47,7 @@ export default function ChatInputBox(props) {
   }
   const isOpenSignIn = async() => {
     const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
-    console.log(tx, tx.nft, 'tx==isOpenSignIn==')
+    console.log(tx, tx.nft, hasOpenedSignIn, 'tx==isOpenSignIn==')
     setNftAddress(tx.nft)
     setState({
       nftAddress: tx.nft
@@ -218,16 +218,7 @@ export default function ChatInputBox(props) {
     setTokenAddress(item.address)
     console.log(item, '====1handleSelectedToken')
   }
-  const handleOpenSign = async() => {
-    setShowOpenSignIn(false)
-    const params = ethers.utils.defaultAbiCoder.encode(["address", "address", "string", "string"], [tokenAddress, currentAddress, "Register","register"]);
-    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).mint(currentAddress, 1, params)
-    setShowLoding(true)
-    let callback = await tx.wait()
-    setShowOpenSignIn(false)
-    setShowLoding(false)
-    console.log(tx, callback, '===etx==')
-  }
+  
   const handleClose = () => {
     setShowOpenSignIn(false)
     setTokenAddress('')
@@ -244,6 +235,11 @@ export default function ChatInputBox(props) {
   useEffect(() => {
     isOpenSignIn()
   }, [groupType, currentAddress])
+  useEffect(() => {
+    if(hasOpenedSignIn) {
+      setShowOpenSignIn(false)
+    }
+  }, [hasOpenedSignIn])
   useEffect(() => {
     initClientHeight()
     initTextArea()
@@ -284,13 +280,13 @@ export default function ChatInputBox(props) {
             <span className='iconfont icon-hongbao'></span>
           </div>
           {
-            showOpenSignIcon &&
+            showOpenSignIcon && !hasOpenedSignIn &&
             <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={() => { setShowOpenSignIn(true) }}>
               <span className='iconfont icon-sign'></span>
             </div>
           }
           {
-            showSignInIcon &&
+            (showSignInIcon || hasOpenedSignIn)&&
             <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={() => { handleSignIn(nftAddress) }}>
               <span className='iconfont icon-sign2'></span>
             </div>

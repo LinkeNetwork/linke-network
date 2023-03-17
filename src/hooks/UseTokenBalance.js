@@ -50,14 +50,14 @@ export default function UseTokenBalance() {
     return allowanceResult
   }
 
-  const approveActions = async (from) => {
+  const approveActions = async (from, type) => {
     try {
       setApproveLoading(true)
       setButtonText('APPROVE_ING')
       const res = await approve({
           provider: new Web3.providers.HttpProvider("https://rpc.etherfair.org"),
           tokenAddress: from.address,
-          spender: giveAwayAddress,
+          spender: type === 'signIn' ?  nftAddress : giveAwayAddress,
           accounts
       })
       console.log('Approve result ======', res)

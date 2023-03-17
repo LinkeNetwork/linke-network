@@ -31,7 +31,8 @@ const state = {
   currentChatInfo: {},
   transactionRoomHash: '',
   groupType: '',
-  nftAddress: ''
+  nftAddress: '',
+  hasOpenedSignIn: false
 }
 
 export default state

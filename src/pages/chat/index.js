@@ -53,7 +53,7 @@ export default function Chat() {
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, signInClientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress} = useGlobal()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, signInClientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress, signInAddress} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentAddress, setCurrentAddress] = useState()
   const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
@@ -536,6 +536,9 @@ export default function Chat() {
     setShowSettingList(false)
   }
   const showChatList = (item) => {
+    setState({
+      hasOpenedSignIn: false
+    })
     setCurrentRedEnvelopId()
     setShowMask(true)
     setHasAccess()
@@ -1332,6 +1335,19 @@ export default function Chat() {
     console.log(nftAddress, accounts,res.data, 'nftAddress====')
     setShowSignIn(true) 
   }
+  const handleOpenSign = async() => {
+    setShowOpenSignIn(false)
+    const params = ethers.utils.defaultAbiCoder.encode(["address", "address", "string", "string"], [nftAddress, currentAddress, "Register","register"]);
+    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).mint(currentAddress, 1, params)
+    setShowMask(true)
+    let callback = await tx.wait()
+    setShowOpenSignIn(false)
+    setState({
+      hasOpenedSignIn: true
+    })
+    setShowMask(false)
+    console.log(tx, callback, '===etx==')
+  }
   const handleMint = async(quantity) => {
     const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity))
     setShowSignIn(false)
@@ -1619,7 +1635,7 @@ export default function Chat() {
                           clearChatInput={clearChatInput}
                           handleShowPlace={() => { setShowPlaceWrapper(true) }}
                           handleAwardBonus={handleAwardBonus}
-                          handleOpenSign={() => { setShowOpenSignIn(true) }}
+                          handleOpenSign={handleOpenSign}
                           handleSignIn={(nftAddress) => { handleSignIn(nftAddress) }}
                           resetChatInputStatus={() => { setClearChatInput(false) }}
                         ></ChatInputBox>

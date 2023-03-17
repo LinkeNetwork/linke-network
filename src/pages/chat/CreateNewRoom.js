@@ -84,6 +84,9 @@ export default function CreateNewRoom(props) {
     }
   }
   const handleCreate = async () => {
+    setState({
+      hasOpenedSignIn: false
+    })
     if(!currentGroup) {
       setShowTypeError(true)
     }
