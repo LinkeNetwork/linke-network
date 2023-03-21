@@ -17,10 +17,14 @@ header{
   position: relative;
   min-width: 1160px;
   max-width: 1400px;
+  .place-wrapper {
+    height: 840px;
+  }
   &-client {
     width: inherit;
     min-width: inherit;
     margin: 0 1rem;
+    background: #fff;
     .sub-title {
       margin: 20px 0;
     }

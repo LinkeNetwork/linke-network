@@ -5,12 +5,10 @@ import { detectMobile, getLocal } from '../../utils'
 import './index.scss'
 import Image from '../../component/Image'
 import homeIcon from '../../assets/images/linke.svg'
-import { useEffect, useState } from 'react'
 import useGlobal from '../../hooks/useGlobal'
 export default function Nav(props) {
-  const { setState , hasCreateProfile, currentProfileAddress} = useGlobal()
-  const { hiddenMenuList, showMenulist, reloadViewProfile } = props
-  const [account, setAccount] = useState()
+  const { setState , accounts} = useGlobal()
+  const { hiddenMenuList, showMenulist } = props
   const history = useHistory()
   const path = history.location.pathname
   const navList = [
@@ -25,38 +23,25 @@ export default function Nav(props) {
       path: '/profile'
     }
   ]
-  const [nav, setNav] = useState(navList)
-  const getCreateStatus = async(address) => {
-      if(path.includes('/profile')) { 
-        if(getLocal('account') && getLocal('isConnect')) {
-            navList[1].path = `/profile/${address}`
-            history.push(navList[1].path)
-            setState({
-              currentProfileAddress: address
-            })
-            reloadViewProfile()
-        }  
-        setNav(navList)
-      }
-  }
   const jumpPage = (path) => {
-    history.push(path)
+    hiddenMenuList()
     if(path.includes('/profile')) {
-      getCreateStatus(getLocal('account')?.toLowerCase())
+      setState({
+        isJumpToProfile: true
+      })
+      debugger
+      if(accounts) {
+        history.push(`/profile/${accounts}`)
+      } else {
+        history.push(path)
+      }
     } else {
+      history.push(path)
       setState({
         profileAvatar: ''
       })
     }
   }
-  useEffect(() => {
-    setAccount(getLocal('account'))
-    if(getLocal('isConnect')) {
-      getCreateStatus((path.split('/profile/')[1] || getLocal('account'))?.toLowerCase())
-    } else {
-      setNav(navList)
-    }
-  }, [getLocal('account'), getLocal('isConnect'), currentProfileAddress])
   return (
     <div>
       {
@@ -64,7 +49,7 @@ export default function Nav(props) {
         <div className={`${detectMobile() ? 'nav-wrap-client' : ''} nav-wrap`}>
           <ul className="nav-item">
             {
-              nav.map((item, index) => {
+              navList.map((item, index) => {
                 return (
                   <li className={`${path.includes(item.path) ? 'active' : ''}`} key={index}>
                     <div onClick={() => jumpPage(item.path)}>
@@ -75,7 +60,7 @@ export default function Nav(props) {
                 )
               })
             }
-            <li className='home-icon-wrap'><Link to="/home">
+            <li className='home-icon-wrap'><Link to="/">
               <Image size={40} src={homeIcon} />
             </Link></li>
           </ul>

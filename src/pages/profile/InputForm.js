@@ -1,5 +1,6 @@
 import styled from "styled-components"
 import { create } from 'ipfs-http-client'
+import { Buffer } from 'buffer/';
 import { useHistory } from 'react-router-dom'
 import {PROFILE_ABI} from '../../abi'
 import UploadImage from './UploadImage'
@@ -8,36 +9,55 @@ import UserInfo from './UserInfo'
 import Loading from '../../component/Loading'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
 import { getDaiWithSigner, getLocal } from '../../utils'
-import useChain from "../../hooks/useChain";
-const client = create('https://ipfs.infura.io:5001')
+import useGlobal from "../../hooks/useGlobal"
+
+const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
+const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
+const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
+
+const client = create({
+    host: 'ipfs.infura.io',
+    port: 5001,
+    protocol: 'https',
+    headers: {
+        authorization: auth,
+    },
+})
 
 export default function InputForm(props) {
-    const { myAddress } = props
+    const { myAddress, showNav, roomAddress } = props
+    const { currentNetworkInfo } = useGlobal()
     const history = useHistory()
     const [bgImage, setBgImage] = useState()
     const [showLoading, setShowLoading] = useState(false)
-    const { getChainInfo } = useChain()
 
     const handleSave = async() => {
     setShowLoading(true)
     const info = await client.add(multiavatar(myAddress))
-    const avatarUrl = `https://infura-ipfs.io/ipfs/${info.path}`
-    console.log(avatarUrl, 'avatarUrl=====')
+    const avatarUrl = `https://linke.infura-ipfs.io/ipfs/${info.path}`
     const expandInfo = []
-    console.log(expandInfo, 'expandInfo====')
     try {
-        const networkInfo = await getChainInfo()
-        const address = networkInfo.ProfileAddress
-        debugger
+        const address = currentNetworkInfo?.ProfileAddress
        // string memory name, string memory description, string memory image, MapInfo[] memory attribute, string memory avatar, string memory name_, string memory symbol_
         const tx = await getDaiWithSigner(address, PROFILE_ABI).register(name, describe, expandInfo, avatarUrl, "FOLLOW", "FOLLOW")
         console.log(tx, 'tx====')
         await tx.wait()
         setName('')
         setDescribe('')
-        window.location.reload()
         setShowLoading(false)
-        history.push('/profile')
+        if(!showNav){
+          const network = getLocal('network')
+          history.push({
+            pathname: `/chat/${roomAddress}/${network}?share=1`,
+            state: {
+              share: 1,
+              hasProfile: true
+            }
+          })
+        } else {
+          window.location.reload()
+          history.push('/profile')
+        }
    } catch {
         setShowLoading(false)
    }
@@ -84,11 +104,11 @@ export default function InputForm(props) {
           onChange={val => changeDescribeInput(val)}
         />
       </div>
-      <button className="submit-btn" onClick={() => handleSave()}>Save</button>
+      <button className="submit-btn" onClick={handleSave}>Save</button>
       {
         showLoading && <Loading />
       }
-      
+
     </InputFormContainer>
   )
 }

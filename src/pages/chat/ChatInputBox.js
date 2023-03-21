@@ -1,25 +1,33 @@
 import React, { Component, useEffect, useState } from 'react'
 import { Picker } from 'emoji-mart'
+import { Modal, Loading } from '../../component/index'
+import { PUBLIC_GROUP_ABI, REGISTER_ABI } from '../../abi'
 import styled from "styled-components"
-import emoji from 'emoji-mart/dist-es/components/emoji/emoji'
-import { detectMobile } from '../../utils'
+import { ethers } from "ethers";
+import { detectMobile, getDaiWithSigner, getLocal } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
+import OpenSignIn from './OpenSignIn'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleTrade, currentTabIndex } = props
-  const { setState } = useGlobal()
+  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, handleOpenSign } = props
+  const { setState, accounts, signInAddress, groupType, hasOpenedSignIn, currentAddress } = useGlobal()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
   const [emoji, setEmoji] = useState()
+  const [showLoding, setShowLoding] = useState(false)
   const [editorBacker, setEditorBacker] = useState(null)
   const [textCounter, setTextCounter] = useState(null)
   const [limitCnt, setLimitCnt] = useState(2048)
+  const [tokenAddress, setTokenAddress] = useState()
   const [isComposing, setIsComposing] = useState(false)
   const [chatText, setChatText] = useState()
   const [canSendMessage, setCanSendMessage] = useState(true)
   const [isClickSend, setIsClickSend] = useState(false)
   const [lastEditRange, setLastEditRange] = useState(null)
   const [showPicker, setShowPicker] = useState(false)
-
+  const [showOpenSignIcon, setShowOpenSignIcon] = useState(false)
+  const [showSignInIcon, setShowSignInIcon] = useState(false)
+  const [showOpenSignIn, setShowOpenSignIn] = useState(false)
+  const [nftAddress, setNftAddress] = useState('')
   const initTextArea = () => {
     var editorArea = document.querySelector('.editor-area')
     var editorBacker = document.querySelector('.editor-backer')
@@ -37,7 +45,22 @@ export default function ChatInputBox(props) {
     setEditorBacker(editorBacker)
     setTextCounter(counter)
   }
-
+  const isOpenSignIn = async() => {
+    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
+    setNftAddress(tx.nft)
+    setState({
+      nftAddress: tx.nft
+    })
+    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
+    if(tx && tx[0] == 0 && res?.manager?.toLowerCase() == accounts?.toLowerCase() && +groupType === 4) {
+      setShowOpenSignIcon(true)
+    }
+    if(tx && tx[0] != 0 && +groupType === 4) {
+      setShowSignInIcon(true)
+    } else {
+      setShowSignInIcon(false)
+    }
+  }
   const getLength = (val) => {
     var bytesCount = 0
     if (val && val.length > 0) {
@@ -73,7 +96,7 @@ export default function ChatInputBox(props) {
   const resize = () => {
     let height = document.documentElement.clientHeight || document.body.clientHeight
     if (clientHeight > height) {
-      this.inputClickHandle()
+      inputClickHandle()
     }
   }
 
@@ -91,7 +114,6 @@ export default function ChatInputBox(props) {
     let text = editorArea.innerText.trim()
     setChatText(text)
     let remainingCnt = limitCnt - currentCnt
-    // debugger
     if (currentCnt > limitCnt) {
       setCanSendMessage(false)
       let allowedText = substr(text, limitCnt)
@@ -159,7 +181,7 @@ export default function ChatInputBox(props) {
       selection.removeAllRanges()
       selection.addRange(range)
     }
-    lastEditRange = selection.getRangeAt(0)
+    setLastEditRange(selection.getRangeAt(0))
   }
   const addEmoji = (emoji) => {
     getTextRange(emoji)
@@ -174,11 +196,20 @@ export default function ChatInputBox(props) {
   }
   const sendText = () => {
     if (!canSendMessage) return
+    setChatText('')
     setIsClickSend(true)
     startChat(chatText)
   }
   const inputClickHandle = () => {
     setShowPicker(false)
+  }
+  const handleCheckIn = async() => {
+    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
+    setNftAddress(tx.nft)
+    setState({
+      nftAddress: tx.nft
+    })
+    handleSignIn(tx.nft)
   }
   const clearInput = () => { 
     var editorArea = document.querySelector('.editor-area')
@@ -190,6 +221,17 @@ export default function ChatInputBox(props) {
       resetChatInputStatus()
     }
   }
+  const handleSelectedToken = (item) => {
+    setTokenAddress(item.address)
+  }
+  const handleOpenCheckIn = () => {
+    setShowOpenSignIn(false)
+    handleOpenSign()
+  }
+  const handleClose = () => {
+    setShowOpenSignIn(false)
+    setTokenAddress('')
+  }
   const handlePlaceClick = () => {
     setState({
       hasClickPlace: true
@@ -200,15 +242,37 @@ export default function ChatInputBox(props) {
     clearInput()
   }, [clearChatInput])
   useEffect(() => {
+    isOpenSignIn()
+  }, [groupType, currentAddress])
+  useEffect(() => {
+    if(hasOpenedSignIn) {
+      setShowOpenSignIn(false)
+    } 
+  }, [hasOpenedSignIn])
+  useEffect(() => {
     initClientHeight()
     initTextArea()
     return () => {
       window.removeEventListener('resize', resize)
     }
   }, [])
-
   return (
     <ChatInputBoxContanier>
+      {
+        showLoding && <Loading></Loading>
+      }
+      
+      {
+        <Modal title="Open sign in" visible={showOpenSignIn} onClose={handleClose}>
+          <div className="sign-in-wrapper">
+            <OpenSignIn handleSelectedToken={(item) => {handleSelectedToken(item)}} />
+            <div className='btn-operate-sign'>
+              <div className={`btn btn-primary ${!tokenAddress ? 'btn-not-allowed' : ''}`} onClick={handleOpenCheckIn}>Open</div>
+              <div className='btn btn-light' onClick={() => { setShowOpenSignIn(false) }}>Cancel</div>
+            </div>
+          </div>
+        </Modal>
+      }
       <div className={`chat-bottom ${!detectMobile() ? 'chat-bottom-pc' : ''}`}>
         {
           showPicker &&
@@ -218,18 +282,25 @@ export default function ChatInputBox(props) {
           <div className='btn btn-icon btn-sm btn-light rounded-circle' id='buttonSmile' onClick={onClickPicker}>
             <span className='iconfont icon-smile' id="iconSmile"></span>
           </div>
-          <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handlePlaceClick}>
+          {/* <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handlePlaceClick}>
             <span className='iconfont icon-yanse'></span>
+          </div> */}
+          <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleAwardBonus}>
+            <span className='iconfont icon-hongbao'></span>
           </div>
           {
-            currentTabIndex == 0 &&
-            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleTrade}>
-              <span className='iconfont icon-duihuan'></span>
-          </div>
+            showOpenSignIcon && !hasOpenedSignIn &&
+            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={() => { setShowOpenSignIn(true) }}>
+              <span className='iconfont icon-sign'></span>
+            </div>
           }
-         
+          {
+            (showSignInIcon || hasOpenedSignIn)&&
+            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleCheckIn}>
+              <span className='iconfont icon-sign2'></span>
+            </div>
+          }
         </div>
-        
         <div className={`rich-editor chat-input ${!detectMobile() ? 'chat-input-pc' : 'chat-input-client'}`}>
           <div className={`wrapper ${!detectMobile() ? 'wrapper-pc' : 'wrapper-client'}`}>
             <div className="editor-area"
@@ -283,7 +354,7 @@ position: relative;
   // height: 36px;
   overflow-y: auto;
   resize: none;
-  margin-left: 7.5rem;
+  margin-left: 7.6rem;
   // max-height: 12rem;
   padding: 0.375rem 2.5rem 0.375rem 1rem;
   border-radius: 1rem;

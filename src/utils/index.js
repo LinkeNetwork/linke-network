@@ -1,4 +1,11 @@
 import { ethers } from "ethers"
+import Web3 from 'web3'
+import BigNumber from 'bignumber.js'
+import { TOKEN_ABI } from '../abi/index'
+
+const { utils } = Web3
+const { numberToHex } = utils
+
 export const formatAddress = (address) => {
   if (address) {
     return address.slice(0, 6) + '...' + address.slice(-6)
@@ -6,11 +13,18 @@ export const formatAddress = (address) => {
 }
 
 export const setLocal = (key, value) => {
-  localStorage.setItem(key, JSON.stringify(value))
+  const isObj = Object.prototype.toString.call(value) === '[object Object]'
+  if(isObj) {
+    localStorage.setItem(key, JSON.stringify(value))
+  } else {
+    localStorage.setItem(key, value)
+  }
 }
 
 export const getLocal = (key) => {
-  return JSON.parse(localStorage.getItem(key))
+  if(localStorage.getItem(key) != 'undefined') {
+    return localStorage.getItem(key)
+  }
 }
 
 export const delLocal = (key) => {
@@ -68,6 +82,7 @@ export const isInstalledMetaMask = () => {
 }
 
 export const getDaiWithSigner = (address, abi) => {
+  if(!window?.ethereum) return
   const provider = new ethers.providers.Web3Provider(window.ethereum)
   const signer = provider.getSigner()
   if(address) {
@@ -75,4 +90,83 @@ export const getDaiWithSigner = (address, abi) => {
     const daiWithSigner = daiContract.connect(signer)
     return daiWithSigner
   }
+}
+
+export const getContract = (provider, address, abi = TOKEN_ABI, ) => {
+  const web3 = new Web3(window.ethereum)
+  const contract = new web3.eth.Contract(
+    abi,
+    address,
+  )
+  return contract
+}
+
+
+export const getBalanceNumber = (balance, decimals = 18) => {
+  if (balance) { 
+    const displayBalance = balance.dividedBy(new BigNumber(10).pow(decimals))
+    return displayBalance.toNumber()
+  }
+}
+
+export const getBalance = async (  provider, tokenAddress, userAddress ) => {
+  const lpContract = getContract(provider, tokenAddress)
+  try {
+    const balance = await lpContract.methods
+      .balanceOf(userAddress)
+      .call()
+    return balance
+  } catch (e) {
+    return '0'
+  }
+}
+
+// tokenAddress :from token
+// provider: from provider
+// abi: tokenAbi
+// spender: from router
+export const allowance = async ({ spender, provider, tokenAddress,accounts }) => {
+  let account = accounts || localStorage.getItem('account')
+  const lpContract = getContract(provider, tokenAddress)
+  try {
+    const res = await lpContract.methods
+      .allowance(account,spender)
+      .call()
+    return res
+  } catch (error) {
+    console.warn(error)
+    return false
+  }
+}
+
+// tokenAddress :from token
+// provider: from provider
+// abi: tokenAbi
+// spender: from router
+export const approve = async ({ spender, provider, tokenAddress, accounts }) => {
+  console.log(spender, provider, tokenAddress, accounts, 'approve=====')
+  const lpContract = getContract(provider, tokenAddress)
+  try {
+    const amount = numberToHex('115792089237316195423570985008687907853269984665640564039457584007913129639935')
+    const res = await lpContract.methods
+      .approve(spender,amount)
+      .send({ from: accounts })
+    console.log(res, 'approve-----')
+    return res
+  } catch (error) {
+    console.log(error, '===erro2')
+    throw error
+  }
+}
+
+export const uniqueChatList = (arr,val) => {
+   const res = new Map()
+   return arr.filter(item => !res.has(item[val]) && res.set(item[val], 1))
+}
+
+export const formatTimestamp = (date) => {
+  const bigNumber = new BigNumber(Number(date))
+  const decimalString = bigNumber.toString(10)
+  const timestamp = Number(decimalString)
+  return timestamp
 }

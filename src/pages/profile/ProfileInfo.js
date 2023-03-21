@@ -1,20 +1,18 @@
 import styled from 'styled-components'
-import { createClient } from 'urql'
-import { getDaiWithSigner, getLocal } from '../../utils'
+import { getDaiWithSigner } from '../../utils'
 import CopyButton from '../../component/Copy'
 import { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
-import { PROFILE_ABI, FOLLOW_ABI, ENCRYPTED_COMMUNICATION_ABI } from '../../abi'
-import useChain from '../../hooks/useChain'
+import { FOLLOW_ABI, ENCRYPTED_COMMUNICATION_ABI } from '../../abi'
 import useGlobal from '../../hooks/useGlobal'
 import Loading from '../../component/Loading'
 import Modal from '../../component/Modal'
 import FollowerList from './FollowerList'
 export default function ProfileInfo(props) {
-  const { getChainInfo } = useChain()
-  const { hasCreateProfile, setState, profileId, profileAvatar, currentNetwork } = useGlobal()
+  const { hasCreateProfile, setState, profileId, profileAvatar, currentNetworkInfo, accounts, clientInfo } = useGlobal()
   const { urlParams } = props
   const history = useHistory()
+  const pathname = history.location.pathname.split('/profile/')[1]
   const [address, setAddress] = useState()
   const [hasFollow, setHasFollow] = useState()
   const [profileInfo, setProfileInfo] = useState()
@@ -30,15 +28,17 @@ export default function ProfileInfo(props) {
 
   }
   const getPrivateChatStatus = async (pathname) => {
-    const res = await getDaiWithSigner(currentNetwork?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(pathname)
-    setShowPrivateChat(Boolean(res))
-    setPrivateKey(res)
-    console.log(res, currentNetwork, 'getPrivateChatStatus=====')
+    if(currentNetworkInfo?.PrivateChatAddress && pathname) {
+      const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(pathname)
+      setShowPrivateChat(Boolean(res))
+      setPrivateKey(res)
+      console.log(res, currentNetworkInfo, 'getPrivateChatStatus=====')
+    }
   }
   const getFollowStatus = async (client) => {
     const tokensQuery = `
     query{
-      followers(where:{from: "`+ getLocal('account')?.toLowerCase() + `", to: "` + urlParams?.toLowerCase() + `"}){
+      followers(where:{from: "`+ accounts + `", to: "` + urlParams?.toLowerCase() + `"}){
         to,
         from,
         tokenId,
@@ -46,16 +46,15 @@ export default function ProfileInfo(props) {
       }
     }
     `
-    const res = await client.query(tokensQuery).toPromise()
+    const res = await client?.query(tokensQuery).toPromise()
     console.log(res, 'getFollowStatus=====')
-    setHasFollow(Boolean(res.data.followers.length))
+    setHasFollow(Boolean(res?.data?.followers?.length))
     setTimeout(() => {
       setShoMask(false)
     }, 100)
 
   }
   const getMyprofileInfo = async (address) => {
-    // debugger
     const tokensQuery = `
     query{
       profile(id: "`+ address.toLowerCase() + `"){
@@ -70,27 +69,21 @@ export default function ProfileInfo(props) {
       }
     }
     `
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const res = await client.query(tokensQuery).toPromise()
-    getFollowStatus(client)
+    const res = await clientInfo?.query(tokensQuery).toPromise()
+    getFollowStatus(clientInfo)
     setShoMask(false)
-    console.log(res, 'urlParams====')
     setState({
-      tokenId: res.data?.profile?.tokenId,
-      profileAvatar: res.data?.profile?.avatar
+      tokenId: res?.data?.profile?.tokenId,
+      profileAvatar: res?.data?.profile?.avatar
     })
-    // getProfileBaseUrl(res.data?.profile.tokenId)
-    setProfileInfo(res.data?.profile)
+    setProfileInfo(res?.data?.profile)
   }
   const handleFollow = async () => {
     const tokenrul = {
       "name": profileInfo?.name,
       "description": profileInfo?.description,
-      "image": "https://infura-ipfs.io/ipfs/"
+      "image": "https://linke.infura-ipfs.io/ipfs/"
     }
-    debugger
     if (profileInfo?.selfNFT) {
       setShoMask(true)
       const res = await getDaiWithSigner(profileInfo?.selfNFT, FOLLOW_ABI).awardItem(urlParams, tokenrul)
@@ -120,12 +113,11 @@ export default function ProfileInfo(props) {
     window.ethereum
     .request({
       method: 'eth_getEncryptionPublicKey',
-      params: [getLocal('account')], // you must have access to the specified account
+      params: [accounts], // you must have access to the specified account
     })
     .then(async(result) => {
       setShoMask(true)
-      const networkInfo = await getChainInfo()
-      const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).register(result)
+      const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).register(result)
       await res.wait()
       showOpenPrivateChatTips(true)
       setShoMask(false)
@@ -145,11 +137,10 @@ export default function ProfileInfo(props) {
     })
   }
   const jupmToChat = async() => {
-    const networkInfo = await getChainInfo()
-    const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(getLocal('account'))
+    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(accounts)
     if(Boolean(res)) {
       history.push({
-        pathname: `/chat/${address}`,
+        pathname: `/chat/${address}#p`,
         state: {
           name: profileInfo?.name,
           address: address,
@@ -177,20 +168,11 @@ export default function ProfileInfo(props) {
     </Modal>
   )
   useEffect(() => {
-    setAddress(getLocal('account'))
-   
-    const pathname = history.location.pathname.split('/profile/')[1]
-    if (pathname) {
-      // debugger
-      setAddress(pathname)
-      if (!getLocal('isConnect')) return
-      getMyprofileInfo(pathname)
-      getPrivateChatStatus(pathname)
-    } else {
-      if (!getLocal('isConnect')) return
-      getMyprofileInfo(getLocal('account'))
-    }
-  }, [urlParams, getLocal('account'), hasCreateProfile, profileId])
+    setAddress(pathname)
+    if (!accounts) return
+    getMyprofileInfo(pathname)
+    getPrivateChatStatus(pathname)
+  }, [urlParams,hasCreateProfile, profileId, accounts, pathname])
   return (
     <ProfileInfoContanier>
       {openChatModal}
@@ -235,7 +217,7 @@ export default function ProfileInfo(props) {
         hasCreateProfile &&
         <div className='follow-operate'>
           {
-            (urlParams && !hasFollow && hasFollow != undefined && urlParams != getLocal('account')?.toLowerCase()) &&
+            (urlParams && !hasFollow && hasFollow != undefined && pathname != accounts) &&
             <div className='follow-btn' onClick={(handleFollow)}>Follow</div>
           }
           {
@@ -244,14 +226,14 @@ export default function ProfileInfo(props) {
           }
 
           {
-            getLocal('account')?.toLowerCase() != address?.toLowerCase() && showPrivateChat != undefined && showPrivateChat &&
+            pathname != accounts && showPrivateChat != undefined && showPrivateChat &&
             <div className='follow-btn' onClick={jupmToChat}>
               <span>Chat</span>
             </div>
           }
 
           {
-            showPrivateChat != undefined && !showPrivateChat && getLocal('account')?.toLowerCase() == address?.toLowerCase() &&
+            showPrivateChat != undefined && !showPrivateChat && pathname == accounts &&
             <div className='follow-btn open-btn' onClick={OpenPrivate}>
               <span>Open Private Message</span>
             </div>

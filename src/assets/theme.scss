@@ -270,30 +270,6 @@ img, svg {
 .ms-1 {
   margin-left: 0.25rem!important;
 }
-.message-tips{
-  transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-  border-radius: 4px;
-  box-shadow: none;
-  font-weight: 400;
-  font-size: 12px;
-  line-height: 1.43;
-  letter-spacing: 0.01071em;
-  display: flex;
-  padding: 6px 10px;
-  position: absolute;
-  width: 320px;
-  left: -280px;
-  bottom: -20px;
-  &-success {
-    background-color: rgba(128, 128, 128, 0.9);;
-    color: #fff;
-  }
-  &-error {
-    background-color: rgb(253, 237, 237);
-    color: rgb(95, 33, 32);
-  }
-}
-
 @media (min-width: 1200px){
 .h4, h4 {
   font-size: 1.40625rem;
@@ -340,25 +316,50 @@ img, svg {
 @media (max-width: 991.98px){
 .conversation-tips {
   visibility: hidden;
-}
-.tab-content {
-  display: none;
-}
-.translate-tab {
-  display: block;
-  width: 100%;
-  .tab-pane {
-    height: 100%;
+  &-show {
+    visibility: visible;
+    padding: 1.5rem
   }
 }
-.translate-header-content {
-  justify-content: center;
-  // margin-top: 60px;
-  .icon-arrow-left-circle {
-    position: absolute;
-    left: 20px;
-    color: #212529;
-    font-size: 20px;
+.chat-ui {
+  .tab-content {
+    display: none;
+    &-show {
+      display: block;
+    }
+  }
+  .chat-content-share{
+    .tab-content {
+      display: block;
+    }
+    .room-name {
+      font-size: 14px;
+    }
+    .chat-ui-bubble-reverse {
+      margin-right: 1.5rem;
+    }
+  }
+  .translate-tab {
+    display: block;
+    width: 100%;
+    &.display {
+      display: none;
+    }
+    .tab-pane {
+      height: 100vh;
+    }
+  }
+  &-client {
+    .translate-header-content {
+      justify-content: center;
+      // margin-top: 60px;
+      .icon-arrow-left-circle {
+        position: absolute;
+        left: 20px;
+        color: #212529;
+        font-size: 20px;
+      }
+    }
   }
 }
 .chat-ui-offcanvas {
@@ -378,6 +379,7 @@ img, svg {
     width: 100%;
     border-left: 1px solid #dee2e6;
   }
+  
   .icon-arrow-left-circle {
     display: none;
   }

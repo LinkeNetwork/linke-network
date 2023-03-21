@@ -1,47 +1,61 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import styled from "styled-components"
-import useChain from '../../hooks/useChain'
 import Image from '../../component/Image'
 import { useHistory } from 'react-router-dom'
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import Modal from '../../component/Modal'
-import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI } from '../../abi'
-import { detectMobile, formatAddress, getLocal, getDaiWithSigner} from "../../utils"
+import InfiniteScroll from 'react-infinite-scroll-component'
+import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI } from '../../abi'
+import { detectMobile, formatAddress, getLocal, getDaiWithSigner } from "../../utils"
 import useGroupMember from '../../hooks/useGroupMember'
 import useGlobal from "../../hooks/useGlobal"
 import Loading from '../../component/Loading'
 import { ethers } from "ethers"
+import ewmLogo from '../../assets/images/ewm.png'
 export default function GroupMember(props) {
-  const {currentAddress, closeGroupMember, hiddenGroupMember, handleShowMask, handleHiddenMask} = props
-  const { setState, currentNetwork, hasCreateRoom } = useGlobal()
-  const {getGroupMember} = useGroupMember()
+  const { currentAddress, closeGroupMember, handleShowMask, handleHiddenMask, handlePrivateChat, hasAccess, shareGroup } = props
+  const { setState, currentNetworkInfo } = useGlobal()
+  const { getGroupMember } = useGroupMember()
   const [canQuitRoom, setCanQuitRoom] = useState()
   const [memberList, setMemberList] = useState([])
-  const [manager,setManager] = useState()
+  const [manager, setManager] = useState()
   const history = useHistory()
   const [showOperate, setShowOperate] = useState()
-  const [index, setIndex] = useState(-1)
   const [groupInfo, setGroupInfo] = useState()
   const [showQuitRoomConfirm, setShowQuitRoomConfirm] = useState(false)
   const [groupType, setGroupType] = useState()
   const [showLoading, setShowLoading] = useState(false)
-  const getMemberList = async() => {
-    const data = await getGroupMember(currentAddress)
-    const memberListInfo = data?.users.map((item) => {
+  const [showPrivateChat, setShowPrivateChat] = useState(false)
+  const [privateKey, setPrivateKey] = useState()
+  const [showAddManager, setShowAddManager] = useState(false)
+  const [userCount, setUserCount] = useState()
+  const [skipNum, setSkipNum] = useState(0)
+  const getMemberList = async () => {
+    const data = await getGroupMember(currentAddress, skipNum)
+    setSkipNum(skipNum + 50)
+    setUserCount(data?.userCount)
+    const memberListInfo = data?.users?.map((item) => {
       return {
         ...item,
         showProfile: false
       }
     })
+    setMemberList(memberList.concat(memberListInfo))
     const groupType = data?._type
     setGroupType(groupType)
-    getManager(groupType)
-    setMemberList(memberListInfo)
+    await getManager(groupType)
     setGroupInfo(data)
-    console.log(data, memberList, memberListInfo, 'memberList====')
+  }
+  const handleChat = (item) => {
+    handlePrivateChat(item, privateKey)
+  }
+  const getChatStatus = async (item) => {
+    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(item.id.toLowerCase())
+    setPrivateKey(res)
+    setShowPrivateChat(Boolean(res))
   }
   const handleViewProfile = (item, index) => {
-    // setIndex(index)
+    getChatStatus(item)
     item.showProfile = true
     setShowOperate(true)
     setTimeout(() => {
@@ -58,10 +72,7 @@ export default function GroupMember(props) {
       state: item.id
     })
   }
-  const handleChat = (item) => {
-    // const res = await getDaiWithSigner(currentNetwork?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(getLocal('account'))
-  }
-  const confirmQuitRoom = async() => {
+  const confirmQuitRoom = async () => {
     debugger
     try {
       const abi = groupType == 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
@@ -74,7 +85,8 @@ export default function GroupMember(props) {
       })
       closeGroupMember()
       history.push('/chat')
-    } catch(error) {
+      window.location.reload()
+    } catch (error) {
       console.log(error, '====error')
       closeGroupMember()
       handleHiddenMask()
@@ -83,21 +95,21 @@ export default function GroupMember(props) {
   const quitRoomConfirm = () => {
     return (
       <Modal title="Leave Group" visible={showQuitRoomConfirm} onClose={() => setShowQuitRoomConfirm(false)}>
-      <div className='dialog-title'>Do you want to leave this group?</div>
-      <div className='btn-wrapper' style={{
-        display: 'flex',
-        margin: '20px 0 10px',
-      }}>
-        <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={confirmQuitRoom} style={{
-          marginRight: '10px'
+        <div className='dialog-title'>Do you want to leave this group?</div>
+        <div className='btn-wrapper' style={{
+          display: 'flex',
+          margin: '20px 0 10px',
         }}>
-          Leave
-        </button>
-        <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={() => setShowQuitRoomConfirm(false)}>
-          Cancel
-        </button>
-      </div>
-    </Modal>
+          <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={confirmQuitRoom} style={{
+            marginRight: '10px'
+          }}>
+            Leave
+          </button>
+          <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={() => setShowQuitRoomConfirm(false)}>
+            Cancel
+          </button>
+        </div>
+      </Modal>
     )
   }
   const groupInfoList = () => {
@@ -111,63 +123,91 @@ export default function GroupMember(props) {
           <span className="name">Group Description: </span>
           <span className="value">{groupInfo?.description}</span>
         </div>
+        <div className="item">
+          <span className="name">Group QR Code: </span>
+          <img src={ewmLogo} className="ewm-logo" alt='' onClick={shareGroup} />
+        </div>
+        {/* <div className="btn btn-lg btn-primary share-btn" onClick={shareGroup}>
+          <span className="iconfont icon-share"></span>
+          share group
+        </div> */}
       </div>
     )
   }
-  const handleClick = (e) => {
-    if(e.target.id == 'memberItem') {
-      // console.log(index, 'memberItem===')
-      // if(index === -1) return
-      // memberList[index].showProfile = false
-      // console.log(memberList, 'memberList===')
-      // setMemberList(memberList)
-    }
-    // console.log(e.target, memberList, 'handleClick===')
+  const addManagerWrapper = () => {
+    return (
+      <Modal title="Add Manager" visible={showAddManager} onClose={() => { setShowAddManager(false) }}>
+        <div className="add-manager-wrapper">Manager:
+          <div className="item"><input /></div>
+        </div>
+        <div className="btn-operate" style={btnOperateStyle}>
+          <div className="btn btn-lg btn-primary" style={btnStyle}>Confirm</div>
+          <div className="btn btn-lg btn-light" style={btnStyle} onClick={() => { setShowAddManager(false) }}>Cancel</div>
+        </div>
+      </Modal>
+    )
   }
-  const getManager = async(groupType) => {
-    if(groupType == 1 || groupType == 2) {
-      debugger
+  const btnOperateStyle = {
+    margin: '20px 0 10px',
+    display: 'flex',
+    justifyContent: 'center'
+  }
+  const btnStyle = {
+    margin: '0 10px'
+  }
+  const getManager = async (groupType) => {
+    if (groupType == 1 || groupType == 2) {
       const tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
       setManager(tx.manager)
       const canQuitRoom = tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase()
       setCanQuitRoom(canQuitRoom)
       console.log(tx, 'tx===manager')
     }
-    if(groupType == 3) {
+    if (groupType == 3) {
       debugger
       var res = await getDaiWithSigner(currentAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
       const isMaster = ethers.BigNumber.from(res) > 0
       setCanQuitRoom(isMaster)
     }
   }
+  const loadingDatas = () => {
+    setTimeout(() => {
+      getMemberList()
+    }, 10)
+  }
   useEffect(() => {
     getMemberList()
-    document.addEventListener('click', handleClick)
-    return () => {
-      document.removeEventListener("click", handleClick)
-    }
   }, [])
+
   return (
-    <GroupMemberContainer className={detectMobile() ? 'member-wrap-client': ''}>
+    <GroupMemberContainer className={detectMobile() ? 'member-wrap-client' : ''} id="scrollableList">
       {
-        showLoading && 
+        showAddManager &&
+        addManagerWrapper()
+      }
+      {
+        showLoading &&
         <Loading />
+      }
+      {
+        quitRoomConfirm()
       }
       <div className="title">
         <span>Group Info</span>
         <span className="iconfont icon-close" onClick={closeGroupMember}></span>
       </div>
       {
-        quitRoomConfirm()
-      }
-      {
         groupInfoList()
       }
-      <div className="sub-title">
-        Members {
-          groupInfo?.users?.length &&
-          <span>({groupInfo?.users?.length})</span>
-        }
+      <div className="member-list-wrapper">
+        <div className="sub-title">
+          <div>
+            Members {
+              +userCount > 0 &&
+              <span>({userCount})</span>
+            }
+          </div>
+        </div>
       </div>
       <div className='search-wrap'>
         <div className="position-relative">
@@ -177,54 +217,68 @@ export default function GroupMember(props) {
           <input className="search-input" type="search" placeholder="Search..." aria-label="Search..." />
         </div>
       </div>
-      <div className="member-list">
-        {
-          memberList?.map((item,index) => {
-            return (
-              <div className="item" key={index} id="memberItem">
-                {
-                  item.showProfile &&
-                  <div className='user-profile-wrap'>
+
+      <InfiniteScroll
+        scrollableTarget="scrollableList"
+        dataLength={memberList?.length}
+        next={loadingDatas}
+        hasMore={true}
+      >
+        <div className="member-list">
+          {
+            memberList?.map((item, index) => {
+              return (
+                <div className="item" key={index} id="memberItem">
+                  {
+                    item.showProfile &&
+                    <div className='user-profile-wrap'>
                       {
                         item.profile.avatar
-                        ? <Image src={item.profile.avatar} size={60}/>
-                        : <Jazzicon address={item.id} className="avatar-image"/>
+                          ? <Image src={item.profile.avatar} size={60} />
+                          : <Jazzicon address={item.id} className="avatar-image" />
                       }
-                    <div className='name'>{formatAddress(item.id)}</div>
-                    <div className="view-btn" onClick={() => viewProfile(item)}>View</div>
-                    {/* <div className="view-btn" onClick={() => handleChat(item)}>Chat</div> */}
-                    {showOperate && <span></span>}
-                  </div>
-                }
-                <div className="avatar" onClick={() => handleViewProfile(item, index)}>
-                  {
-                    item.profile.avatar 
-                    ? <Image src={item.profile.avatar} size={40}/>
-                    : <Jazzicon address={item.id} className="avatar-icon"/>
+                      <div className='name'>{formatAddress(item.id)}</div>
+                      <div className="button-wrapper">
+                        <div className="view-btn" onClick={() => viewProfile(item)}>View</div>
+                        {
+                          showPrivateChat && getLocal('account').toLowerCase() != item?.id.toLowerCase() &&
+                          <div className="view-btn" onClick={() => handleChat(item)}>Chat</div>
+                        }
+                      </div>
+                      {showOperate && <span></span>}
+                    </div>
                   }
-                  
-                </div>
-                <div className="name">{item.name || item.profile.name}</div>
-                <div className="address">
-                  {formatAddress(item.id)}
-                </div>
-                { (groupType == 1 || groupType == 2) && getLocal('account') == item.id && manager?.toLowerCase() !== item.id.toLowerCase() && <div>(You)</div>} 
-                {
-                  (groupType == 1 || groupType == 2) && manager?.toLowerCase() == item.id.toLowerCase() && <div>(Owner)</div>
-                }
-                { 
-                  // groupType == 3 && canQuitRoom && <div>(Owner)</div>
-                } 
-              </div>
-            )
+                  <div className="avatar" onClick={() => handleViewProfile(item, index)}>
+                    {
+                      item.profile.avatar
+                        ? <Image src={item.profile.avatar} size={40} />
+                        : <Jazzicon address={item.id} className="avatar-icon" />
+                    }
 
-          })
-        }
-        {
-          !canQuitRoom &&
-          <div className="btn btn-lg btn-primary" onClick={() => setShowQuitRoomConfirm(true)}>Quit Room</div>
-        }
-      </div>
+                  </div>
+                  <div className="name">{item.name || item.profile.name}</div>
+                  <div className="address">
+                    {formatAddress(item.id)}
+                  </div>
+                  {(groupType == 1 || groupType == 2) && getLocal('account') == item.id && manager?.toLowerCase() !== item.id.toLowerCase() && <div>(You)</div>}
+                  {
+                    (groupType == 1 || groupType == 2) && manager?.toLowerCase() == item.id.toLowerCase() && <div>(Owner)</div>
+                  }
+                  {
+                    // groupType == 3 && canQuitRoom && <div>(Owner)</div>
+                  }
+                </div>
+              )
+
+            })
+          }
+
+        </div>
+      </InfiniteScroll>
+      {
+        !canQuitRoom && hasAccess &&
+        <div className="btn btn-lg btn-primary" onClick={() => setShowQuitRoomConfirm(true)}>Quit Room</div>
+      }
     </GroupMemberContainer>
   )
 }
@@ -234,8 +288,18 @@ right: 0;
 left: 70%;
 bottom: 0;
 top: 0;
+height: 100%;
+overflow: auto;
 background: #eee;
-z-index: 31;
+z-index: 100;
+.share-btn {
+  position: relative;
+  .icon-share {
+    position: inherit;
+    right: 2px;
+    top: 2px;
+  }
+}
 &.member-wrap-client {
   left: 0;
   .title {
@@ -246,6 +310,20 @@ z-index: 31;
   display: flex;
   margin: 10px;
   justify-content: center;
+}
+.manager-wrapper{
+  display: flex;
+  .info-wrapper {
+    display: flex;
+    .item {
+      margin-left: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      display: flex;
+      flex: 1;
+      padding: 6px 4px;
+    }
+  }
 }
 .title {
   height: 60px;
@@ -259,6 +337,7 @@ z-index: 31;
   left: 70%;
   right: 0;
   top: 0;
+  z-index: 10
 }
 .iconfont {
   position: absolute;
@@ -285,8 +364,14 @@ z-index: 31;
   height: 40px
 }
 .member-list {
-  height: calc(100vh - 320px);
+  // height: calc(100vh - 340px);
   overflow: auto;
+  .button-wrapper {
+    display: flex;
+    div {
+      margin: 3px 5px;
+    }
+  }
   .item {
     display: flex;
     height: 60px;
@@ -326,6 +411,12 @@ z-index: 31;
   padding: 20px 20px 10px;
   .item {
     margin-bottom: 20px;
+    display: flex;
+    .ewm-logo {
+      width: 20px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
     .name {
       font-weight: bold;
       font-size: 15px;

@@ -1,5 +1,5 @@
-import czzURL from '../../assets/images/czz.png';
-import reiURL from '../../assets/images/rei.svg';
+import metaURL from '../../assets/images/MetaMask_Fox.svg';
+import okexURL from '../../assets/images/okex.svg';
 import styled from 'styled-components'
 import { detectMobile } from '../../utils';
 import Image from '../../component/Image';
@@ -7,14 +7,14 @@ export default function ChangeNetwork(props) {
   const { handleChangeNetWork } = props
   const networkList = [
     {
-      image: czzURL,
-      name: 'ClassZZ Network',
-      network: 'CZZ',
+      image: metaURL,
+      name: 'MetaMask',
+      network: 'ETHF',
     },
     {
-      image: reiURL,
-      name: 'REI Network',
-      network: 'REI',
+      image: okexURL,
+      name: 'MetaX',
+      network: 'ETHF',
     }
   ]
   return (
@@ -23,8 +23,7 @@ export default function ChangeNetwork(props) {
         {
           networkList.map((item,index) => {
             return (
-              <li onClick={() => handleChangeNetWork(item.network)} key={index}>
-                {/* <img src={item.image} alt="" /> */}
+              <li onClick={() => handleChangeNetWork(item)} key={index}>
                 <div className='img-wrap'>
                   <Image src={item.image} size={detectMobile() ? 30 : 108}/>
                 </div>
@@ -40,6 +39,18 @@ export default function ChangeNetwork(props) {
 const NetworkContainer = styled.div`
 .name {
   margin-top: 10px
+}
+.network-item {
+  display: flex;
+  padding: 30px 0;
+  width: 100%;
+  align-items: center;
+  li {
+    flex: 1;
+    text-align: center;
+    padding: 0.375rem 0.75rem;
+    cursor: pointer;
+  }
 }
 .network-item-client {
   flex-direction: column;

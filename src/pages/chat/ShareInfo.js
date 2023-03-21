@@ -4,10 +4,9 @@ import QRCode from 'qrcode.react'
 import html2canvas from 'html2canvas'
 import { detectMobile, getLocal } from '../../utils';
 import useGlobal from '../../hooks/useGlobal';
-import { createClient } from 'urql'
 export default function ShareInfo(props) {
-  const { closeShareInfo, currentAddress, shareTextInfo, currentGroupType } = props
-  const { showShareContent } = useGlobal()
+  const { closeShareInfo, currentAddress, shareTextInfo, currentNetwork } = props
+  const { showShareContent, clientInfo } = useGlobal()
   const [canvasImage, setCanvasImage] = useState()
   const [shareInfoStyle, setShareInfoStyle] = useState({})
   const getCanvasStyle = async () => {
@@ -25,14 +24,13 @@ export default function ShareInfo(props) {
         }
       }
     `
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const res = await client.query(tokensQuery).toPromise()
+    const res = await clientInfo?.query(tokensQuery).toPromise()
     let fetchData = res?.data?.groupInfo
-    const shareInfoStyle = JSON.parse(fetchData.style)
-    setShareInfoStyle(shareInfoStyle)
     console.log(fetchData, '===fetchDatafetchData=>>>>')
+    if(fetchData?.style) {
+      const shareInfoStyle = JSON.parse(fetchData.style)
+      setShareInfoStyle(shareInfoStyle)
+    }
   }
   const canvasToHtml = () => {
     html2canvas(document.querySelector("#shareText"), {
@@ -108,7 +106,7 @@ export default function ShareInfo(props) {
             <div className='qrcode-dom' style={{backgroundImage: `url(${shareInfoStyle?.qrCodeBg})`}}>
               <QRCode
                 renderAs="svg"
-                value={`https://www.linke.network/chat/${currentAddress}`}
+                value={`https://www.linke.network/chat/${currentAddress}/${getLocal('network')}`}
                 size={60}
                 fgColor="#000"
               />

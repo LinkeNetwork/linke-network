@@ -6,11 +6,7 @@ const dropdownList = [
   {
     name: 'Creat Chatting Room',
     id: 'creat'
-  },
-  // {
-  //   name: 'Search Member',
-  //   id: 'search'
-  // }
+  }
 ]
 export default function AddChatRoom(props) {
   const {showSettingList, onClickSetting, onClickSelect} = props
@@ -28,7 +24,6 @@ export default function AddChatRoom(props) {
                 return (
                   <li key={v.id} onClick={onClickSelect}>
                     <div className="dropdown-item" id={`${v.id}Item`}>
-                      {/* <i className={`iconfont me-1 ${v.iconName}`} id={`${v.id}Icon`}></i> */}
                       <span className="icon-name" id={`${v.id}Name`}>{v.name}</span>
                     </div>
                   </li>

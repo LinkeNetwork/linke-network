@@ -14,7 +14,7 @@ export default function UploadImage(props) {
     try {
       setShowLoading(true)
       const added = await client.add(file)
-      const url = `https://infura-ipfs.io/ipfs/${added.path}`
+      const url = `https://linke.infura-ipfs.io/ipfs/${added.path}`
       setShowLoading(false)
       updateFileUrl(url)
       uploadBg(url)

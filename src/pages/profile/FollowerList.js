@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react"
 import styled from "styled-components"
-import { createClient } from 'urql'
 import { formatAddress } from "../../utils";
 import { useHistory } from 'react-router-dom'
 import useGlobal from "../../hooks/useGlobal"
 import Image from '../../component/Image'
 import { Jazzicon } from '@ukstv/jazzicon-react'
-import { getLocal } from '../../utils/index'
 export default function FollowerList(props) {
   const { urlParams, followType, hiddenFollowerList } = props
-  const { setState } = useGlobal()
+  const { setState, clientInfo } = useGlobal()
   const history = useHistory()
   const [followerList, setFollowerList] = useState([])
   const [followerCount, setFollowerCount] = useState()
@@ -25,10 +23,7 @@ export default function FollowerList(props) {
         tokenId
       }
     }`
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const res = await client.query(tokensQuery).toPromise()
+    const res = await clientInfo?.query(tokensQuery).toPromise()
     let profiles = res?.data?.profiles
     const noProfiles = ids.filter(ele => profiles.every(item => item.id !== ele))
     noProfiles.map(item => {
@@ -64,10 +59,7 @@ export default function FollowerList(props) {
         }
         `
     }
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const res = await client.query(tokensQuery).toPromise()
+    const res = await clientInfo?.query(tokensQuery).toPromise()
     const data = res?.data?.followers
     const ids = followType === 1 ? data.map(item => item.to) : data.map(item => item.from)
     setFollowerCount(res.data.followers.length)

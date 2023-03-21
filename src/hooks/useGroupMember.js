@@ -3,8 +3,8 @@ import useGlobal from "./useGlobal"
 import { getLocal } from '../utils/index'
 import { useCallback } from 'react'
 export default function useGroupMember() {
-  const { currentTabIndex, currentAddress } = useGlobal()
-  const getGroupMember = useCallback(async(address) => {
+  const { currentTabIndex, currentAddress, clientInfo, networks } = useGlobal()
+  const getGroupMember = useCallback(async(address, skip = 0) => {
     if(currentTabIndex === 1 || !address) return
     const tokensQuery = `
     query{
@@ -16,7 +16,7 @@ export default function useGroupMember() {
         userCount,
         chatCount,
         _type,
-        users {
+        users(first:50,skip:`+ skip + `){
           id,
           name,
           label,
@@ -30,12 +30,11 @@ export default function useGroupMember() {
       }
     }
     `
+    const item = networks.filter(i=> i.symbol === getLocal('network'))[0]
     const client = createClient({
-      url: getLocal('currentGraphqlApi')
+      url: item?.APIURL
     })
-
     const res = await client.query(tokensQuery).toPromise()
-    console.log(res, 'getGroupMember=====res')
     const data = res?.data?.groupInfo
     return data
   }, [currentAddress])

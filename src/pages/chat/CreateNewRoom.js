@@ -2,7 +2,6 @@ import { useState } from "react"
 import { create } from 'ipfs-http-client'
 import styled from "styled-components"
 import useGlobal from '../../hooks/useGlobal'
-import useChain from '../../hooks/useChain'
 import { getDaiWithSigner, getLocal } from '../../utils'
 import { GROUP_FACTORY_ABI } from '../../abi'
 import Loading from '../../component/Loading'
@@ -10,11 +9,26 @@ import multiavatar from '@beeprotocol/beemultiavatar/esm'
 import { ethers } from "ethers";
 import Select from 'react-select'
 import Message from "../../component/Message"
-const client = create('https://ipfs.infura.io:5001')
+import { Buffer } from 'buffer/';
+import { useHistory } from 'react-router-dom'
+
+const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
+const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
+const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
+
+const client = create({
+  host: 'ipfs.infura.io',
+  port: 5001,
+  protocol: 'https',
+  headers: {
+    authorization: auth,
+  },
+})
+
 export default function CreateNewRoom(props) {
-  const { setState } = useGlobal()
+  const { setState, currentNetworkInfo } = useGlobal()
   const { createNewRoom, hiddenCreateInfo } = props
-  const { getChainInfo } = useChain()
+  const history = useHistory()
   const [name, setName] = useState()
   const [shoMask, setShoMask] = useState(false)
   const [describe, setDescribe] = useState('')
@@ -40,7 +54,7 @@ export default function CreateNewRoom(props) {
   const typeList = [
     {
       label: 'Public Group',
-      value: 1
+      value: 4
     },
     {
       label: 'Subscribe Group',
@@ -70,8 +84,13 @@ export default function CreateNewRoom(props) {
     }
   }
   const handleCreate = async () => {
-    console.log(handleBlur(), handleSelectBlur(), '88888')
-    if(handleBlur() || handleSelectBlur()) {
+    setState({
+      hasOpenedSignIn: false
+    })
+    if(!currentGroup) {
+      setShowTypeError(true)
+    }
+    if(handleBlur()) {
       setMessageText('Please fill in the required fields')
       setShowMessage(true)
       setTimeout(() => {
@@ -82,9 +101,7 @@ export default function CreateNewRoom(props) {
     setShoMask(true)
     const avatar = getLocal('account') + name
     const info = await client.add(multiavatar(avatar))
-    const avatarUrl = `https://infura-ipfs.io/ipfs/${info.path}`
-    const network = await getChainInfo()
-    console.log(avatarUrl, 'avatarUrl=====')
+    const avatarUrl = `https://linke.infura-ipfs.io/ipfs/${info.path}`
     const style = {
       avatar: groupLogo,
       backgroundColor: currentColor,
@@ -93,20 +110,21 @@ export default function CreateNewRoom(props) {
       footerTips: footerTips,
       qrCodeBg: qrCodeBg
     }
-    console.log(style, JSON.stringify(style), 'style======')
     const name_ = 'group'
     const symbol_ = 'GROUP'
-    debugger
     const styleList = JSON.stringify(style)
     try {
-      debugger
       const params = ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, styleList, name_, symbol_]);
-      const tx = await getDaiWithSigner(network?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
+      const tx = await getDaiWithSigner(currentNetworkInfo?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
       setTransactionHash(tx.hash)
       let callback = await tx.wait()
+      history.push(`/chat/${callback.logs[0].address}`)
       hiddenCreateInfo()
       setState({
-        hasCreateRoom: true
+        currentAddress: callback.logs[0].address,
+        groupType: currentGroupType,
+        hasCreateRoom: true,
+        transactionRoomHash: callback?.transactionHash
       })
       createNewRoom(callback.logs[0].address, name, currentGroupType)
       console.log('callback', callback, callback.logs[0].address)
@@ -114,9 +132,7 @@ export default function CreateNewRoom(props) {
     } catch (error) {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const receipt = await provider.getTransactionReceipt(transactionHash)
-      console.log(receipt, 'receipt======')
       const hash = receipt?.logs[1]?.transactionHash
-      debugger
       if(hash) {
         hiddenCreateInfo()
         setState({
@@ -124,7 +140,6 @@ export default function CreateNewRoom(props) {
         })
         createNewRoom(receipt?.logs[1]?.address, name)
       }
-      console.log(error, '==error===')
       setShoMask(false)
     }
 
@@ -143,7 +158,7 @@ export default function CreateNewRoom(props) {
     try {
       setShowLoading(true)
       const added = await client.add(file)
-      const url = `https://infura-ipfs.io/ipfs/${added.path}`
+      const url = `https://linke.infura-ipfs.io/ipfs/${added.path}`
       if (type === 1) {
         setGroupLogo(url)
         setShowLoading(false)
@@ -164,15 +179,6 @@ export default function CreateNewRoom(props) {
       return false
     }
   }
-  const handleSelectBlur = () => {
-    if(!currentGroupType) {
-      setShowTypeError(true)
-      return true
-    } else {
-      setShowTypeError(false)
-      return false
-    }
-  }
   return (
     <CreateNewRoomContainer>
       {
@@ -187,7 +193,7 @@ export default function CreateNewRoom(props) {
           <Select
             value={currentGroup}
             onChange={handleSelectChange}
-            onBlur={handleSelectBlur}
+            // onBlur={handleSelectBlur}
             options={typeList}
             theme={(theme) => ({
               ...theme,
@@ -216,7 +222,7 @@ export default function CreateNewRoom(props) {
             onBlur={handleBlur}
           />
           {
-            showNameError && 
+            showNameError &&
             <div className="error-tip">Name Can't be empty</div>
           }
         </div>
@@ -262,7 +268,7 @@ export default function CreateNewRoom(props) {
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(1)}></span>
                 {
                   showExplain1 &&
-                  <img src="https://infura-ipfs.io/ipfs/QmZk1Rd98aeVUCGtPe9uT5iKXFgobLjfdNBERf3msDAud1" />
+                  <img src="https://linke.infura-ipfs.io/ipfs/QmZk1Rd98aeVUCGtPe9uT5iKXFgobLjfdNBERf3msDAud1" />
                 }
               </div>
               <input
@@ -280,7 +286,7 @@ export default function CreateNewRoom(props) {
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(2)}></span>
                 {
                   showExplain2 &&
-                  <img src="https://infura-ipfs.io/ipfs/QmdJQKnqvSeDAiyyBAxExjQSPdkYL6eo4yDEAMk1m6iaEG" />
+                  <img src="https://linke.infura-ipfs.io/ipfs/QmdJQKnqvSeDAiyyBAxExjQSPdkYL6eo4yDEAMk1m6iaEG" />
                 }
               </div>
               <input
@@ -298,7 +304,7 @@ export default function CreateNewRoom(props) {
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(3)}></span>
                 {
                   showExplain3 &&
-                  <img src="https://infura-ipfs.io/ipfs/Qme2MXxFhnFRMFT6yfrz7GvVabPKkHHaQXvmbZF2g2KYET" />
+                  <img src="https://linke.infura-ipfs.io/ipfs/Qme2MXxFhnFRMFT6yfrz7GvVabPKkHHaQXvmbZF2g2KYET" />
                 }
               </div>
               <input

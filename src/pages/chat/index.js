@@ -1,109 +1,119 @@
-import React, { Component, createRef, useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import './chat.scss'
 import 'emoji-mart/css/emoji-mart.css'
-import { createClient } from 'urql'
-import { token } from '../../constant/token'
+import BigNumber from 'bignumber.js'
 import Loading from '../../component/Loading'
 import ListGroup from './GroupList'
+import { createClient } from 'urql'
 import ChatInputBox from './ChatInputBox'
 import Introduction from './Introduction'
-import ConnectWallet from '../layout/ConnectWallet'
 import ChatTab from './ChatTab'
 import Trade from '../trade/index'
 import ShareInfo from './ShareInfo'
+import RedEnvelopeCover from './RedEnvelopeCover'
 import CreateNewRoom from './CreateNewRoom'
 import JoinRooom from './JoinRoom'
 import useGroupMember from '../../hooks/useGroupMember'
 import useDataBase from '../../hooks/useDataBase'
+import useUnConnect from '../../hooks/useUnConnect'
+import ShareGroupCode from './ShareGroupCode'
+import AwardBonus from './AwardBonus'
+import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
-import { detectMobile, throttle } from '../../utils'
+import useReceiveInfo from '../../hooks/useReceiveInfo'
+import { detectMobile, throttle, uniqueChatList } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
-import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI} from '../../abi/index'
+import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI } from '../../abi/index'
 import localForage from "localforage"
-import ChangeNetwork from './ChangeNetwork'
 import Modal from '../../component/Modal'
-import Nav from '../nav'
 import SearchChat from './SearchChat'
 import AddChatRoom from './AddChatRoom'
-import HeaderInfo from '../layout/HeaderInfo'
 import RoomHeader from './RoomHeader'
 import ChatContext from './ChatContext'
 import GroupMember from './GroupMember'
 import JoinGroupButton from './JoinGroupButton'
-import useChain from '../../hooks/useChain'
 import { useHistory } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
-import * as zango from "zangodb";
-
+import SignIn from './SignIn'
 
 export default function Chat() {
-  const { getChainInfo } = useChain()
   const { collection, setDataBase } = useDataBase()
+  const [collectedRedEnvelope, setCollectedRedEnvelope] = useState([])
   const history = useHistory()
+  const { getReceiveInfo } = useReceiveInfo()
   const { getGroupMember } = useGroupMember()
+  const [showNftList, setShowNftList] = useState(false)
+  const [showReceiveTips, setShowReceiveTips] = useState(false)
+  const [showGroupList, setShowGroupList] = useState(true)
+  const skip = 0
+  const [clickNumber, setClickNumber] = useState(0)
   const timer = useRef()
   const allTimer = useRef()
   const messagesEnd = useRef(null)
-  const {groupLists, hasGetGroupLists, hasCreateRoom, setState, hasClickPlace, currentNetwork, hasQuitRoom} = useGlobal()
-  const [balance, setBalance] = useState()
+  const [showOpenSignIn, setShowOpenSignIn] = useState(false)
+  const [showEnvelopesList, setShowEnvelopesList] = useState(false)
+  const [showJoinModal, setShowJoinModal] = useState(false)
+  const { getclientInfo } = useUnConnect()
+  const [selectNftId, setSelectNftId] = useState()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, signInClientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress, signInAddress} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
-  const [currentGraphApi, setCurrentGraphApi] = useState()
   const [currentAddress, setCurrentAddress] = useState()
+  const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
   const currentAddressRef = useRef(null)
+  const [showCanReceiveTips, setCanReceiveTips] = useState(false)
+  const [currentRedEnvelopId, setCurrentRedEnvelopId] = useState()
   const [memberCount, setMemberCount] = useState()
-  const [currentChainId, setChainId] = useState()
   const [myAddress, setMyAddress] = useState()
+  const [showReceiveInfo, setShowReceiveInfo] = useState(false)
+  const [showRedEnvelope, setShowRedEnvelope] = useState(false)
   const [currentRoomName, setCurrentRoomName] = useState()
   const [hasAccess, setHasAccess] = useState()
   const [chatList, setChatList] = useState([])
+  const [showOpenAward, setShowOpenAward] = useState(false)
   const [showJoinGroupButton, setShowJoinGroupButton] = useState()
   const chatListRef = useRef()
   const [hasScroll, setHasScroll] = useState(false)
   const hasScrollRef = useRef(null)
   const [hasNotice, setHasNotice] = useState(false)
   const [showMask, setShowMask] = useState(false)
+  const [showSignIn, setShowSignIn] = useState(false)
   const [showGroupMember, setShowGroupMember] = useState(false)
-  const [showWalletList, setShowWalletList] = useState(false)
-  const [showMenulist, setShowMenulist] = useState(false)
   const [currNetwork, setCurrNetwork] = useState()
   const [showJoinRoom, setShowJoinRoom] = useState(false)
+  const [showAwardBonus, setShowAwardBonus] = useState(false)
   const [showCreateNewRoom, setShowCreateNewRoom] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
-  const [hasToBottom, setHasToBottom] = useState(true)
   const [showPlaceWrapper, setShowPlaceWrapper] = useState(false)
   const [shareTextInfo, setShareTextInfo] = useState('')
   const [showChat, setShowChat] = useState(false)
-  const [showAccount, setShowAccount] = useState(false)
   const [showSettingList, setShowSettingList] = useState(false)
-  const [currentIndex, setCurrentIndex] = useState()
   const [roomList, setRoomList] = useState([])
   const roomListRef = useRef()
   const [showTradeInfo, setShowTradeInfo] = useState(false)
   const [clearChatInput, setClearChatInput] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [chatListStatus, setChatListStatus] = useState(new Map())
-  const [showOperate, setShowOperate] = useState(false)
-  const [sendSuccess,setSendSuccess] = useState(false)
+  const [sendSuccess, setSendSuccess] = useState(false)
   const [dialogType, setDialogType] = useState()
-  const [currentTabIndex, setCurrentTabIndex] = useState()
+  const [currentTabIndex, setCurrentTabIndex] = useState(0)
   const [roomAvatar, setRoomAvatar] = useState()
-  const [encryptionChatText, setEncryptionChatText] = useState()
   const [privateKey, setPrivateKey] = useState()
-  const [myPublicKey, setMyPublicKey] = useState()
   const [myAvatar, setMyAvatar] = useState()
+  const [nftImageList, setNftImageList] = useState([])
   const [hasDecrypted, setHasDecrypted] = useState(false)
   const [hasChatCount, setHasChatCount] = useState(false)
   const [currentGroupType, setCurrentGroupType] = useState()
   const [groupList, setGroupLists] = useState()
+  const [showShareGroup, setShowShareGroup] = useState(false)
   const groupListRef = useRef()
-  const [manager, setManager] = useState()
   const [canSendText, setCanSendText] = useState()
   const [groupType, setGroupType] = useState()
   const currentGroupTypeRef = useRef()
   const hasAccessRef = useRef()
+  const myAvatarRef = useRef()
   const showJoinGroupButtonRef = useRef()
   useEffect(() => {
-    if(hasQuitRoom) {
+    if (hasQuitRoom) {
       setShowMask(false)
       setState({
         currentAddress: ''
@@ -111,7 +121,13 @@ export default function Chat() {
       setCurrentAddress()
     }
   }, [hasQuitRoom])
-  useEffect(()=>{
+  useEffect(() => {
+    if (!clientInfo) {
+      getclientInfo()
+    }
+  }, [clientInfo])
+  useEffect(() => {
+    myAvatarRef.current = myAvatar
     currentAddressRef.current = currentAddress
     hasScrollRef.current = hasScroll
     roomListRef.current = roomList
@@ -119,38 +135,58 @@ export default function Chat() {
     currentGroupTypeRef.current = currentGroupType
     hasAccessRef.current = hasAccess
     showJoinGroupButtonRef.current = showJoinGroupButton
-  }, [currentAddress, hasScroll, roomList, chatList, currentGroupType, hasAccess, showJoinGroupButton])
+  }, [currentAddress, hasScroll, roomList, chatList, currentGroupType, hasAccess, showJoinGroupButton, myAvatar])
   useEffect(() => {
     groupLists?.map(item => {
-      // getInitChatList(item.id, item.avatar)
       startInterval(item.id)
     })
+    if (groupLists?.length) {
+      setGroupLists([...groupLists])
+    }
+    if(!getLocal('isConnect') && groupLists?.length) {
+      setCurrentRoomName(groupLists[0].name)
+    }
     groupListRef.current = groupLists
   }, [currentTabIndex, groupLists])
   useEffect(() => {
-    if(currentTabIndex === 1) {
+    const isShare = history.location.search.split('share=')[1] || history?.location?.state?.share
+    if(detectMobile()) {
+      getAccount()
+    }
+    if(Boolean(isShare)) {
+      setShowChat(true)
+      setShowGroupList(false)
+    }
+  }, [])
+  const getAccount = async() => {
+    const account = await window?.ethereum?.request({ method: 'eth_requestAccounts' })
+    if(account && account[0]) {
+      setLocal('account', account[0])
+      setLocal('isConnect', 1)
+    }
+  }
+  useEffect(() => {
+    const path = history.location.pathname.split('/chat/')[1]
+    const address = path?.split('/')[0]
+    const network = path?.split('/')[1] || getLocal('network')
+    if(address && network && detectMobile()) {
+      setShowChat(true)
+      setState({
+        showHeader: false
+      })
+    }
+  }, [groupLists])
+  useEffect(() => {
+    if (currentTabIndex === 1) {
       getMyAvatar()
       localForage.getItem('publicKeyList').then(res => {
         const key = res && res[getLocal('account')]
-        if(!key) {
+        if (!key) {
           getMyPublicKey()
         }
       })
     }
-    setState({
-      currentAddress: ''
-    })
-    setCurrentAddress()
   }, [currentTabIndex])
-  const getCurrentNetwork = async() => {
-    const networkInfo = await getChainInfo()
-    setCurrentGraphApi(networkInfo?.APIURL)
-    setChainId(networkInfo?.chainId)
-    setCurrNetwork(networkInfo?.name)
-    setLocal('currentNetwork', networkInfo?.name)
-    setLocal('currentGraphqlApi', networkInfo?.APIURL)
-    console.log(networkInfo, currentNetwork, 'networkInfo=====')
-  }
   const getMyAvatar = async () => {
     const tokensQuery = `
     query{
@@ -160,12 +196,9 @@ export default function Chat() {
       }
     }
     `
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const res = await client.query(tokensQuery).toPromise()
+    const res = await clientInfo?.query(tokensQuery).toPromise()
     setMyAvatar(res.data?.profile?.avatar)
-    console.log(res, res.data?.profile?.avatar,'getMyAvatar====')
+    return res.data?.profile?.avatar
   }
   const changeChatType = (index) => {
     setCurrentAddress()
@@ -176,62 +209,45 @@ export default function Chat() {
       currentAddress: ''
     })
   }
-  const getBalance = async() => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const balance = await provider.getBalance(getLocal('account'))
-    const etherString = ethers.utils.formatEther(balance)
-    setBalance(etherString)
-    console.log(etherString, 'balance===')
-  }
   const getMyPublicKey = () => {
-    debugger
     window.ethereum
-    .request({
-      method: 'eth_getEncryptionPublicKey',
-      params: [getLocal('account')], // you must have access to the specified account
-    })
-    .then((result) => {
-      console.log(result, '===getMyPublicKey==')
-      setMyPublicKey(result)
-      localForage.getItem('publicKeyList').then(res => {
-        if(res) {
-          res[getLocal('account')] = result
-          localForage.setItem('publicKeyList', res)
-        } else {
-          const obj = {}
-          obj[getLocal('account')] = result
-          localForage.setItem('publicKeyList', obj)
-        }
+      .request({
+        method: 'eth_getEncryptionPublicKey',
+        params: [getLocal('account')], // you must have access to the specified account
       })
-      console.log(result, 'getMyKey=====')
-    })
+      .then((result) => {
+        localForage.getItem('publicKeyList').then(res => {
+          if (res) {
+            res[getLocal('account')] = result
+            localForage.setItem('publicKeyList', res)
+          } else {
+            const obj = {}
+            obj[getLocal('account')] = result
+            localForage.setItem('publicKeyList', obj)
+          }
+        })
+
+      })
   }
-  const getManager = async(id, type) => {
-    debugger
-    if(type == 3) return
+  const getManager = async (id, type) => {
+    if (type == 3) return
     const tx = await getDaiWithSigner(id, PUBLIC_GROUP_ABI).profile()
     const canSendText = tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase()
-    setManager(tx.manager)
     setCanSendText(canSendText)
-    debugger
-    if(!canSendText || !hasAccess) {
+    if (!canSendText || !hasAccess) {
       setShowJoinGroupButton(true)
     } else {
       setShowJoinGroupButton(false)
     }
-    console.log(tx, manager?.toLowerCase() == getLocal('account')?.toLowerCase(), 'tx===manager')
   }
   const getPrivateChatStatus = async (id) => {
-    const networkInfo = await getChainInfo()
-    const res = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(id)
+    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(id)
     setPrivateKey(res)
-    console.log(res, 'getPrivateChatStatus=====')
   }
-  const initRoomAddress = () => {
+  const initRoomAddress = async(hash) => {
     let data = history.location?.state
-    console.log(data, '===initRoomAddress')
-    if(data) {
-      const {currentIndex, address, name , avatar, privateKey} = data
+    if (data) {
+      const { currentIndex, address, name, avatar, privateKey, share } = data
       setCurrentTabIndex(currentIndex)
       setCurrentAddress(address)
       setState({
@@ -240,26 +256,36 @@ export default function Chat() {
       setPrivateKey(privateKey)
       setCurrentRoomName(name)
       setRoomAvatar(avatar)
-      return
-    } else {
-      setCurrentTabIndex(0)
+      if(!share) {
+        return
+      }
     }
-    const address = history.location.pathname.split('/chat/')[1]
+    const path = history.location.pathname.split('/chat/')[1]
+    const address = path?.split('/')[0]
+    const network = path?.split('/')[1] || getLocal('network')
+
+    if (network) {
+      setState({
+        currNetwork: network
+      })
+    }
     if (address) {
       setCurrentAddress(address)
+      await getInitChatList(address)
       setState({
         currentAddress: address
       })
-      isRoom(address)
+      if(!hash) {
+        await isRoom(address)
+      }
+
     }
   }
-  const updateGroupList = (name, roomAddress, type) => {
-    debugger
-    console.log(groupLists, groupListRef.current,'==updateGroupList==')
-    // if(!hasGetGroupLists) return
-    const index = groupListRef.current?.findIndex(item => item.id.toLowerCase() == roomAddress.toLowerCase())
-    const groupList = [...groupListRef.current]
-    if(index === -1) {
+  const updateGroupList = async (name, roomAddress, type) => {
+
+    const index = groupListRef?.current?.findIndex(item => item.id.toLowerCase() == roomAddress.toLowerCase())
+    const groupList = groupListRef?.current ? [...groupListRef?.current] : []
+    if (index === -1) {
       groupList.push({
         id: roomAddress,
         name: name,
@@ -267,52 +293,86 @@ export default function Chat() {
         newChatCount: 0,
         _type: type
       })
-      localForage.getItem('chatListInfo').then(res => {
-        debugger
-        let chatListInfo = res ? res : {}
-        const list = Object.keys(chatListInfo)
-        const currentNetwork = getLocal('currentNetwork')
-        chatListInfo[currentNetwork] = list.length ? chatListInfo[currentNetwork] : {}
-        chatListInfo[currentNetwork][getLocal('account')] =  chatListInfo[currentNetwork][getLocal('account')] ? chatListInfo[currentNetwork][getLocal('account')] : {}
-        chatListInfo[currentNetwork][getLocal('account')]['publicRooms'] = [...groupList]
-        localForage.setItem('chatListInfo', chatListInfo)
-      })
-      setRoomList(groupList)
-      setState({
-        groupLists: groupList
+      let res = await localForage.getItem('chatListInfo')
+      let chatListInfo = res ? res : {}
+      const list = Object.keys(chatListInfo)
+      const currentNetwork = getLocal('network')
+      chatListInfo[currentNetwork] = list.length ? chatListInfo[currentNetwork] : {}
+      chatListInfo[currentNetwork][getLocal('account')] = chatListInfo[currentNetwork][getLocal('account')] ? chatListInfo[currentNetwork][getLocal('account')] : {}
+      chatListInfo[currentNetwork][getLocal('account')]['publicRooms'] = [...groupList]
+      localForage.setItem('chatListInfo', chatListInfo).then(res => {
+        setRoomList(groupList)
+        setState({
+          groupLists: groupList
+        })
+      }).catch(err => {
+        console.log(err)
       })
     }
   }
   const isRoom = async (roomAddress) => {
     try {
-      debugger
-      console.log(groupListRef.current, 'groupListRef.current======')
-      const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
-      if(index > 0) return
-      debugger
-      const groupInfo = await getGroupMember(roomAddress)
-      const groupType = groupInfo?._type
-      setGroupType(groupType)
-      if(groupType == 3) {
-        var { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
-      } else {
-        var { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
-      }
-      setState({
-        hasGetGroupLists: true
-      })
-      console.log(name, '====....')
-      updateGroupList(name, roomAddress, groupType)
-      getJoinRoomAccess(roomAddress, groupType)
-      setCurrentRoomName(name)
-      getInitChatList(roomAddress)
       initCurrentAddress(roomAddress)
+      // setShowMask(true)
+      if (!getLocal('isConnect')) {
+        const path = history.location.pathname.split('/chat/')[1]
+        var currentNetwork = path?.split('/')[1]
+        var networkInfo = networks.filter(i => i.name === currentNetwork)[0]
+        setLocal('currentGraphqlApi', networkInfo?.APIURL)
+        setLocal('network', currentNetwork)
+        setCurrNetwork(currentNetwork)
+      } else {
+        const currentNetwork = getLocal('network') || currNetwork
+        var networkInfo = networks.filter(i => i.name === currentNetwork)[0]
+      }
+      const groupInfo = await getGroupMember(roomAddress, skip)
+      setState({
+        groupType: groupInfo?._type
+      })
+      const groupType = groupInfo?._type
+      if(chainId !== 513100 && groupInfo) {
+        const { chatCount, id, name, __typename, _type } = groupInfo
+        const roomInfo = [
+          {
+            chatCount: chatCount,
+            id: id,
+            name: name,
+            __typename: __typename,
+            _type: _type
+          }
+        ]
+        setCurrentRoomName(name)
+        setRoomList([...roomInfo])
+      }
+      if(getLocal('isConnect') || accounts || chainId) {
+        getJoinRoomAccess(roomAddress, groupType)
+      }
+      setGroupType(groupType)
+      if (groupType == 3 && chainId === 513100 && roomAddress) {
+        var  { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
+        updateGroupList(name, roomAddress, groupType)
+      } else {
+        if(chainId !== 513100 || !roomAddress) return
+        var  { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
+      }
+
+      setCurrentRoomName(name || groupInfo?.name)
+      if (name) {
+        updateGroupList(name, roomAddress, groupType)
+      }
+      setCurrentRoomName(name)
     }
     catch (e) {
-      console.log(e, 'err====')
+      console.log(e, 'error==========')
       setShowMask(false)
       if (!hasNotice) {
-        alert('This is not a chat room.')
+        if(getLocal('isConnect')) {
+          alert('This is not a chat room.')
+        } else {
+          if(!currentNetwork) {
+            alert('Please connect wallet first')
+          }
+        }
         setHasNotice(true)
         setShowMask(false)
       }
@@ -320,71 +380,114 @@ export default function Chat() {
     }
     setShowMask(false)
   }
-  const getJoinRoomAccess = async(roomAddress, groupType) => {
+  const getJoinRoomAccess = async (roomAddress, groupType) => {
     try {
-      debugger
-      if(groupType == 1 || groupType == 2) {
-        var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
-      } 
-      if(groupType == 3) {
+      if (groupType == 3) {
+        if(chainId !== 513100) return
         var res = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
-        console.log(res, '=getDaiWithSigner==')
+      } else {
+        if(getLocal('account') && chainId === 513100 && roomAddress) {
+          var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
+        }
       }
+      if(!res && chainId !== 513100) {
+        setHasAccess(false)
+      }
+      if(!res) return
       const hasAccess= ethers.BigNumber.from(res) > 0
       setHasAccess(hasAccess)
-      if(!Boolean(hasAccess)) {
+      if (!Boolean(hasAccess)) {
         setShowJoinGroupButton(true)
       }
-      console.log(hasAccess,  hasAccessRef.current, showJoinGroupButton, showJoinGroupButtonRef.current, Boolean(hasAccess), 'hasAccess======')
+      setShowMask(false)
+      const redEnvelopId = parseInt(history.location.search.split("?id=")[1])
+      setCurrentRedEnvelopId(redEnvelopId)
+      if(hasAccess && redEnvelopId) {
+        const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(redEnvelopId, getLocal('account'))
+        const isReceived = (new BigNumber(Number(tx))).toNumber()
+        if(!isReceived) {
+          setShowRedEnvelope(true)
+        } else {
+          if(!redEnvelopId) return
+          setShowReceiveTips(true)
+        }
+      }
+      if(!hasAccess && redEnvelopId) {
+        setShowJoinModal(true)
+        return
+      }
     } catch(error) {
       console.log(error, '===error==')
     }
   }
-  const fetchPublicChatList = async(roomAddress) => {
+  const fetchPublicChatList = async (roomAddress) => {
     const tokensQuery = `
     query{
       chatInfos(orderBy:block,orderDirection:desc, first:20, where:{room: "`+ roomAddress?.toLowerCase() + `"}){
         id,
         transaction,
-        sender,
         block,
         index,
         chatText,
-        room
+        room,
+        _type,
+        user{
+          id,
+          name,
+          profile{
+            avatar,
+            name
+          }
+        }
       }
     }
     `
-
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    // debugger
-    const data = await client.query(tokensQuery).toPromise()
-    const db = await setDataBase()
-    const collection = db.collection('chatInfos')
-    const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
-    const chatList = data?.data?.chatInfos || []
-    console.log(chatList, res, 'chatList=====>>>')
-    const result = formateData(chatList)
-    if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-      debugger
-      setChatList(res || result)
+    if (!clientInfo) {
+      const path = history.location.pathname.split('/chat/')[1]
+      if(!path) return
+      const network = path?.split('/')[1] || getLocal('network') || currentChain
+      const currentNetwork = getLocal('network') || network
+      const item = networks.filter(i => i.name === currentNetwork.toUpperCase())[0]
+      setLocal('network', currentNetwork.toUpperCase())
+      setShowMask(false)
+      setCurrNetwork(network)
+      // if(!item?.APIURL) return
+      var clientInfo = createClient({
+        url: item?.APIURL
+      })
     }
-    insertData(result)
-    getMemberList(roomAddress, result)
+    const data = await clientInfo?.query(tokensQuery).toPromise()
+    const db = await setDataBase()
+    const collection = db?.collection('chatInfos')
+    const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
+    const chatList = data?.data?.chatInfos || []
+    // const result = formateData(chatList, roomAddress)
+    const result = await getMemberList(chatList) || []
+    await insertData(result)
+    if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
+      if (res?.length > 0) {
+        setChatList(res)
+      } else {
+        setChatList(result)
+      }
+      setShowMask(false)
+    }
   }
 
-  const insertData = async(datas) =>{
+  const insertData = async (datas) => {
     const db = await setDataBase()
-    const collection = db.collection('chatInfos')
+    const collection = db?.collection('chatInfos')
     for (let i = 0; i < datas?.length; i++) {
       datas[i].block = parseInt(datas[i].block)
-      collection.findOne({id:datas[i].id}).then((doc) => {
+      collection?.findOne({ id: datas[i].id }).then((doc) => {
+        console.log(doc, 'doc======')
         if (doc) {
-          collection.update({id:datas[i].id}, {$set: datas[i]})
+          collection.update({ id: datas[i].id }, { $set: datas[i] })
         } else {
           collection.insert(datas[i])
         }
+      }).catch(error => {
+        console.log(error)
       })
     }
   }
@@ -392,45 +495,10 @@ export default function Chat() {
   const initCurrentAddress = (list) => {
     clearInterval(timer.current)
     clearInterval(allTimer.current)
-    history.push(`/chat/${list}`)
     setCurrentAddress(list)
     setState({
       currentAddress: list
     })
-    setChatList([])
-  }
-
-  const handleChangeNetWork = async (network) => {
-    setShowMenulist(false)
-    const { name, decimals, symbol, chainId, rpcUrls, chainName, blockExplorerUrls } = token[network]
-    const nativeCurrency = { name, decimals, symbol }
-    let params = [{
-      chainId,
-      rpcUrls,
-      chainName,
-      nativeCurrency,
-      blockExplorerUrls
-    }]
-    await window.ethereum?.request({ method: 'wallet_addEthereumChain', params })
-    getSign(name)
-    setCurrNetwork(name)
-    setShowWalletList(false)
-  }
-  const getSign = async (network) => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    await provider.send("eth_requestAccounts", [])
-    getCurrentNetwork()
-    getMyAccount()
-  }
-  const getMyAccount = async () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const signer = provider.getSigner()
-    const myAddress = await signer.getAddress()
-    const currentAccount = myAddress.toLocaleLowerCase()
-    console.log(myAddress, 'myAddress====')
-    setLocal('account', currentAccount?.toLowerCase())
-    setLocal('isConnect', true)
-    setMyAddress(currentAccount)
   }
   const getCurrentRoomInfo = (roomAddress) => {
     setShowJoinRoom(false)
@@ -453,30 +521,16 @@ export default function Chat() {
     initCurrentAddress(address)
   }
   const connectWallet = () => {
-    setShowWalletList(true)
+    setState({
+      showConnectNetwork: true
+    })
   }
   const handleClick = () => {
     document.addEventListener('click', (e) => {
-      console.log(e.target.id, 'e.target.id=====e.target.id')
-      if (e.target.id === 'chatItem') {
-        setShowOperate(false)
-      }
       if (e.target.id === 'imageMask') {
         setShowInfo(false)
       }
     })
-  }
-  const handleMenu = () => {
-    setShowMenulist(true)
-    setShowChat(false)
-  }
-  const handleDisconnect = () => {
-    setMyAddress('')
-    setShowMask(false)
-    setShowAccount(false)
-    setRoomList([])
-    setLocal('isConnect', false)
-    history.push(`/chat`)
   }
   const onClickSelect = (e) => {
     const id = e.target.id.slice(0, -4)
@@ -484,73 +538,78 @@ export default function Chat() {
     setShowJoinRoom(id === 'new')
     setShowSettingList(false)
   }
-  // const getMemberCount = async(id) => {
-  //   if(currentTabIndex === 1) return
-  //   const data = await getGroupMember(id)
-  //   const memberListInfo = data?.users
-  //   setMemberCount(memberListInfo?.length)
-  // }
-  const showChatList = (e, item, list) => {
+  const showChatList = (item) => {
+    setState({
+      hasOpenedSignIn: false
+    })
+    setCurrentRedEnvelopId()
+    setShowMask(true)
+    setHasAccess()
     setChatList([])
+    setHasMore(true)
+    if (currentTabIndex === 0 && window.ethereum) {
+      getManager(item.id, item._type)
+      handleReadMessage(item.id)
+      getJoinRoomAccess(item.id, item._type)
+      history.push(`/chat/${item.id}/${getLocal('network')}`)
+    }
+    setShowChat(true)
+    if (detectMobile()) {
+      setState({
+        showHeader: false
+      })
+    }
     clearInterval(timer.current)
     clearInterval(allTimer.current)
     setRoomAvatar(item.avatar)
-    console.log(item, 'item=====')
     getInitChatList(item.id, item.avatar)
     setCurrentGroupType(item._type)
-    if(currentTabIndex === 1) {
+    setState({
+      groupType: item._type
+    })
+    if (currentTabIndex === 1) {
       getPrivateChatStatus(item.id)
+      history.push(`/chat/${item.id}#p`)
     }
     startInterval(item.id)
     setMemberCount()
     setHasMore(true)
-    history.push(`/chat/${item.id}`)
+
     setCurrentAddress(item.id)
     setState({
       currentAddress: item.id
     })
-    if(currentTabIndex === 0) {
-      // getMemberCount(item.id)
-      getManager(item.id, item._type)
-    }
     setCurrentRoomName(item.name)
-    setShowChat(true)
     setShowMask(true)
     setHasScroll(false)
-    getJoinRoomAccess(item.id, item._type)
   }
-
-  const scrollToBottom = () => {
-    if (messagesEnd && messagesEnd.current) {
-      messagesEnd.current.scrollIntoView(false)
-      console.log(messagesEnd, 'messagesEnd====')
-    }
-  }
-  const loadingGroupData = async() => {
-    debugger
-    const firstBlock = chatList && chatList[chatList.length-1]?.block
-    if(!firstBlock) return
-    const client = createClient({
-      url: currentGraphApi
-    })
+  const loadingGroupData = async () => {
+    const firstBlock = chatList && chatList[chatList.length - 1]?.block
+    if (!firstBlock) return
     const tokensQuery = `
     query{
       chatInfos(orderBy:block,orderDirection:desc, first:20, where:{room: "`+ currentAddressRef?.current?.toLowerCase() + `", block_lt: ` + firstBlock + `}){
         id,
         transaction,
-        sender,
         block,
         chatText,
         room,
-        index
+        index,
+        _type,
+        user{
+          id,
+          name,
+          profile{
+            avatar,
+            name
+          }
+        }
       }
     }
     `
-    const data = await client.query(tokensQuery).toPromise()
-    console.log(data, 'loading=data=')
+    const data = await clientInfo?.query(tokensQuery).toPromise()
     const loadingList = data?.data?.chatInfos || []
-    console.log(loadingList, 'loadingList====')
-    if(loadingList.length < 20) {
+    if (loadingList.length < 20) {
       setHasMore(false)
     }
     const fetchData = loadingList && loadingList.map((item) => {
@@ -559,22 +618,17 @@ export default function Chat() {
         hasDelete: false,
         isSuccess: true,
         showProfile: false,
-        position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
+        position: (item?.user?.id).toLowerCase() === (myAddress)?.toLowerCase(),
         showOperate: false,
       }
     })
-    
-    const newfetchData = await addAvatarToList(fetchData)
-    insertData(newfetchData)
-    if(chatListRef.current.length) {
+    const newfetchData = loadingList?.length > 0 ? await getMemberList(fetchData) : []
+    // insertData(newfetchData)
+    if(chatListRef.current.length && newfetchData?.length > 0) {
       const list = [...chatListRef.current]
-      console.log(newfetchData, 'newfetchData===')
-      console.log(fetchData, list, memberListInfo, '====fetchData')
       const result = list.concat(newfetchData)
-      debugger
       setChatList(result)
     }
-    console.log(fetchData, 'chatList.length')
   }
   const loadingData = async () => {
     if(currentTabIndex === 0) {
@@ -596,7 +650,8 @@ export default function Chat() {
         block,
         chatText,
         to,
-        chatTextSender
+        chatTextSender,
+        _type
       }
     }
     `
@@ -608,7 +663,8 @@ export default function Chat() {
         block,
         to,
         chatText,
-        chatTextSender
+        chatTextSender,
+        _type
       }
     }
     `
@@ -618,20 +674,7 @@ export default function Chat() {
     }
     const list = [...chatListRef.current]
     setChatList(currentList.concat(list))
-    insertData(currentList)
-  }
-  const formateData = (list) => {
-    const result = list && list.map((item) => {
-      return {
-        ...item,
-        hasDelete: false,
-        isSuccess: true,
-        showProfile: false,
-        position: (item.sender).toLowerCase() === (myAddress)?.toLowerCase(),
-        showOperate: false,
-      }
-    })
-    return result
+    // insertData(currentList)
   }
   const shareInfo = (e, v) => {
     e.stopPropagation()
@@ -656,14 +699,13 @@ export default function Chat() {
         showProfile: false,
         isDecrypted: false,
         room: toAddress.toLowerCase(),
-        avatar: type === 1 ? myAvatar : (roomAvatar || avatar)
+        avatar: type === 1 ? (myAvatar || myAvatarRef.current) : (avatar || roomAvatar)
       }
     })
     return data
   }
 
   const fetchPrivateChatList = async(toAddress, avatar) => {
-    setRoomAvatar(avatar)
     const myAddress = getLocal('account')?.toLowerCase()
     const tokensSenderQuery = `
     query{
@@ -673,6 +715,7 @@ export default function Chat() {
         block,
         chatText,
         to,
+        _type,
         chatTextSender
       }
     }
@@ -685,6 +728,7 @@ export default function Chat() {
         block,
         to,
         chatText,
+        _type,
         chatTextSender
       }
     }
@@ -692,20 +736,16 @@ export default function Chat() {
     try{
       const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, toAddress, avatar)
       setChatList(currentList)
-      insertData(currentList)
+      // insertData(currentList)
       setShowMask(false)
-      console.log(currentList, 'currentList=====')
     } catch(error) {
       console.log(error, '====')
       setShowMask(false)
     }
   }
   const formateCurrentPrivateList = async(tokensSenderQuery, tokensReceivedrQuery, toAddress, avatar) => {
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const resSender = await client.query(tokensSenderQuery).toPromise()
-    const resReceived = await client.query(tokensReceivedrQuery).toPromise()
+    const resSender = await clientInfo.query(tokensSenderQuery).toPromise()
+    const resReceived = await clientInfo.query(tokensReceivedrQuery).toPromise()
     const senderInfo = formatePrivateData(resSender, toAddress, avatar, 1)
     const receivedInfo =  formatePrivateData(resReceived, toAddress, avatar, 2)
     const privateChatList = [...senderInfo, ...receivedInfo]
@@ -714,22 +754,19 @@ export default function Chat() {
   }
   const getInitChatList = async(toAddress, avatar) => {
     const db = await setDataBase()
-    const collection = db.collection('chatInfos')
-    const res = await collection?.find({room: toAddress}).project({}).sort({ block: -1 }).toArray()
-    if(!res || res?.length === 0) {
-      // debugger
-      if(currentTabIndex == 0) {
-        fetchPublicChatList(toAddress)
-      } 
+    const collection = db?.collection('chatInfos')
+    const res = await collection?.find({ room: toAddress })?.project({})?.sort({ block: -1 })?.toArray()
+    if (!res || res?.length === 0) {
+      if (currentTabIndex == 0) {
+        await fetchPublicChatList(toAddress)
+      }
       if(currentTabIndex == 1) {
-        fetchPrivateChatList(toAddress, avatar)
+        await fetchPrivateChatList(toAddress, avatar)
       }
     } else {
-      // debugger
       if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-        console.log(res, chatList, 'getInitChatList=====>>>')
-        // debugger
-        setChatList(res)
+        const list = uniqueChatList(res, 'block')
+        setChatList(list)
       }
       setShowMask(false)
     }
@@ -753,128 +790,141 @@ export default function Chat() {
     )
     return encryptedMessage
   }
+  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {
+    const type_ = currentBonusType === 'Random Amount' ? 2 : 1
+    const address = giveAwayAddress
+    const total = ethers.utils.parseUnits(String(totalAmount), tokenDecimals)
+    if(!wishesText) {
+      wishesText = 'Best Wishes'
+    }
+    const tx = selectTokenAddress == 0
+                ? await getDaiWithSigner(address, RED_PACKET).sendETH(currentAddress, total, quantity, type_, wishesText, {value:total})
+                : await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText)
+    setShowMask(true)
+    setShowAwardBonus(false)
+    const db = await setDataBase()
+    const collection = db?.collection('chatInfos')
+    await handleGiveAway(tx, wishesText)
+    let callback = await tx.wait()
+    setShowAwardBonus(false)
+    const id = callback?.events[3]?.args?.id
+    const index = chatList?.findIndex((item) => item.id.toLowerCase() == callback?.transactionHash?.toLowerCase())
+    if(chatList?.length > 0) {
+      chatList[index].isSuccess = true
+      chatList[index].block = callback?.blockNumber
+      chatList[index].chatText = String((new BigNumber(Number(id))).toNumber())
+      chatList[index].wishesText = wishesText
+      setClickNumber(clickNumber+1)
+      collection.insert(chatList[index])
+      setClickNumber(clickNumber+1)
+    } else {
+      setChatList([])
+      chatList[0].isSuccess = true
+      chatList[0].block = callback?.blockNumber
+      chatList[0].chatText = String((new BigNumber(Number(id))).toNumber())
+      chatList[0].wishesText = wishesText
+      setChatList(chatList)
+      collection.insert(chatList)
+      setClickNumber(clickNumber+1)
+    }
+    setShowMask(false)
+  }
+  const handleGiveAway = async(tx, wishesText) => {
+    const myAvatar = await getMyAvatar()
+    if(currentTabIndex === 0 ) {
+      var newChat = {
+        id: tx.hash,
+        block: 0,
+        chatText: '',
+        transaction: tx.hash,
+        sender: myAddress,
+        position: true,
+        room: currentAddress,
+        hasDelete: false,
+        isSuccess: false,
+        showProfile: false,
+        showOperate: false,
+        avatar: myAvatar,
+        _type: 'Giveaway',
+        isOpen: false,
+        wishesText: wishesText,
+        user: {
+          id: myAddress
+        }
+      }
+      if(chatList?.length > 0) {
+        chatList.unshift(newChat)
+      } else {
+        chatList.push(newChat)
+      }
+    }
+  }
   const startChat = async (chatText) => {
+    const myAvatar = await getMyAvatar()
     setSendSuccess(false)
     try {
       if(currentTabIndex === 1) {
-        debugger
-        const networkInfo = await getChainInfo()
         const myPublicKey = await localForage.getItem('publicKeyList').then(res => {
           return res[myAddress]
         })
         const encryptedMessage = getencryptedMessage(chatText, privateKey)
         const encryptedSenderMessage = getencryptedMessage(chatText, myPublicKey)
-        console.log(encryptedSenderMessage, encryptedMessage, 'encryptedMessage====')
-        console.log(privateKey, myPublicKey)
-        var tx = await getDaiWithSigner(networkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
+        var tx = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       }
       if(currentTabIndex === 0 ) {
-        const groupInfo = await getGroupMember(currentAddress)
+        const groupInfo = await getGroupMember(currentAddress, skip)
         const groupType = groupInfo?._type
         setGroupType(groupType)
         const abi = groupType == 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
-        debugger
         var tx = await getDaiWithSigner(currentAddress, abi).send(chatText, 'msg')
       }
       setClearChatInput(true)
-      console.log(tx, 'tx===123')
       var newChat = {
         id: tx.hash,
         block: 0,
         transaction: tx.hash,
         chatText: chatText,
-        sender: myAddress,
         position: true,
         hasDelete: false,
         isSuccess: false,
         showProfile: false,
         showOperate: false,
-        avatar: myAvatar
+        avatar: myAvatar,
+        _type: 'msg',
+        user: {
+          id: myAddress
+        }
       }
-
-      chatList.unshift(newChat)
-      getMemberList(currentAddress, chatList)
-      // setChatList(chatList)
-      console.log(chatList, 'chatList====123')
+      if(chatList?.length > 0) {
+        chatList.unshift(newChat)
+      } else {
+        chatList.push(newChat)
+      }
       let callback = await tx.wait()
-
-      console.log('callback', callback)
       if (callback?.status === 1) {
         const index = chatList?.findIndex((item) => item.id.toLowerCase() == tx.hash.toLowerCase())
         const sendIndex = memberListInfo?.findIndex((item) => item.id.toLowerCase() == tx.from.toLowerCase())
-        console.log(chatList[index], '==callback==')
         chatList[index].isSuccess = true
         chatList[index].block = callback?.blockNumber
-        chatList[index].avatar = currentTabIndex === 0 ? memberListInfo[sendIndex]?.profile?.avatar : myAvatar
         chatList[index].isDecrypted = true
-        setChatListState(chatList)
-        console.log(chatList, '====change')
+        setClickNumber(clickNumber+1)
         const db = await setDataBase()
-        const collection = db.collection('chatInfos')
+        const collection = db?.collection('chatInfos')
         newChat.isSuccess = true
         newChat.block = String(callback?.blockNumber)
-        newChat.avatar = currentTabIndex === 0 ? memberListInfo[sendIndex]?.profile?.avatar : myAvatar
         newChat.room = currentAddress
         newChat.isDecrypted = true
         collection.insert(newChat)
-        console.log(newChat, 'newChat====>>.')
       }
     } catch (error) {
       console.log(error, 'error==')
     }
-
-  }
-  
-  const setChatListState = (chatList, address) => {
-    if (address === currentAddress || !address) {
-      if (!chatList || chatList === {}) {
-        setChatList([])
-      } else {
-        let list = new Map(Object.entries(chatList))
-        let that = this
-        list.forEach(function (v, k) {
-          chatListStatus.set(k, v)
-        })
-        const chatLists = hasScroll ? chatList : [...chatListStatus.values()]
-        debugger
-        setChatList(chatLists)
-      }
-    }
-    console.log(chatList, 'chatLists=====')
-    setShowMask(false)
   }
   const handleScroll = () => {
-    // debugger
     setHasScroll(true)
   }
-  const resetData = () => {
-    setCurrentAddress()
-    setState({
-      currentAddress: ''
-    })
-    setRoomAvatar()
-    setCurrentTabIndex(0)
-    setCurrentRoomName()
-    getBalance()
-    getCurrentNetwork()
-    initRoomAddress()
-    getMyAccount()
-    history.push(`/chat`)
-  }
-  const accountsChange = () => {
-    if (window.ethereum) {
-      window.ethereum.on('accountsChanged', (chainId) => {
-        if (history.location.pathname.includes('/chat')) {
-          resetData()
-        }
-      })
-      window.ethereum.on('chainChanged', (chainId) => {
-        resetData()
-      })
-    }
-  }
   const startInterval = (currentAddress) => {
-    let index = groupLists && groupLists.findIndex((item) => item.id.toLowerCase() == currentAddress.toLowerCase())
+    let index = groupLists && groupLists.findIndex((item) => item.id.toLowerCase() == currentAddress?.toLowerCase())
     const groupList = [...groupLists]
     let newRoomList = groupList.splice(index, 1)
     groupList.unshift(newRoomList[0])
@@ -885,10 +935,20 @@ export default function Chat() {
       }
     }, 20000)
   }
+  const handleReadMessage = async(roomAddress) => {
+    let res = await localForage.getItem('chatListInfo')
+    const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
+    const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
+    if(index > -1) {
+      publicRooms[index]['newChatCount'] = 0
+      res[currNetwork][getLocal('account')]['publicRooms'] = [...publicRooms]
+      localForage.setItem('chatListInfo', res)
+      setRoomList(publicRooms)
+    }
+  }
   const getUserAvatar = async(newList) => {
     let list = []
-    const ids = newList?.map(item => item.sender)
-    console.log(ids, '=====>>>>ids')
+    const ids = newList?.map(item => item?.user?.id)
     if(!ids?.length) return
     const idsList = '"' + ids.join('","')+ '"'
     const tokensQuery = `
@@ -900,14 +960,10 @@ export default function Chat() {
         tokenId
       }
     }`
-    const client = createClient({
-      url: getLocal('currentGraphqlApi')
-    })
-    const res = await client.query(tokensQuery).toPromise()
-    console.log(res, 'memberListInfo=====')
+    const res = await clientInfo?.query(tokensQuery).toPromise()
     newList?.map(item => {
       res?.data?.profiles?.map(info => {
-         if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
+         if(item?.user?.id?.toLowerCase() == info?.id?.toLowerCase()) {
            list.push({
              ...item,
              avatar: info?.avatar
@@ -917,116 +973,92 @@ export default function Chat() {
      })
     return list
   }
-  const addAvatarToList = async(newList) => {
-    let list = []
-    console.log(memberListInfo, newList, '=====>>>.addAvatarToList')
-    newList?.map(item => {
-     memberListInfo?.map(info => {
-        if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
-          list.push({
-            ...item,
-            avatar: info.profile.avatar
-          })
-        }
-      })
-    })
-    return list
-  }
-  const updateUnreadNum = (roomAddress, res) => {
-    console.log(res, '====>>>1')
+  const updateUnreadNum = async(roomAddress, res) => {
     const currentList = res
-    localForage.getItem('chatListInfo').then(res => {
-      console.log(res, 'res===>>updateUnreadNum')
-      const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
-      const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
-      if(index > -1) {
-        publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount || 0
-        const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
-        res[currNetwork][getLocal('account')][roomType] = [...publicRooms]
-        setRoomList(publicRooms)
-        localForage.setItem('chatListInfo', res)
-        console.log(publicRooms, res, 'publicRooms====')
-      }
-    })
+    let list = await localForage.getItem('chatListInfo')
+    const publicRooms = list && list[currNetwork]?.[getLocal('account')]?.['publicRooms']
+    const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
+    if(index > -1) {
+      publicRooms[index]['newChatCount'] = +currentList[0]?.index - publicRooms[index]?.chatCount || 0
+      const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
+      list[currNetwork][getLocal('account')][roomType] = [...publicRooms]
+      localForage.setItem('chatListInfo', list)
+      setRoomList(publicRooms)
+    }
   }
-  const getCurrentGroupChatList = async(client, roomAddress) => {
+  const getCurrentGroupChatList = async(roomAddress) => {
     const db = await setDataBase()
-    const collection = db.collection('chatInfos')
-    const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
+    const collection = db?.collection('chatInfos')
+    const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
     updateUnreadNum(roomAddress, res)
-    console.log(res, '=====>>>res')
     const lastBlock = res?.length && +res[0]?.block + 1
-    console.log(roomAddress, lastBlock, res[0]?.index, 'getCurrentGroupChatList')
     // if(!lastBlock || chatListRef.current[0]?.block == 0) return
-    console.log(lastBlock, 'lastBlock=====1')
     const tokensQuery = `
         query{
           chatInfos(orderBy:block,orderDirection:desc, where:{room: "`+ roomAddress?.toLowerCase() +`", block_gte: ` + lastBlock + `}){
             id,
             transaction,
-            sender,
             block,
             chatText,
             room,
-            index
+            index,
+            _type,
+            user{
+              id,
+              name,
+              profile{
+                avatar,
+                name
+              }
+            }
           }
         }
       `
-      const data = await client.query(tokensQuery).toPromise()
-      const newList = data?.data?.chatInfos && formateData(data?.data?.chatInfos)
-      const formatList = await getUserAvatar(newList)
-      console.log(newList, formatList, 'formatList---')
-      const list = [...chatListRef.current]
-      collection.insert(formatList,(error) => {
-        updateNewList(roomAddress, collection)
-        if (error) { throw error; }
-      })
-      if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
-        debugger
-        setChatList(formatList.concat(list))
+    // const data = await client.query(tokensQuery).toPromise()
+    if(!getLocal('currentGraphqlApi')) return
+    const client = createClient({
+      url: getLocal('currentGraphqlApi')
+    })
+    const data = await client?.query(tokensQuery).toPromise()
+    if (!data?.data?.chatInfos.length) return
+    const newList = data?.data?.chatInfos && await getMemberList(data?.data?.chatInfos)
+    const list = chatListRef ? chatListRef.current : []
+    collection.insert(newList, (error) => {
+      updateNewList(roomAddress, collection)
+      if (error) { throw error; }
+    })
+    if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
+      const index = list?.findIndex(item => item.id == newList[0]?.id)
+      if(index === -1) {
+        setChatList(newList.concat(list))
       }
-      console.log(roomAddress, newList, groupLists, 'newList====')
-      console.log(chatList, 'getCurrentChatList====')
+    }
   }
   const updateNewList = async(roomAddress, collection) => {
     const res = await collection?.find({room: roomAddress}).project({}).sort({ block: -1 }).toArray()
-    const index = groupLists.findIndex(item => item.id.toLowerCase() == roomAddress)
-    console.log(res,+res[0]?.index - Number(groupLists[index]?.chatCount), roomAddress, groupLists,'1====>>.')
+    const index = groupListRef.current?.findIndex(item => item.id.toLowerCase() == roomAddress)
     if(index > -1) {
-      groupLists[index] = {
-        ...groupLists[index],
-        newChatCount: +res[0]?.index - Number(groupLists[index]?.chatCount) - 1
+      groupListRef.current[index] = {
+        ...groupListRef.current[index],
+        newChatCount: +res[0]?.index - Number(groupListRef.current[index]?.chatCount)
       }
       setHasChatCount(true)
     }
-    
-    console.log(groupLists, index, roomAddress, 'index====>>>')
-    setRoomList(groupLists)
+
+    setRoomList([...groupLists])
   }
   const getCurrentChatList = async (roomAddress) => {
-    // debugger
-    const networkInfo = await getChainInfo()
-    console.log(chatList,chatListRef.current, roomAddress, currentTabIndex,'chatList===1>>>>')
-    // const lastBlock = chatListRef.current.length && +chatListRef.current[0]?.block + 1
-    // if(!lastBlock || chatListRef.current[0]?.block == 0) return
-    // console.log(lastBlock, 'lastBlock=====1')
-    // let db = new zango.Db('mydb', 1,{chatInfos:['id']});
-    // let collection = db.collection('chatInfos');
-    
-    const client = createClient({
-      url: networkInfo?.APIURL
-    })
+    if(!chainId) return
     if(currentTabIndex === 0) {
-      getCurrentGroupChatList(client, roomAddress)
+      await getCurrentGroupChatList(roomAddress)
     }
     if(currentTabIndex === 1) {
-      getCurrentPrivateChatList(roomAddress)
+      await getCurrentPrivateChatList(roomAddress)
     }
   }
   const getCurrentPrivateChatList = async(roomAddress) => {
-    const lastBlock = chatListRef.current.length && +chatListRef.current[0]?.block + 1
+    const lastBlock = chatListRef.current?.length && +chatListRef.current[0]?.block + 1
     if(!lastBlock || chatListRef.current[0]?.block == 0) return
-    console.log(lastBlock, roomAddress, 'lastBlock=====1')
     const tokensSenderQuery = `
     query{
       encryptedInfos(orderBy:block,orderDirection:desc, where:{sender: "`+ myAddress +`", to: "`+ roomAddress?.toLowerCase() + `",block_gte: ` + lastBlock + `}){
@@ -1056,94 +1088,359 @@ export default function Chat() {
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && currentList.length) {
       setChatList(currentList.concat(list))
     }
-    insertData(currentList)
-    console.log(currentList, 'formateCurrentPrivateList====')
+    // insertData(currentList)
   }
-  const getMemberList = async(roomAddress, chatList) => {
-    if(currentTabIndex === 1) return
-    const data = await getGroupMember(currentAddressRef?.current)
-    const memberListInfo = data?.users
-    setMemberListInfo(memberListInfo)
-    const list = [...chatList]
-    let result = []
-    chatList.map(item => {
-     memberListInfo?.map(info => {
-        if(item?.sender?.toLowerCase() == info?.id?.toLowerCase()) {
-          result.push({
-            ...item,
-            avatar: info.profile.avatar
-          })
-        }
-      })
-    })
-    if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
-      debugger
-      insertData(result)
-      setChatList(result)
+  const getProfileStatus = async(account) => {
+    const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
+    const hasCreate = res && (new BigNumber(Number(res))).toNumber()
+    return hasCreate
+  }
+  const handleReceive = async(v) => {
+    const hasCreateProfile = await getProfileStatus(accounts)
+    if(!Boolean(hasCreateProfile)) {
+      setCanReceiveTips(true)
+      return
     }
+    if(!hasAccess) {
+      setShowJoinModal(true)
+      return
+    }
+    const chatText = v?.chatText?.indexOf('---') ? v?.chatText.split('---')[0] : v?.chatText
+    setCurrentRedEnvelopId(chatText)
+    const lastCount = await getReceiveInfo(chatText)
+    if(+lastCount === 0) {
+      setShowReceiveInfo(true)
+    }
+    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).giveawayInfo_exist(chatText, getLocal('account'))
+    const isReceived = (new BigNumber(Number(tx))).toNumber()
+    v.isOpen = true
+    const db = await setDataBase()
+    const collection = db?.collection('chatInfos')
+    collection?.findOne({ id: v.id }).then((doc) => {
+      if (doc) {
+        collection.update({ id: v.id }, { $set: v })
+      }
+    }).catch(error => {
+      console.log(error)
+    })
+    setClickNumber(clickNumber+1)
+    if(isReceived === 1) {
+      setShowReceiveInfo(true)
+    }
+    if(!hasAccess || isReceived === 1 || +lastCount === 0) return
+    setCurrentRedEnvelopTransaction(v?.transaction)
+    setShowRedEnvelope(true)
+  }
+  const getGiveawaysInfo = async(currentRedEnvelopId) => {
+    const tokensQuery = `
+    {
+      giveaways(where: {id: "`+  currentRedEnvelopId + `"}){
+        sender,
+        lastCount,
+        count,
+        profile {
+          name,
+          avatar
+        }
+      }
+    }
+    `
+    const res = await clientInfo?.query(tokensQuery).toPromise()
+    return res?.data?.giveaways[0]
+  }
+  const getMemberList = async(chatList) => {
+    if(currentTabIndex === 1 || !chatList.length) return
+    let result = [...chatList]
+    let collectedRedEnvelope = []
+    await Promise.all(
+      result.map(async(item) => {
+        if(item?._type ==='Giveaway') {
+          const id = item?.chatText?.indexOf('---') ? item?.chatText.split('---')[0] : item?.chatText
+          var res = await getGiveawaysInfo(id)
+          if(+res?.lastCount > 0) {
+            collectedRedEnvelope.push({
+              id: id,
+              lastCount: res.lastCount,
+              count: res.count
+            })
+            setCollectedRedEnvelope(collectedRedEnvelope)
+          }
+        }
+        let params = {
+            avatar: item?._type ==='Giveaway' ? res?.profile?.avatar : item?.user?.profile?.avatar,
+            hasDelete: false,
+            isSuccess: true,
+            showProfile: false,
+            position: getLocal('isConnect') ? (item?._type ==='Giveaway' ? (res?.sender)?.toLowerCase() === (getLocal('account'))?.toLowerCase() : (item?.user?.id).toLowerCase() === (getLocal('account'))?.toLowerCase()) : false,
+            showOperate: false,
+            isOpen: false,
+            wishesText: item?.chatText?.split('---')[1]
+          }
+          Object.assign(item, params)
+          return item
+      })
+    )
     setShowMask(false)
-    console.log(hasScrollRef.current, 'hasScrollRef.current====')
-    // startInterval(roomAddress, list)
-    console.log(data, chatList, result,'initChatList====')
-    console.log(result, 'result===')
+    return result
   }
   const handleHiddenMask = () => {
     setShowMask(false)
   }
+  const hiddenChat = () => {
+    if(!showGroupList) {
+      history.goBack()
+    } else {
+      setShowChat(false)
+      setState({
+        showHeader: true
+      })
+    }
+  }
   const getDecryptedMessage = async(id, message) => {
-    debugger
     const db = await setDataBase()
-    const collection = db.collection('chatInfos')
+    const collection = db?.collection('chatInfos')
     setHasDecrypted(false)
     window.ethereum
-    .request({
-      method: 'eth_decrypt',
-      params: [message, getLocal('account')]
-    })
-    .then((decryptedMessage) => {
-      collection.update({
-        id: id
-      }, {
-        isDecrypted: true,
-        chatText: decryptedMessage
-      }, (error) => {
-        if (error) { throw error; }
+      .request({
+        method: 'eth_decrypt',
+        params: [message, getLocal('account')]
       })
-      const index = chatList.findIndex(item => item.id == id)
-      chatList[index].isDecrypted = true
-      chatList[index].chatText = decryptedMessage
-      setHasDecrypted(true)
-      insertData()
-      setChatList(chatList)
-      console.log('The decrypted message i====:', chatList, decryptedMessage)
+      .then((decryptedMessage) => {
+        collection.update({
+          id: id
+        }, {
+          isDecrypted: true,
+          chatText: decryptedMessage
+        }, (error) => {
+          if (error) { throw error; }
+        })
+        const index = chatList.findIndex(item => item.id == id)
+        chatList[index].isDecrypted = true
+        chatList[index].chatText = decryptedMessage
+        setHasDecrypted(true)
+        // insertData()
+        setChatList(chatList)
       }
-    )
-    .catch((error) => console.log(error.message));
+      )
+      .catch((error) => console.log(error.message));
   }
   const changeJoinStatus = (groupType) => {
-    debugger
-    if(groupType == 1 || groupType == 2) {
-      setHasAccess(true)
-    } else {
+    if (groupType == 3) {
       getManager(currentAddress, groupType)
+    } else {
+      setHasAccess(true)
     }
   }
   const handleDecryptedMessage = (id, text) => {
     getDecryptedMessage(id, text)
   }
+  const handlePrivateChat = (item, res) => {
+    setCurrentTabIndex(1)
+    setShowGroupMember(false)
+    if(Boolean(res)) {
+      history.push({
+        pathname: `/chat/${item.id}`,
+        state: {
+          name: item?.name ? item?.name : item?.profile?.name,
+          address: item.id,
+          avatar: item?.profile?.avatar ? item?.profile?.avatar : item.id
+        }
+      })
+    }
+  }
   useEffect(() => {
-    getBalance()
-    getCurrentNetwork()
-    initRoomAddress()
+    const path = history.location.pathname.split('/chat/')[1]
+    const currentRedEnvelopId = history.location.search.split("?id=")[1]
+    setCurrentRedEnvelopId(currentRedEnvelopId)
+    const address = path?.split('/')[0]
+    const network = path?.split('/')[1] || getLocal('network') || currentChain
+    const hash = history.location.hash
+    hash ? setCurrentTabIndex(1) : setCurrentTabIndex(0)
+    if(!getLocal('isConnect')) {
+      fetchPublicChatList(address)
+    }
+    if(network) {
+      initRoomAddress(hash)
+    }
+    if(address && !getLocal('isConnect') && !network) {
+      alert('Please connect wallet first')
+    }
+  }, [currentChain])
+  const handleAwardBonus = async() => {
+    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddress)
+    if(!Boolean(res?.state)) {
+      setShowOpenAward(true)
+    } else {
+      setShowAwardBonus(true)
+    }
+  }
+  const handleSelectNft = (id) => {
+    setShowNftList(false)
+    setSelectNftId(id)
+  }
+  const handleSearch = (event) => {
+    const value = event.target.value
+    var newList = groupList.filter(item => item.name.includes(value) || item.id.toUpperCase().includes(value.toUpperCase()))
+    setRoomList(newList)
+  }
+  const handleReceiveConfirm = async(e, id) => {
+    setState({
+      showOpen: false
+    })
+    const lastCount = await getReceiveInfo(currentRedEnvelopId)
+    if(+lastCount === 0) {
+      setShowRedEnvelope(false)
+      setShowReceiveInfo(true)
+      return
+    }
+    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).receive(currentRedEnvelopId)
+    setState({
+      showOpen: true
+    })
+    const callback = await tx.wait()
+    setShowRedEnvelope(false)
+    setShowReceiveInfo(true)
+    const amount = callback?.events[1]?.args?.id
+    const receiveAmount = (new BigNumber(Number(amount))).toNumber()
+    const index = chatList?.findIndex(item => item.transaction == currentRedEnvelopTransaction)
+    chatList[index].isOpen = true
+    setState({
+      showOpen: false
+    })
+  }
+  const handleOpenAward = async() => {
+    setShowOpenAward(false)
+    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).register(currentAddress)
+    setShowMask(true)
+    await tx.wait()
+    setShowMask(false)
+    setShowAwardBonus(true)
+  }
+  const handleCloseAward = () => {
+    setShowChat(true)
+    setShowAwardBonus(false)
+  }
+  const handleSignIn = async(nftAddress) => {
+    const tokensQuery = `
+    {
+      registerInfos(
+        where: {manager: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress.toLowerCase()+`"}
+      ) {
+        id
+        lastDate
+        manager
+        score
+        count
+        tokenId
+        register
+      }
+    }
+    `
+    const item = networks.filter(i=> i.symbol === getLocal('network'))[0]
+    const client = createClient({
+      url: item?.signInGraphUrl
+    })
+    const res = await client?.query(tokensQuery).toPromise()
+    const registerNftInfos = res?.data?.registerInfos
+    console.log(registerNftInfos, '=registerNftInfos===')
+    setShowNftList(Boolean(registerNftInfos.length))
+    setNftImageList(res.data.registerInfos)
+    if(!res.data.registerInfos.length) {
+      setState({
+        canMint: true,
+        showTokenContent: true
+      })
+    } else {
+      setState({
+        canMint: false,
+        showTokenContent: false
+      })
+    }
+    setShowSignIn(true) 
+  }
+  const handleOpenSign = async() => {
+    try {
+      const params = ethers.utils.defaultAbiCoder.encode(["address", "address", "string", "string"], [nftAddress, currentAddress, "Register","register"]);
+      const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).mint(currentAddress, 1, params)
+      setShowMask(true)
+      const receipt = await tx.wait()
+      console.log("Transaction hash:", receipt.transactionHash)
+      console.log("Gas used:", receipt.gasUsed.toString())
+      console.log("Block number:", receipt.blockNumber)
+      console.log("Block hash:", receipt.blockHash)
+      setShowOpenSignIn(false)
+      setState({
+        hasOpenedSignIn: true
+      })
+      setShowMask(false)
+    } catch (error) {
+      console.error(error, 'handleOpenSign')
+    }
+  }
+  const handleEndStake = async() => {
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receive()
+    console.log(tx, '===handleEndStake=')
+    setShowSignIn(false)
+    setShowMask(true)
+    await tx.wait()
+    setShowMask(false)
+  }
+  const handleCheckIn = async(tokenId, quantity) => {
+    setState({
+      canMint: false
+    })
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity))
+    setShowSignIn(false)
+    setShowMask(true)
+    await tx.wait()
+    setShowMask(false)
+  }
+  const handleCloseSignIn = () => {
+    setShowSignIn(false)
+    setState({
+      canMint: false
+    })
+  }
+  const handleMint = async(quantity) => {
+    if(!quantity) {
+      setState({
+        continueMint: true
+      })
+      setShowNftList(false)
+      return
+    }
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity))
+    setShowSignIn(false)
+    setShowMask(true)
+    await tx.wait()
+    setState({
+      showTokenContent: false
+    })
+    setShowMask(false)
+  }
+  useEffect(() => {
+    const redEnvelopId = history.location.search.split('?')[1]
+    if(hasCreateRoom && redEnvelopId) {
+      setShowRedEnvelope(true)
+    }
+  }, [hasCreateRoom])
+  useEffect(() => {
+    if(accounts) {
+      setMyAddress(accounts)
+    }
+    setRoomList([])
     setMyAddress(getLocal('account'))
-    accountsChange()
-    // window.addEventListener('scroll', throttle(handleScroll, 500), true)
     return () => {
       clearInterval(timer.current)
       clearInterval(allTimer.current)
       window.removeEventListener('scroll', throttle(handleScroll, 500), true)
     }
-  }, [getLocal('account')])
+  }, [accounts])
+  useEffect(() => {
+    if(currentChatInfo?.id) {
+      showChatList(currentChatInfo)
+    }
+  }, [currentChatInfo])
   useEffect(() => {
     if(showPlaceWrapper) {
       setTimeout(() => {
@@ -1153,186 +1450,262 @@ export default function Chat() {
       }, 10)
     }
   }, [showPlaceWrapper])
-
+  useEffect(() => {
+    const path = history?.location?.pathname?.split('/chat/')[1]?.split('/')[0]
+    isRoom(path)
+  }, [chainId])
+  useEffect(() => {
+    if(!getLocal('isConnect')) {
+      getclientInfo()
+    }
+  }, [getLocal('isConnect')])
   return(
-    <div className="chat-ui-wrapper">
+    <div className={`chat-ui-wrapper ${!showGroupList ? 'chat-ui-wrapper-share' : ''}`}>
+      {
+        <Modal title="Join the group" visible={showJoinModal} onClose={() => { setShowJoinModal(false) }}>
+          <div>Please Join the group first</div>
+        </Modal>
+      }
+      {
+        <Modal title="Tips" visible={showCanReceiveTips} onClose={() => { setCanReceiveTips(false) }}>
+          <div>You should create profile first</div>
+          <div className='btn-operate-award' style={{marginTop: '16px'}}>
+            <div className='btn btn-primary' onClick={() => {history.push(`/profile/${accounts}`)}}>Confirm</div>
+            <div className='btn btn-light' onClick={() => { setShowReceiveTips(false) }}>Cancel</div>
+          </div>
+        </Modal>
+      }
+      {
+        <Modal title="Tips" visible={showReceiveTips} onClose={() => { setShowReceiveTips(false) }}>
+          <div>You've already received it</div>
+        </Modal>
+      }
+      {
+        <Modal title="List of red envelopes to be claimed" visible={showEnvelopesList} onClose={() => { setShowEnvelopesList(false) }}>
+          <div>You've already received it</div>
+          {
+            collectedRedEnvelope.map((item,index) => {
+              return(
+                <div key={index}>
+                  <span>{index+1}</span>
+                  <span>{item.lastCount}/{item.count}</span>
+                </div>
+              )
+            })
+          }
+        </Modal>
+      }
+      {
+        showRedEnvelope &&
+        <RedEnvelopeCover handleCloseRedEnvelope={() => {setShowRedEnvelope(false)}} handleReceiveConfirm={(e, id) => {handleReceiveConfirm(e, id)}}></RedEnvelopeCover>
+      }
+      {
+        showReceiveInfo &&
+        <ReceiveInfo currentRedEnvelopId={currentRedEnvelopId}  handleCloseReceiveInfo={() => {setShowReceiveInfo(false)}} ></ReceiveInfo>
+      }
+      {
+        showOpenAward &&
+        <Modal title="Open red envelope" visible={showOpenAward} onClose={() => { setShowOpenAward(false) }}>
+          <div className='btn-operate-award'>
+            <div className='btn btn-primary' onClick={handleOpenAward}>Open</div>
+            <div className='btn btn-light' onClick={() => { setShowOpenAward(false) }}>Cancel</div>
+          </div>
+        </Modal>
+      }
+      {
+        showAwardBonus && detectMobile() &&
+        showAwardBonus &&
+        <AwardBonus
+          handleCloseAward={() => { setShowAwardBonus(false) }}
+          currentAddress={currentAddress}
+          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)}}
+          handleGiveAway={(tx) => {handleGiveAway(tx)}}
+        ></AwardBonus>
+      }
+      {
+        <Modal title="Sign in" visible={showSignIn} onClose={handleCloseSignIn}>
+          <div className="sign-in-wrapper">
+            <SignIn showNftList={showNftList} handleMint={(num) => {handleMint(num)}} handleSelectNft={(id) => {handleSelectNft(id)}}   nftImageList={nftImageList} handleCheckIn={(id, num) => {handleCheckIn(id, num)}} handleEndStake={(num) => {handleEndStake(num)}}/>
+          </div>
+        </Modal>
+      }
+      {
+        !detectMobile() &&
+        <Modal title="Award Bonus" visible={showAwardBonus} onClose={handleCloseAward}>
+          <AwardBonus
+            handleCloseAward={() => { setShowAwardBonus(false) }}
+            currentAddress={currentAddress}
+            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)}}
+            handleGiveAway={(tx) => {handleGiveAway(tx)}}
+          ></AwardBonus>
+        </Modal>
+      }
+
       {
         hasClickPlace && <Loading />
       }
-      {
+      {/* {
         showPlaceWrapper &&
         <div className='place-wrapper'>
-          <span className='iconfont icon-guanbi' onClick={() => {setShowPlaceWrapper(false)}}></span>
+          <span className='iconfont icon-guanbi' onClick={() => { setShowPlaceWrapper(false) }}></span>
           <iframe src="https://place.linke.network/" frameBorder="0" width="100%" height="100%" scrolling="no">
           </iframe>
         </div>
-      }
-
-
-        {
-          showGroupMember &&
-          <div className='group-member-wrap'>
-            <div className='mask' onClick={() => { setShowGroupMember(false)}}></div>
-            <GroupMember currentAddress={currentAddress} closeGroupMember={() =>  setShowGroupMember(false)} groupType={groupType} handleShowMask={() => setShowMask(true)} handleHiddenMask={() => setShowMask(false)}/>
-          </div>
-        }
-        {
-          showWalletList &&
-          <Modal title="Connect Wallet" visible={showWalletList} onClose={() => { setShowWalletList(false) }}>
-            <ChangeNetwork handleChangeNetWork={(network) => handleChangeNetWork(network)} closeNetworkContainer={() => { setShowWalletList(false) }}/>
-          </Modal>
-        }
-        {
-          showTradeInfo &&
-          <Modal title="Trade Coin" visible={showTradeInfo} onClose={() => { setShowTradeInfo(false) }}>
-            <Trade />
-          </Modal>
-        }
-        {
-
-          showJoinRoom &&
-          <Modal title="Start New Chat" visible={showJoinRoom} onClose={() => {setShowJoinRoom(false)}}>
-            <JoinRooom getCurrentRoomInfo={(address) => getCurrentRoomInfo(address)}/>
-          </Modal>
-        }
-        {
-          showCreateNewRoom &&
-          <Modal title="Create New Room" visible={showCreateNewRoom} onClose={() => {setShowCreateNewRoom(false)}}>
-            <CreateNewRoom createNewRoom={(address, name, currentGroupType) => createNewRoom(address, name, currentGroupType)}  hiddenCreateInfo={() => {setShowCreateNewRoom(false)}}/>
-          </Modal>
-        }
-        {
-          !myAddress && detectMobile() &&
-          <ConnectWallet connectWallet={() => connectWallet()} />
-        }
-
-
-        <Nav showMenulist={showMenulist} hiddenMenuList={() => { setShowMenulist(false) }} />
-
-        {
-          showMask &&
-          <Loading></Loading>
-        }
-        {
-          showInfo &&
-          <ShareInfo
-            id='imageMask'
-            isPc={detectMobile()}
-            shareTextInfo={shareTextInfo}
+      } */}
+      {
+        showGroupMember &&
+        <div className='group-member-wrap'>
+          {
+            showShareGroup &&
+            <ShareGroupCode
+              currentAddress={currentAddress}
+              currentRoomName={currentRoomName}
+              roomAvatar={roomAvatar}
+              closeShareGroup={() => setShowShareGroup(false)}>
+            </ShareGroupCode>
+          }
+          <div className='mask' onClick={() => { setShowGroupMember(false) }}></div>
+          <GroupMember
+            shareGroup={() => setShowShareGroup(true)}
             currentAddress={currentAddress}
-            currentGroupType={currentGroupType}
-            closeShareInfo={() => handleClick()}>
-          </ShareInfo>
-        }
-        <div className='chat-content-wrap'>
-          <div className={`chat-ui ${detectMobile() ? 'chat-ui-client' : ''}`}>
-            {
-              (!showChat || !detectMobile()) &&
-              <div className='header-top-wrap'>
-                <HeaderInfo
-                  connectWallet={() => connectWallet()}
-                  handleMenu={() => handleMenu()}
-                  handleShowAccount={() => {setShowAccount(true)}}
-                  handleChangeNetWork={(network) => handleChangeNetWork(network)}
-                  handleDisconnect={() => handleDisconnect()}
-                  onCloseAccount={() => {setShowAccount(false)}}
-                  myAddress={myAddress}
-                  showHeaderInfo={getLocal('account')}
-                  currNetwork={currNetwork}
-                  showAccount={showAccount}
-                  chainId={currentChainId}
-                  balance={balance}
-                />
-              </div>
-            }
+            closeGroupMember={() => setShowGroupMember(false)}
+            groupType={groupType}
+            handleShowMask={() => setShowMask(true)}
+            handleHiddenMask={() => setShowMask(false)}
+            handlePrivateChat={(item, res) => { handlePrivateChat(item, res) }}
+            hasAccess={hasAccess}
+          />
+        </div>
+      }
+      {
 
-            <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''}`}>
-              <div className={`user-search-wrapper ${showChat ? 'hidden' : ''}`}>
+        showJoinRoom &&
+        <Modal title="Start New Chat" visible={showJoinRoom} onClose={() => { setShowJoinRoom(false) }}>
+          <JoinRooom getCurrentRoomInfo={(address) => getCurrentRoomInfo(address)} />
+        </Modal>
+      }
+      {
+        showCreateNewRoom &&
+        <Modal title="Create New Room" visible={showCreateNewRoom} onClose={() => { setShowCreateNewRoom(false) }}>
+          <CreateNewRoom createNewRoom={(address, name, currentGroupType) => createNewRoom(address, name, currentGroupType)} hiddenCreateInfo={() => { setShowCreateNewRoom(false) }} showGroupList={showGroupList}/>
+        </Modal>
+      }
+      {
+        showMask &&
+        <Loading></Loading>
+      }
+      {
+        showInfo &&
+        <ShareInfo
+          id='imageMask'
+          isPc={detectMobile()}
+          shareTextInfo={shareTextInfo}
+          currentAddress={currentAddress}
+          currentGroupType={currentGroupType}
+          currentNetwork={currNetwork}
+          closeShareInfo={() => handleClick()}>
+        </ShareInfo>
+      }
+      {
+        <div className={`chat-content-wrap ${hasAccess ? '' : 'chat-conetent-no-access'}`}>
+          <div className={`chat-ui ${detectMobile() ? 'chat-ui-client' : ''} ${!showGroupList ? 'chat-ui-share' : ''}`}>
+            <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''} ${!showGroupList ? 'chat-content-share' : ''}`}>
+              {
+                showGroupList &&
+                <div className={`user-search-wrapper ${showChat ? 'hidden' : ''}`}>
                 <div className='chat-ui-offcanvas' id='chatOffcanvas'>
-                  <div className="chat-ui-header">
-                    {
-                      myAddress &&
+                  {
+                    myAddress &&
+                    <div className="chat-ui-header">
                       <div className='chat-search-wrap'>
-                        <SearchChat />
+                        <SearchChat handleSearch={handleSearch}/>
                         <AddChatRoom
                           showSettingList={showSettingList}
-                          onClickSetting={() => {setShowSettingList(!showSettingList)}}
+                          onClickSetting={() => { setShowSettingList(!showSettingList) }}
                           onClickSelect={(e) => onClickSelect(e)}
                         />
                       </div>
-                    }
-                  </div>
+                    </div>
+                  }
                   <ChatTab changeChatType={(index) => changeChatType(index)} currentTabIndex={currentTabIndex}/>
 
                   <ListGroup
-                  hiddenMask={() => {handleHiddenMask()}}
-                  showMask={() => setShowMask(true)}
-                  showChatList={(e, item, list) => showChatList(e, item, list)}
-                  currentIndex={currentIndex}
-                  chainId={currentChainId}
-                  newGroupList ={roomList}
-                  currentRoomName={currentRoomName}
-                  hasAccess={hasAccess}
-                  currNetwork={currNetwork}
-                  currentTabIndex={currentTabIndex}
-                  currentAddress={currentAddress?.toLowerCase()}
-                  hasChatCount={hasChatCount}
-                  onClickDialog={() => {setShowJoinRoom(true)}}
-                  confirmDelete={() => {setDialogType('delete')}}>
-                </ListGroup>
+                    hiddenMask={() => { handleHiddenMask() }}
+                    showMask={() => setShowMask(true)}
+                    showChatList={(item) => showChatList(item)}
+                    newGroupList={roomList}
+                    currentRoomName={currentRoomName}
+                    hasAccess={hasAccess}
+                    currNetwork={currNetwork}
+                    currentTabIndex={currentTabIndex}
+                    currentAddress={currentAddress?.toLowerCase()}
+                    hasChatCount={hasChatCount}
+                    onClickDialog={() => { setShowJoinRoom(true) }}
+                    confirmDelete={() => { setDialogType('delete') }}>
+                  </ListGroup>
                 </div>
               </div>
-              <div className={`tab-content ${showChat ? 'translate-tab' : ''}`}>
+              }
+
+              <div className={`tab-content ${showChat ? 'translate-tab' : ''} ${ showAwardBonus ? 'display': ''} ${ showOpenSignIn ? 'display': ''} ${Number(getLocal('isConnect')) === 0 && detectMobile() ? 'tab-content-show' : ''}`}>
                 <div className='tab-pane'>
                   {
-                    ((groupLists.length > 0 && currentAddress)) &&
-                    <div className='d-flex flex-column h-100'>
+                    ((groupLists.length > 0 && currentAddress) || showChat) &&
+                    <div className={"d-flex flex-column h-100"}>
                       <RoomHeader
                         showChat={showChat}
                         currentAddress={currentAddress}
                         currentRoomName={currentRoomName}
                         memberCount={memberCount}
                         roomAvatar={roomAvatar}
+                        currentTabIndex={currentTabIndex}
                         getGroupMember={() => {setShowGroupMember(true)}}
-                        hiddenChat={() => {setShowChat(false)}}
+                        hiddenChat={hiddenChat}
+                        showGroupList={showGroupList}
                       />
                       <div
                         className={`chat-conetent ${detectMobile() ? 'chat-conetent-client' : ''}`}
                         id="chatConetent"
-                        >
-                            <ChatContext
-                              getScrollParent={() => this.scrollParentRef}
-                              currentAddress={currentAddress}
-                              chatList={chatList}
-                              hasDecrypted={hasDecrypted}
-                              hasMore={hasMore}
-                              myAddress={myAddress}
-                              currentTabIndex={currentTabIndex}
-                              sendSuccess={sendSuccess}
-                              hasToBottom={hasToBottom}
-                              loadingData={() => loadingData()}
-                              handleDecryptedMessage={(id,text) => handleDecryptedMessage(id,text)}
-                              shareInfo={(e,v) => shareInfo(e,v)}
-                            />
+                      >
+                        {/* <div className='bottom-envelope-list' onClick={() => {setShowEnvelopesList(true)}}>
+                          <img src={packetImg} alt="" style={{ 'width': '40px' }} />
+                        </div> */}
+                        <ChatContext
+                          getScrollParent={() => this.scrollParentRef}
+                          currentAddress={currentAddress}
+                          chatList={chatList}
+                          hasDecrypted={hasDecrypted}
+                          hasMore={hasMore}
+                          myAddress={myAddress}
+                          currentTabIndex={currentTabIndex}
+                          sendSuccess={sendSuccess}
+                          handleReceive={(e, v) => handleReceive(e, v)}
+                          loadingData={() => loadingData()}
+                          handleDecryptedMessage={(id, text) => handleDecryptedMessage(id, text)}
+                          shareInfo={(e, v) => shareInfo(e, v)}
+                          // shareToTwitter={(e, v) => shareToTwitter(e, v)}
+                        />
 
-                          <div style={{ float: "left", clear: "both" }}
-                            ref={messagesEnd}>
-                          </div>
+                        <div style={{ float: "left", clear: "both" }}
+                          ref={messagesEnd}>
+                        </div>
                       </div>
                       {
-                        (( hasAccess || currentTabIndex == 1) || (canSendText && currentGroupTypeRef.current == 3)) &&
+                        ((hasAccess || currentTabIndex == 1) || (canSendText && currentGroupTypeRef.current == 3)) &&
                         <ChatInputBox
-                        startChat={(text) => startChat(text)}
-                        clearChatInput={clearChatInput}
-                        handleShowPlace={() => {setShowPlaceWrapper(true)}}
-                        handleTrade={() => {setShowTradeInfo(true)}}
-                        resetChatInputStatus={() => {setClearChatInput(false)}}
-                        currentTabIndex={currentTabIndex}
-                      ></ChatInputBox> 
+                          currentAddress={currentAddress}
+                          startChat={(text) => startChat(text)}
+                          clearChatInput={clearChatInput}
+                          handleShowPlace={() => { setShowPlaceWrapper(true) }}
+                          handleAwardBonus={handleAwardBonus}
+                          handleOpenSign={handleOpenSign}
+                          handleSignIn={(nftAddress) => { handleSignIn(nftAddress) }}
+                          resetChatInputStatus={() => { setClearChatInput(false) }}
+                        ></ChatInputBox>
                       }
                       {
-                        (!hasAccess) && currentGroupTypeRef.current != 3 && currentTabIndex != 1 &&
-                        <JoinGroupButton currentAddress={currentAddress} changeJoinStatus={(groupType) => changeJoinStatus(groupType)} />
+                        !hasAccess && currentGroupTypeRef.current != 3 && currentTabIndex != 1 &&
+                        <JoinGroupButton hasAccess={hasAccess} currentAddress={currentAddress} changeJoinStatus={(groupType) => changeJoinStatus(groupType)} chainId={chainId} />
                       }
                     </div>
                   }
@@ -1348,6 +1721,7 @@ export default function Chat() {
             </div>
           </div>
         </div>
-      </div>
+      }
+    </div>
   )
 }

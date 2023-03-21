@@ -45,7 +45,7 @@ const MenuContainer = styled.div`
   left: 0;
   right: 0;
   top: 0;
-  z-index: 1;
+  z-index: 9;
   .close-contanier{
     width: 40px;
     height: 40px;
@@ -60,11 +60,12 @@ const MenuContainer = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 20px;
+    margin: 10px 20px 20px;
   }
   .menu-left {
     img {
       width: 137px;
+      height: 30px;
     }
   }
   .menu-item {
