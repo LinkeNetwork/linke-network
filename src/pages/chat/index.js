@@ -53,6 +53,7 @@ export default function Chat() {
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
+  const [selectNftId, setSelectNftId] = useState()
   const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, signInClientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress, signInAddress} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentAddress, setCurrentAddress] = useState()
@@ -96,6 +97,7 @@ export default function Chat() {
   const [roomAvatar, setRoomAvatar] = useState()
   const [privateKey, setPrivateKey] = useState()
   const [myAvatar, setMyAvatar] = useState()
+  const [nftImageList, setNftImageList] = useState([])
   const [hasDecrypted, setHasDecrypted] = useState(false)
   const [hasChatCount, setHasChatCount] = useState(false)
   const [currentGroupType, setCurrentGroupType] = useState()
@@ -322,7 +324,6 @@ export default function Chat() {
         var networkInfo = networks.filter(i => i.name === currentNetwork)[0]
       }
       const groupInfo = await getGroupMember(roomAddress, skip)
-      console.log(groupInfo?._type, 'groupInfo?._type=====')
       setState({
         groupType: groupInfo?._type
       })
@@ -1271,6 +1272,10 @@ export default function Chat() {
       setShowAwardBonus(true)
     }
   }
+  const handleSelectNft = (id) => {
+    setShowNftList(false)
+    setSelectNftId(id)
+  }
   const handleSearch = (event) => {
     const value = event.target.value
     var newList = groupList.filter(item => item.name.includes(value) || item.id.toUpperCase().includes(value.toUpperCase()))
@@ -1317,7 +1322,7 @@ export default function Chat() {
     const tokensQuery = `
     {
       registerInfos(
-        where: {manager: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress+`"}
+        where: {manager: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress.toLowerCase()+`"}
       ) {
         id
         lastDate
@@ -1329,30 +1334,86 @@ export default function Chat() {
       }
     }
     `
-    const res = await signInClientInfo?.query(tokensQuery).toPromise()
+    const item = networks.filter(i=> i.symbol === getLocal('network'))[0]
+    const client = createClient({
+      url: item?.signInGraphUrl
+    })
+    const res = await client?.query(tokensQuery).toPromise()
     const registerNftInfos = res?.data?.registerInfos
+    console.log(registerNftInfos, '=registerNftInfos===')
     setShowNftList(Boolean(registerNftInfos.length))
-    console.log(nftAddress, accounts,res.data, 'nftAddress====')
+    setNftImageList(res.data.registerInfos)
+    if(!res.data.registerInfos.length) {
+      setState({
+        canMint: true,
+        showTokenContent: true
+      })
+    } else {
+      setState({
+        canMint: false,
+        showTokenContent: false
+      })
+    }
     setShowSignIn(true) 
   }
   const handleOpenSign = async() => {
-    setShowOpenSignIn(false)
-    const params = ethers.utils.defaultAbiCoder.encode(["address", "address", "string", "string"], [nftAddress, currentAddress, "Register","register"]);
-    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).mint(currentAddress, 1, params)
+    try {
+      const params = ethers.utils.defaultAbiCoder.encode(["address", "address", "string", "string"], [nftAddress, currentAddress, "Register","register"]);
+      const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).mint(currentAddress, 1, params)
+      setShowMask(true)
+      const receipt = await tx.wait()
+      console.log("Transaction hash:", receipt.transactionHash)
+      console.log("Gas used:", receipt.gasUsed.toString())
+      console.log("Block number:", receipt.blockNumber)
+      console.log("Block hash:", receipt.blockHash)
+      setShowOpenSignIn(false)
+      setState({
+        hasOpenedSignIn: true
+      })
+      setShowMask(false)
+    } catch (error) {
+      console.error(error, 'handleOpenSign')
+    }
+  }
+  const handleEndStake = async() => {
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receive()
+    console.log(tx, '===handleEndStake=')
+    setShowSignIn(false)
     setShowMask(true)
-    let callback = await tx.wait()
-    setShowOpenSignIn(false)
-    setState({
-      hasOpenedSignIn: true
-    })
+    await tx.wait()
     setShowMask(false)
-    console.log(tx, callback, '===etx==')
+  }
+  const handleCheckIn = async(tokenId, quantity) => {
+    setState({
+      canMint: false
+    })
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity))
+    setShowSignIn(false)
+    setShowMask(true)
+    await tx.wait()
+    setShowMask(false)
+  }
+  const handleCloseSignIn = () => {
+    setShowSignIn(false)
+    setState({
+      canMint: false
+    })
   }
   const handleMint = async(quantity) => {
+    if(!quantity) {
+      setState({
+        continueMint: true
+      })
+      setShowNftList(false)
+      return
+    }
     const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity))
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
+    setState({
+      showTokenContent: false
+    })
     setShowMask(false)
   }
   useEffect(() => {
@@ -1460,9 +1521,9 @@ export default function Chat() {
         ></AwardBonus>
       }
       {
-        <Modal title="Sign in" visible={showSignIn} onClose={() => { setShowSignIn(false) }}>
+        <Modal title="Sign in" visible={showSignIn} onClose={handleCloseSignIn}>
           <div className="sign-in-wrapper">
-            <SignIn showNftList={showNftList} handleMint={(num) => {handleMint(num)}}/>
+            <SignIn showNftList={showNftList} handleMint={(num) => {handleMint(num)}} handleSelectNft={(id) => {handleSelectNft(id)}}   nftImageList={nftImageList} handleCheckIn={(id, num) => {handleCheckIn(id, num)}} handleEndStake={(num) => {handleEndStake(num)}}/>
           </div>
         </Modal>
       }

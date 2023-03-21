@@ -1,62 +1,88 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import styled from "styled-components"
 import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
-import { Modal, Image }  from "../../component/index"
-import { NumericInput } from "numeric-keyboard"
+import { Modal, Image } from "../../component/index"
 import { tokenListInfo } from '../../constant/tokenList'
-import { detectMobile, getDaiWithSigner, getBalance, getLocal, getBalanceNumber } from "../../utils"
+import { detectMobile, getDaiWithSigner, getBalance, getLocal, getBalanceNumber, formatTimestamp } from "../../utils"
 import TokenList from "./TokenList"
 import { ethers } from "ethers"
 import useGlobal from "../../hooks/useGlobal"
 import UseTokenBalance from "../../hooks/UseTokenBalance"
-import useWallet from "../../hooks/useWallet"
-import { SIGN_IN_ABI, REGISTER_ABI } from '../../abi/index'
+import { SIGN_IN_ABI } from '../../abi/index'
+import CountDown from "./CountDown"
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
-  const { balance } = useWallet()
-  const { giveAwayAddress, swapButtonText, approveLoading, setButtonText, nftAddress, tokenList, currentTokenBalance } = useGlobal()
-  const { getAuthorization, approveActions, authorization, getTokenBalance } = UseTokenBalance()
-  const { handleCloseAward, currentAddress, handleCloseMask, handleShowMask, handleMint,showNftList } = props
-  const [showBonusType, setShowBonusType] = useState(false)
-  const [totalAmount, setTotalAmount] = useState()
-  const [amount, setAmount] = useState()
+  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, showTokenContent } = useGlobal()
+  const { getAuthorization, approveActions, authorization } = UseTokenBalance()
+  const { handleMint, showNftList, nftImageList, handleSelectNft, handleEndStake, handleCheckIn } = props
   const [quantity, setQuantity] = useState('')
-  const [amountText, setAmountText] = useState('Total')
-  const [clickNumber, setClickNumber] = useState(0)
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
   const [selectedTokenInfo, setSelectedTokenInfo] = useState('')
   const [tokenBalance, setTokenBalance] = useState('')
-  const [selectTokenAddress, setSelectTokenAddress] = useState('')
   const [tokenLogo, setTokenLogo] = useState('')
-  const [wishesText, setWishesText] = useState()
   const [canSend, setCanSend] = useState(false)
   const [btnText, setBtnText] = useState('Mint')
-  const [tokenDecimals, setTokenDecimals] = useState()
-  const amountRef = useRef()
-  const nftImageList = [1,1,1,1]
-  const buttonActions = () => {
-    switch (btnText) {
+  const [text, setText] = useState('Quantity')
+  const [mintLastDate, setMintLastDate] = useState()
+  const [tokenId, setTokenId] = useState()
+  const [showCountDown, setShowCountDown] = useState(false)
+  const buttonActions = (e) => {
+    switch (e.target.innerText) {
       case "Mint":
-        handleMint(quantity)
+        handleContinueMint(quantity)
         break;
       case "Approve":
         approveActions(selectedTokenInfo, 'signIn')
+        break;
+      case "Check In":
+        handleCheckIn(tokenId, quantity)
+        break;
+      case "End Stake":
+        handleEndStake(quantity)
         break;
       default:
         return null;
     }
   }
-  const getSelectedToken = async() => {
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).token()
+  const handleContinueMint = async(quantity) => {
+    if(!quantity) {
+      const res = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).registerUserInfos(getLocal('account'))
+      const timestamp = formatTimestamp(res.lastDate)
+      setMintLastDate(timestamp)
+      setShowCountDown(true)
+      await handleMint(quantity)
+    } else {
+      handleMint(quantity)
+    }
+  }
+  const handleChooseNft = async(item) => {
+    setTokenId(item.tokenId)
+    handleSelectNft(item)
+   
+    setState({
+      continueMint: false
+    })
+    const res = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).registerUserInfos(getLocal('account'))
+    const timestamp = formatTimestamp(res.lastDate)
+    setMintLastDate(timestamp)
+    const mintNum = ethers.utils.formatEther(res.amount)
+    if(mintNum > 0) {
+      setText('Staking')
+      setQuantity(mintNum)
+    }
+  }
+  const getSelectedToken = async () => {
+    const tx = await getDaiWithSigner(nftAddress.toLocaleLowerCase(), SIGN_IN_ABI).token()
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == tx.toLocaleLowerCase())
-    const { symbol, logoURI } = selectedToken[0]
-    if(tx == 0) {
+    const { symbol, logoURI } = selectedToken.length && selectedToken[0]
+    if (tx == 0) {
       setTokenBalance(Number(currentTokenBalance).toFixed(4))
     } else {
+      if(!selectedToken.length) return
       const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
       const res = await getBalance(provider, selectedToken[0].address, getLocal('account'))
       const tokenBalance = getBalanceNumber(new BigNumber(Number(res)), selectedToken[0]?.decimals)
@@ -66,20 +92,13 @@ export default function SignIn(props) {
     setSelectedTokenInfo(selectedToken[0])
     setTokenLogo(logoURI)
     setSelectedToken(symbol)
-    console.log(selectedToken[0], 'selectedToken[0]==1')
-    if(symbol === 'ETHF') return
+    if (symbol === 'ETHF') return
     const authorization = await getAuthorization(selectedToken[0], 'signIn')
-    if(!authorization) {
+    if (!authorization) {
       setCanSend(true)
       setBtnText('Approve')
     }
-    
-  }
-  const handleQuantityInput = (key) => {
-    setQuantity(key)
-  }
-  const handleAmountInput = (key) => {
-    setAmount(key)
+
   }
   const enforcer = (nextUserInput, type) => {
     if (nextUserInput === '' || inputRegex.test(escapeRegExp(nextUserInput))) {
@@ -87,19 +106,21 @@ export default function SignIn(props) {
     }
   }
   const valChange = (tokenValue, type) => {
-    type === 0 ? setQuantity(tokenValue) : setAmount(tokenValue)
-    
+    if(type === 0) {
+      setQuantity(tokenValue)
+    }
+
   }
   const nftList = () => {
-    return(
+    return (
       <div>
         <ul className="list-wrapper">
           {
-            nftImageList.map((index) => {
+            nftImageList.map((item, index) => {
               return (
-                <li key={index}>
+                <li key={index} onClick={() => handleChooseNft(item)}>
                   <span>NFT</span>
-                  <div>#18</div>
+                  <div>#{item.tokenId}</div>
                 </li>
               )
             })
@@ -109,8 +130,7 @@ export default function SignIn(props) {
     )
   }
   useEffect(() => {
-    console.log(quantity,tokenBalance, 'quantity=====', quantity > 0 && quantity <= tokenBalance)
-    if(quantity > 0 && quantity <= tokenBalance) {
+    if (quantity > 0 && quantity <= tokenBalance) {
       setCanSend(true)
     } else {
       setCanSend(false)
@@ -120,80 +140,116 @@ export default function SignIn(props) {
     getSelectedToken()
   }, [])
   useEffect(() => {
-    if(authorization && !showNftList) {
-      setCanSend(true)
+    if (authorization && !showNftList) {
+      if(+tokenBalance > 0) {
+        setCanSend(true)
+      }
       setButtonText('Mint')
       setBtnText('Mint')
     }
+    
   }, [authorization])
   useEffect(() => {
-    console.log(approveLoading,swapButtonText, 'approveLoading=====>>>>')
-    if(approveLoading) {
+    if(!showNftList && !quantity) {
+      setCanSend(false)
+    }
+    if(!showNftList) {
+      setShowCountDown(!canMint)
+    }
+  }, [showNftList, canMint])
+  useEffect(() => {
+    if(nftImageList.length > 0) {
+      setCanSend(true)
+    }
+  }, [nftImageList])
+  useEffect(() => {
+    if (approveLoading) {
       setCanSend(false)
       setBtnText('APPROVE_ING')
     }
-    if(swapButtonText) {
+    if (swapButtonText) {
       setBtnText(swapButtonText)
-      if(swapButtonText === 'APPROVE_ING') {
+      if (swapButtonText === 'APPROVE_ING') {
         setCanSend(false)
       }
     }
   }, [approveLoading, swapButtonText])
+  useEffect(() => {
+    if(+tokenBalance < 0) {
+      setCanSend(false)
+    }
+  }, [tokenBalance])
   return (
     <SignInWrapper>
       {
         showNftList && nftList()
       }
+      {
+        showCountDown &&
+        <CountDown timestamp={mintLastDate}/>
+      }
+     
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
         <div className="token-list-title">Choose Token</div>
         <TokenList showBalance={true}></TokenList>
       </Modal>
-      <div className={`content ${detectMobile() ? 'content-client' : ''}`}>
-        <div className="token-wrapper">
-          <div className="token-detail">
-            {
-              selectedToken &&
-              <div>balance</div>
-            }
-            <div className="balance">{tokenBalance}</div>
+      {
+        !showNftList && showTokenContent && canMint &&
+        <div className={`content ${detectMobile() ? 'content-client' : ''}`}>
+          <div className="token-wrapper">
+            <div className="token-detail">
+              {
+                selectedToken &&
+                <div>balance</div>
+              }
+              <div className="balance">{tokenBalance}</div>
+            </div>
+            <div className="token-info">
+              {
+                tokenLogo && <Image size={24} src={tokenLogo} style={{ 'borderRadius': '50%' }} />
+              }
+              {
+                !selectedToken ? <span>Select a Token</span> : <div className="name">{selectedToken}</div>
+              }
+            </div>
           </div>
-          <div className="token-info">
-            {
-              tokenLogo && <Image size={24} src={tokenLogo} style={{ 'borderRadius': '50%'}} />
-            }
-            {
-              !selectedToken ?  <span>Select a Token</span> : <div className="name">{selectedToken}</div>
-            }
-          </div>
+          {
+            btnText !== 'Approve' && btnText !== 'APPROVE_ING' &&
+            <div className="amount-wrapper quantity-wrapper">
+              {
+                <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity} />
+              }
+              <span>{text}</span>
+            </div>
+          }
+
         </div>
-        {
-          btnText !== 'Approve' && btnText !== 'APPROVE_ING' &&
-          <div className="amount-wrapper quantity-wrapper">
-            {
-              <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity}/>
-            }
-            <span>Quantity</span>
-          </div>
-        }
-        
-      </div>
-      <div className="btn-wrapper">
-        <div className='btn btn-primary' onClick={buttonActions}>
-          <span className={`btn-default ${ canSend ? 'send-allowed' : ''}`}>{btnText}</span>
+      }
+
+      {
+        <div className="btn-wrapper">
+          {
+            (showNftList || continueMint || !nftImageList.length) &&
+            <div className='btn btn-primary' onClick={buttonActions}>
+              <span className={`${canSend ? 'send-allowed' : 'btn-default'}`}>{btnText}</span>
+            </div>
+          }
+          
+          {
+            !showNftList && nftImageList.length > 0 && !continueMint && canMint &&
+            <div className='btn btn-primary' onClick={buttonActions}>
+              <span className={`btn-default ${canSend ? 'send-allowed' : ''}`}>Check In</span>
+            </div>
+          }
+          {
+            !showNftList && nftImageList.length > 0 && !continueMint && canMint &&
+            <div className='btn btn-light' onClick={buttonActions}>
+              <span className={`${canSend ? 'send-allowed' : ''}`}>End Stake</span>
+            </div>
+          }
         </div>
-        {
-          showNftList && 
-          <div className='btn btn-primary' onClick={buttonActions}>
-            <span className={`btn-default ${ canSend ? 'send-allowed' : ''}`}>Sign in</span>
-          </div>
-        }
-        {
-          showNftList && 
-          <div className='btn btn-light' onClick={buttonActions}>
-            <span className={`${ canSend ? 'send-allowed' : ''}`}>Remove Mint</span>
-        </div>
-        }
-      </div>
+      }
+
     </SignInWrapper>
   )
 }
@@ -314,6 +370,7 @@ background: #fff;
 }
 .list-wrapper {
   display: flex;
+  margin-bottom: 20px;
   flex-wrap: wrap;
   justify-content: center;
   li {

@@ -162,4 +162,11 @@ export const approve = async ({ spender, provider, tokenAddress, accounts }) => 
 export const uniqueChatList = (arr,val) => {
    const res = new Map()
    return arr.filter(item => !res.has(item[val]) && res.set(item[val], 1))
- }
+}
+
+export const formatTimestamp = (date) => {
+  const bigNumber = new BigNumber(Number(date))
+  const decimalString = bigNumber.toString(10)
+  const timestamp = Number(decimalString)
+  return timestamp
+}

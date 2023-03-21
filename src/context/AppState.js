@@ -32,7 +32,10 @@ const state = {
   transactionRoomHash: '',
   groupType: '',
   nftAddress: '',
-  hasOpenedSignIn: false
+  hasOpenedSignIn: false,
+  continueMint: false,
+  canMint: false,
+  showTokenContent: false
 }
 
 export default state

@@ -112,10 +112,8 @@ export default function CreateNewRoom(props) {
     }
     const name_ = 'group'
     const symbol_ = 'GROUP'
-    debugger
     const styleList = JSON.stringify(style)
     try {
-      debugger
       const params = ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, styleList, name_, symbol_]);
       const tx = await getDaiWithSigner(currentNetworkInfo?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
       setTransactionHash(tx.hash)
@@ -123,6 +121,7 @@ export default function CreateNewRoom(props) {
       history.push(`/chat/${callback.logs[0].address}`)
       hiddenCreateInfo()
       setState({
+        currentAddress: callback.logs[0].address,
         groupType: currentGroupType,
         hasCreateRoom: true,
         transactionRoomHash: callback?.transactionHash

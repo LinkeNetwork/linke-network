@@ -8,8 +8,8 @@ import { detectMobile, getDaiWithSigner, getLocal } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, currentAddress, handleOpenSign } = props
-  const { setState, accounts, signInAddress, groupType, hasOpenedSignIn } = useGlobal()
+  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, handleOpenSign } = props
+  const { setState, accounts, signInAddress, groupType, hasOpenedSignIn, currentAddress } = useGlobal()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
   const [emoji, setEmoji] = useState()
@@ -47,7 +47,6 @@ export default function ChatInputBox(props) {
   }
   const isOpenSignIn = async() => {
     const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
-    console.log(tx, tx.nft, hasOpenedSignIn, 'tx==isOpenSignIn==')
     setNftAddress(tx.nft)
     setState({
       nftAddress: tx.nft
@@ -204,6 +203,14 @@ export default function ChatInputBox(props) {
   const inputClickHandle = () => {
     setShowPicker(false)
   }
+  const handleCheckIn = async() => {
+    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
+    setNftAddress(tx.nft)
+    setState({
+      nftAddress: tx.nft
+    })
+    handleSignIn(tx.nft)
+  }
   const clearInput = () => { 
     var editorArea = document.querySelector('.editor-area')
     var counter = document.querySelector('.counter')
@@ -216,9 +223,11 @@ export default function ChatInputBox(props) {
   }
   const handleSelectedToken = (item) => {
     setTokenAddress(item.address)
-    console.log(item, '====1handleSelectedToken')
   }
-  
+  const handleOpenCheckIn = () => {
+    setShowOpenSignIn(false)
+    handleOpenSign()
+  }
   const handleClose = () => {
     setShowOpenSignIn(false)
     setTokenAddress('')
@@ -238,7 +247,7 @@ export default function ChatInputBox(props) {
   useEffect(() => {
     if(hasOpenedSignIn) {
       setShowOpenSignIn(false)
-    }
+    } 
   }, [hasOpenedSignIn])
   useEffect(() => {
     initClientHeight()
@@ -258,7 +267,7 @@ export default function ChatInputBox(props) {
           <div className="sign-in-wrapper">
             <OpenSignIn handleSelectedToken={(item) => {handleSelectedToken(item)}} />
             <div className='btn-operate-sign'>
-              <div className={`btn btn-primary ${!tokenAddress ? 'btn-not-allowed' : ''}`} onClick={handleOpenSign}>Open</div>
+              <div className={`btn btn-primary ${!tokenAddress ? 'btn-not-allowed' : ''}`} onClick={handleOpenCheckIn}>Open</div>
               <div className='btn btn-light' onClick={() => { setShowOpenSignIn(false) }}>Cancel</div>
             </div>
           </div>
@@ -287,7 +296,7 @@ export default function ChatInputBox(props) {
           }
           {
             (showSignInIcon || hasOpenedSignIn)&&
-            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={() => { handleSignIn(nftAddress) }}>
+            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleCheckIn}>
               <span className='iconfont icon-sign2'></span>
             </div>
           }

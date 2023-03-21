@@ -30,12 +30,10 @@ export default function UseTokenBalance() {
     }
   }
   const allowanceAction = async (from, type) => {
-    console.log(type, nftAddress, '====ty')
     let account = accounts || localStorage.getItem('account')
     const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
     const { address: tokenAddress } = from
     const spender = type === 'signIn' ?  nftAddress : giveAwayAddress
-    debugger
     const allowanceTotal = await allowance({provider, tokenAddress, spender, account})
     const tokenValue = from.address == 0 ? currentTokenBalance : from.balance
     const amountToken = ethers.utils.parseEther(tokenValue)
@@ -44,7 +42,6 @@ export default function UseTokenBalance() {
     return allonceNum.gte(amountToken)
   }
   const getAuthorization = async(from, type) => {
-    console.log(from, '===room')
     const allowanceResult = from.address ? await allowanceAction(from, type) : true
     setAuthorization(allowanceResult)
     return allowanceResult
