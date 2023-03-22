@@ -53,15 +53,14 @@ export default function SignIn(props) {
       const timestamp = formatTimestamp(res.lastDate)
       setMintLastDate(timestamp)
       setShowCountDown(true)
-      await handleMint(quantity)
+      await handleMint(quantity, selectedToken)
     } else {
-      handleMint(quantity)
+      handleMint(quantity, selectedToken)
     }
   }
   const handleChooseNft = async(item) => {
     setTokenId(item.tokenId)
     handleSelectNft(item)
-   
     setState({
       continueMint: false
     })

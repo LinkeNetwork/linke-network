@@ -224,13 +224,14 @@ export default function ChatInputBox(props) {
   const handleSelectedToken = (item) => {
     setTokenAddress(item.address)
   }
-  const handleOpenCheckIn = () => {
-    setShowOpenSignIn(false)
-    handleOpenSign()
-  }
+
   const handleClose = () => {
     setShowOpenSignIn(false)
     setTokenAddress('')
+  }
+  const handleOpenSignIn = () => {
+    setShowOpenSignIn(false)
+    handleOpenSign(tokenAddress)
   }
   const handlePlaceClick = () => {
     setState({
@@ -267,7 +268,7 @@ export default function ChatInputBox(props) {
           <div className="sign-in-wrapper">
             <OpenSignIn handleSelectedToken={(item) => {handleSelectedToken(item)}} />
             <div className='btn-operate-sign'>
-              <div className={`btn btn-primary ${!tokenAddress ? 'btn-not-allowed' : ''}`} onClick={handleOpenCheckIn}>Open</div>
+              <div className={`btn btn-primary ${!tokenAddress ? 'btn-not-allowed' : ''}`} onClick={handleOpenSignIn}>Open</div>
               <div className='btn btn-light' onClick={() => { setShowOpenSignIn(false) }}>Cancel</div>
             </div>
           </div>

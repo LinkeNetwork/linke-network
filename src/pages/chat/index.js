@@ -143,7 +143,7 @@ export default function Chat() {
     if (groupLists?.length) {
       setGroupLists([...groupLists])
     }
-    if(!getLocal('isConnect') && groupLists?.length) {
+    if(!(+getLocal('isConnect')) && groupLists?.length) {
       setCurrentRoomName(groupLists[0].name)
     }
     groupListRef.current = groupLists
@@ -314,7 +314,7 @@ export default function Chat() {
     try {
       initCurrentAddress(roomAddress)
       // setShowMask(true)
-      if (!getLocal('isConnect')) {
+      if (!(+getLocal('isConnect'))) {
         const path = history.location.pathname.split('/chat/')[1]
         var currentNetwork = path?.split('/')[1]
         var networkInfo = networks.filter(i => i.name === currentNetwork)[0]
@@ -344,7 +344,7 @@ export default function Chat() {
         setCurrentRoomName(name)
         setRoomList([...roomInfo])
       }
-      if(getLocal('isConnect') || accounts || chainId) {
+      if(Boolean(+getLocal('isConnect')) || accounts || chainId) {
         getJoinRoomAccess(roomAddress, groupType)
       }
       setGroupType(groupType)
@@ -366,7 +366,7 @@ export default function Chat() {
       console.log(e, 'error==========')
       setShowMask(false)
       if (!hasNotice) {
-        if(getLocal('isConnect')) {
+        if(Boolean(+getLocal('isConnect'))) {
           alert('This is not a chat room.')
         } else {
           if(!currentNetwork) {
@@ -794,6 +794,7 @@ export default function Chat() {
     const type_ = currentBonusType === 'Random Amount' ? 2 : 1
     const address = giveAwayAddress
     const total = ethers.utils.parseUnits(String(totalAmount), tokenDecimals)
+    console.log(totalAmount, total, '====handleSend')
     if(!wishesText) {
       wishesText = 'Best Wishes'
     }
@@ -1171,7 +1172,7 @@ export default function Chat() {
             hasDelete: false,
             isSuccess: true,
             showProfile: false,
-            position: getLocal('isConnect') ? (item?._type ==='Giveaway' ? (res?.sender)?.toLowerCase() === (getLocal('account'))?.toLowerCase() : (item?.user?.id).toLowerCase() === (getLocal('account'))?.toLowerCase()) : false,
+            position: Boolean(+getLocal('isConnect')) ? (item?._type ==='Giveaway' ? (res?.sender)?.toLowerCase() === (getLocal('account'))?.toLowerCase() : (item?.user?.id).toLowerCase() === (getLocal('account'))?.toLowerCase()) : false,
             showOperate: false,
             isOpen: false,
             wishesText: item?.chatText?.split('---')[1]
@@ -1256,13 +1257,13 @@ export default function Chat() {
     const network = path?.split('/')[1] || getLocal('network') || currentChain
     const hash = history.location.hash
     hash ? setCurrentTabIndex(1) : setCurrentTabIndex(0)
-    if(!getLocal('isConnect')) {
+    if(!(+getLocal('isConnect'))) {
       fetchPublicChatList(address)
     }
     if(network) {
       initRoomAddress(hash)
     }
-    if(address && !getLocal('isConnect') && !network) {
+    if(address && !(+getLocal('isConnect')) && !network) {
       alert('Please connect wallet first')
     }
   }, [currentChain])
@@ -1358,9 +1359,9 @@ export default function Chat() {
     }
     setShowSignIn(true) 
   }
-  const handleOpenSign = async() => {
+  const handleOpenSign = async(tokenAddress) => {
     try {
-      const params = ethers.utils.defaultAbiCoder.encode(["address", "address", "string", "string"], [nftAddress, currentAddress, "Register","register"]);
+      const params = ethers.utils.defaultAbiCoder.encode(["address", "address", "string", "string"], [tokenAddress, currentAddress, "Register","register"]);
       const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).mint(currentAddress, 1, params)
       setShowMask(true)
       const receipt = await tx.wait()
@@ -1401,7 +1402,7 @@ export default function Chat() {
       canMint: false
     })
   }
-  const handleMint = async(quantity) => {
+  const handleMint = async(quantity, token) => {
     if(!quantity) {
       setState({
         continueMint: true
@@ -1409,7 +1410,10 @@ export default function Chat() {
       setShowNftList(false)
       return
     }
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity))
+   
+    const value = token === 'ETHF' ? ethers.utils.parseUnits(String(Number(quantity)), 18) : 0
+    console.log(Number(quantity), value, '====handleMint')
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity),{value: value})
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
@@ -1455,7 +1459,7 @@ export default function Chat() {
     isRoom(path)
   }, [chainId])
   useEffect(() => {
-    if(!getLocal('isConnect')) {
+    if(!(+getLocal('isConnect'))) {
       getclientInfo()
     }
   }, [getLocal('isConnect')])
@@ -1525,7 +1529,14 @@ export default function Chat() {
       {
         <Modal title="Sign in" visible={showSignIn} onClose={handleCloseSignIn}>
           <div className="sign-in-wrapper">
-            <SignIn showNftList={showNftList} handleMint={(num) => {handleMint(num)}} handleSelectNft={(id) => {handleSelectNft(id)}}   nftImageList={nftImageList} handleCheckIn={(id, num) => {handleCheckIn(id, num)}} handleEndStake={(num) => {handleEndStake(num)}}/>
+            <SignIn 
+              showNftList={showNftList}
+              handleMint={(num, token) => {handleMint(num, token)}}
+              handleSelectNft={(id) => {handleSelectNft(id)}}
+              nftImageList={nftImageList}
+              handleCheckIn={(id, num) => {handleCheckIn(id, num)}}
+              handleEndStake={(num) => {handleEndStake(num)}}
+            />
           </div>
         </Modal>
       }
@@ -1611,7 +1622,7 @@ export default function Chat() {
           <div className={`chat-ui ${detectMobile() ? 'chat-ui-client' : ''} ${!showGroupList ? 'chat-ui-share' : ''}`}>
             <div className={`chat-content-box ${showChat && detectMobile() ? 'chat-content-box-client' : ''} ${!showGroupList ? 'chat-content-share' : ''}`}>
               {
-                showGroupList &&
+                showGroupList && Boolean(+getLocal('isConnect')) &&
                 <div className={`user-search-wrapper ${showChat ? 'hidden' : ''}`}>
                 <div className='chat-ui-offcanvas' id='chatOffcanvas'>
                   {
@@ -1698,7 +1709,7 @@ export default function Chat() {
                           clearChatInput={clearChatInput}
                           handleShowPlace={() => { setShowPlaceWrapper(true) }}
                           handleAwardBonus={handleAwardBonus}
-                          handleOpenSign={handleOpenSign}
+                          handleOpenSign={(tokenAddress) => handleOpenSign(tokenAddress)}
                           handleSignIn={(nftAddress) => { handleSignIn(nftAddress) }}
                           resetChatInputStatus={() => { setClearChatInput(false) }}
                         ></ChatInputBox>
