@@ -54,7 +54,6 @@ export default function Chat() {
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
-  const [selectNftId, setSelectNftId] = useState()
   const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, signInClientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress, signInAddress} = useGlobal()
   const [memberListInfo, setMemberListInfo] = useState([])
   const [currentAddress, setCurrentAddress] = useState()
@@ -1277,7 +1276,6 @@ export default function Chat() {
   }
   const handleSelectNft = (id) => {
     setShowNftList(false)
-    setSelectNftId(id)
   }
   const handleSearch = (event) => {
     const value = event.target.value
@@ -1343,10 +1341,9 @@ export default function Chat() {
     })
     const res = await client?.query(tokensQuery).toPromise()
     const registerNftInfos = res?.data?.registerInfos
-    console.log(registerNftInfos, '=registerNftInfos===')
     setShowNftList(Boolean(registerNftInfos.length))
     setNftImageList(res.data.registerInfos)
-    if(!res.data.registerInfos.length) {
+    if(!registerNftInfos.length) {
       setState({
         canMint: true,
         showTokenContent: true
@@ -1361,9 +1358,9 @@ export default function Chat() {
   }
   const handleOpenSign = async(tokenAddress) => {
     try {
+      setShowMask(true)
       const params = ethers.utils.defaultAbiCoder.encode(["address", "address", "string", "string"], [tokenAddress, currentAddress, "Register","register"]);
       const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).mint(currentAddress, 1, params)
-      setShowMask(true)
       const receipt = await tx.wait()
       console.log("Transaction hash:", receipt.transactionHash)
       console.log("Gas used:", receipt.gasUsed.toString())
@@ -1387,14 +1384,18 @@ export default function Chat() {
     setShowMask(false)
   }
   const handleCheckIn = async(tokenId, quantity) => {
+    setShowSignIn(false)
     setState({
       canMint: false
     })
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity))
-    setShowSignIn(false)
     setShowMask(true)
-    await tx.wait()
-    setShowMask(false)
+    try {
+      const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity))
+      await tx.wait()
+      setShowMask(false)
+    } catch {
+      setShowMask(false)
+    }
   }
   const handleCloseSignIn = () => {
     setShowSignIn(false)
@@ -1403,12 +1404,16 @@ export default function Chat() {
     })
   }
   const handleMint = async(quantity, token) => {
+    setShowNftList(false)
     if(!quantity) {
+      setState({
+        continueMint: false
+      })
+      return
+    } else {
       setState({
         continueMint: true
       })
-      setShowNftList(false)
-      return
     }
    
     const value = token === 'ETHF' ? ethers.utils.parseUnits(String(Number(quantity)), 18) : 0
