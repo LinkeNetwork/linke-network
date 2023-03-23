@@ -14,10 +14,11 @@ import CountDown from "./CountDown"
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
-  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, showTokenContent } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, showTokenContent, signInClientInfo } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
   const { handleMint, showNftList, nftImageList, handleSelectNft, handleEndStake, handleCheckIn } = props
   const [quantity, setQuantity] = useState('')
+  const [isAuthorization, setIsAuthorization] = useState(false)
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
   const [selectedTokenInfo, setSelectedTokenInfo] = useState('')
@@ -29,6 +30,7 @@ export default function SignIn(props) {
   const [mintLastDate, setMintLastDate] = useState()
   const [tokenId, setTokenId] = useState()
   const [showCountDown, setShowCountDown] = useState(false)
+  const [stakedNum, setStakedNum] = useState()
   const buttonActions = (e) => {
     switch (e.target.innerText) {
       case "Mint":
@@ -47,20 +49,37 @@ export default function SignIn(props) {
         return null;
     }
   }
+  const getStakedNum = async () => {
+    const tokensQuery = `
+    {
+      registerUserInfos(
+        orderBy:lastDate,orderDirection:desc,
+        where: {sender: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress.toLowerCase()+`"}
+      ) {
+        id
+        lastDate
+        count
+        tokenId
+        amount
+        register
+      }
+    }
+    `
+    const res = await signInClientInfo?.query(tokensQuery).toPromise()
+    const data = res.data.registerUserInfos
+    setStakedNum(ethers.utils.formatUnits(data[0].amount))
+  }
   const handleContinueMint = async(quantity) => {
+    setMintInfo()
     if(!quantity) {
-      const res = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).registerUserInfos(getLocal('account'))
-      const timestamp = formatTimestamp(res.lastDate)
-      setMintLastDate(timestamp)
       setShowCountDown(true)
       await handleMint(quantity, selectedToken)
     } else {
       handleMint(quantity, selectedToken)
     }
   }
-  const handleChooseNft = async(item) => {
-    setTokenId(item.tokenId)
-    handleSelectNft(item)
+  const setMintInfo = async() => {
+    getStakedNum()
     setState({
       continueMint: false
     })
@@ -72,6 +91,11 @@ export default function SignIn(props) {
       setText('Staking')
       setQuantity(mintNum)
     }
+  }
+  const handleChooseNft = async(item) => {
+    setMintInfo()
+    setTokenId(item.tokenId)
+    handleSelectNft(item)
   }
   const getSelectedToken = async () => {
     const tx = await getDaiWithSigner(nftAddress.toLocaleLowerCase(), SIGN_IN_ABI).token()
@@ -91,8 +115,12 @@ export default function SignIn(props) {
     setSelectedTokenInfo(selectedToken[0])
     setTokenLogo(logoURI)
     setSelectedToken(symbol)
-    if (symbol === 'ETHF') return
+    if (symbol === 'ETHF') {
+      setIsAuthorization(true)
+      return
+    }
     const authorization = await getAuthorization(selectedToken[0], 'signIn')
+    setIsAuthorization(authorization)
     if (!authorization) {
       setCanSend(true)
       setBtnText('Approve')
@@ -146,7 +174,7 @@ export default function SignIn(props) {
       setButtonText('Mint')
       setBtnText('Mint')
     }
-    
+    setIsAuthorization(authorization)
   }, [authorization])
   useEffect(() => {
     if(!showNftList && !quantity) {
@@ -185,7 +213,11 @@ export default function SignIn(props) {
       }
       {
         showCountDown &&
-        <CountDown timestamp={mintLastDate}/>
+        <div>
+          <div className="stake-num">Staked: <span>{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
+          <CountDown timestamp={mintLastDate}/>
+        </div>
+        
       }
      
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
@@ -193,7 +225,7 @@ export default function SignIn(props) {
         <TokenList showBalance={true}></TokenList>
       </Modal>
       {
-        !showNftList && showTokenContent && canMint &&
+        !showNftList && canMint &&
         <div className={`content ${detectMobile() ? 'content-client' : ''}`}>
           <div className="token-wrapper">
             <div className="token-detail">
@@ -213,7 +245,7 @@ export default function SignIn(props) {
             </div>
           </div>
           {
-            btnText !== 'Approve' && btnText !== 'APPROVE_ING' &&
+            btnText !== 'Approve' && btnText !== 'APPROVE_ING' && isAuthorization &&
             <div className="amount-wrapper quantity-wrapper">
               {
                 <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity} />
@@ -228,7 +260,7 @@ export default function SignIn(props) {
       {
         <div className="btn-wrapper">
           {
-            (showNftList || continueMint || !nftImageList.length) &&
+            (showNftList || continueMint || !nftImageList.length) && 
             <div className='btn btn-primary' onClick={buttonActions}>
               <span className={`${canSend ? 'send-allowed' : 'btn-default'}`}>{btnText}</span>
             </div>
@@ -393,6 +425,21 @@ background: #fff;
       width: 110px;
       background-color: rgba(0, 0, 0, 0.11);
     }
+  }
+}
+.stake-num {
+  margin-bottom: 10px;
+  font-size: 24px;
+  color: #FFCE00;
+  display: flex;
+  font-weight: bold;
+  align-items: center;
+  span {
+    margin-left: 4px
+  }
+  .symbol {
+    font-size: 16px;
+    margin-top: 7px;
   }
 }
 `
