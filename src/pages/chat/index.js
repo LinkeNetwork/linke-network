@@ -1352,7 +1352,7 @@ export default function Chat() {
         showTokenContent: false
       })
     }
-    setShowSignIn(true) 
+    setShowSignIn(true)
   }
   const handleOpenSign = async(tokenAddress) => {
     try {
@@ -1413,10 +1413,11 @@ export default function Chat() {
         continueMint: true
       })
     }
-   
-    const value = token === 'ETHF' ? ethers.utils.parseUnits(String(Number(quantity)), 18) : 0
-    console.log(Number(quantity), value, '====handleMint')
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity),{value: value})
+
+    const valueE = token === 'ETHF' ? ethers.utils.parseEther(quantity) : 0
+    console.log(Number(quantity), valueE, '====handleMint', "nftAddress", nftAddress)
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity),{value: valueE})
+
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
@@ -1532,7 +1533,7 @@ export default function Chat() {
       {
         <Modal title="Sign in" visible={showSignIn} onClose={handleCloseSignIn}>
           <div className="sign-in-wrapper">
-            <SignIn 
+            <SignIn
               showNftList={showNftList}
               handleMint={(num, token) => {handleMint(num, token)}}
               handleSelectNft={(id) => {handleSelectNft(id)}}
