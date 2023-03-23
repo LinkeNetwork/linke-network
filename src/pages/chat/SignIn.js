@@ -11,10 +11,11 @@ import useGlobal from "../../hooks/useGlobal"
 import UseTokenBalance from "../../hooks/UseTokenBalance"
 import { SIGN_IN_ABI } from '../../abi/index'
 import CountDown from "./CountDown"
+import { createClient } from 'urql'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
-  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, showTokenContent, signInClientInfo } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, networks } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
   const { handleMint, showNftList, nftImageList, handleSelectNft, handleEndStake, handleCheckIn } = props
   const [quantity, setQuantity] = useState('')
@@ -65,7 +66,11 @@ export default function SignIn(props) {
       }
     }
     `
-    const res = await signInClientInfo?.query(tokensQuery).toPromise()
+    const item = networks.filter(i=> i.symbol === getLocal('network'))[0]
+    const client = createClient({
+      url: item?.signInGraphUrl
+    })
+    const res = await client?.query(tokensQuery).toPromise()
     const data = res.data.registerUserInfos
     setStakedNum(ethers.utils.formatUnits(data[0].amount))
   }
