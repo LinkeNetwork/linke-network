@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import styled from "styled-components"
 import Web3 from 'web3'
+import intl from "react-intl-universal"
 import BigNumber from 'bignumber.js'
 import { Modal, Image } from "../../component/index"
 import { tokenListInfo } from '../../constant/tokenList'
@@ -15,7 +16,7 @@ import { createClient } from 'urql'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
-  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, networks } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, networks, hiddenCountDown } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
   const { handleMint, showNftList, nftImageList, handleSelectNft, handleEndStake, handleCheckIn } = props
   const [quantity, setQuantity] = useState('')
@@ -26,24 +27,24 @@ export default function SignIn(props) {
   const [tokenBalance, setTokenBalance] = useState('')
   const [tokenLogo, setTokenLogo] = useState('')
   const [canSend, setCanSend] = useState(false)
-  const [btnText, setBtnText] = useState('Mint')
-  const [text, setText] = useState('Quantity')
+  const [btnText, setBtnText] = useState(intl.get('Mint'))
+  const [text, setText] = useState(intl.get('Quantity'))
   const [mintLastDate, setMintLastDate] = useState()
   const [tokenId, setTokenId] = useState()
   const [showCountDown, setShowCountDown] = useState(false)
   const [stakedNum, setStakedNum] = useState()
   const buttonActions = (e) => {
     switch (e.target.innerText) {
-      case "Mint":
+      case intl.get('Mint'):
         handleContinueMint(quantity)
         break;
-      case "Approve":
+      case intl.get('Approve'):
         approveActions(selectedTokenInfo, 'signIn')
         break;
-      case "Check In":
+      case intl.get('CheckIn'):
         handleCheckIn(tokenId, quantity)
         break;
-      case "End Stake":
+      case intl.get('EndStake'):
         handleEndStake(quantity)
         break;
       default:
@@ -55,7 +56,7 @@ export default function SignIn(props) {
     {
       registerUserInfos(
         orderBy:lastDate,orderDirection:desc,
-        where: {sender: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress.toLowerCase()+`"}
+        where: {sender: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress?.toLowerCase()+`"}
       ) {
         id
         lastDate
@@ -72,7 +73,9 @@ export default function SignIn(props) {
     })
     const res = await client?.query(tokensQuery).toPromise()
     const data = res.data.registerUserInfos
-    setStakedNum(ethers.utils.formatUnits(data[0].amount))
+    if(data.length > 0) {
+      setStakedNum(ethers.utils.formatUnits(data[0].amount))
+    }
   }
   const handleContinueMint = async(quantity) => {
     setMintInfo()
@@ -93,7 +96,7 @@ export default function SignIn(props) {
     setMintLastDate(timestamp)
     const mintNum = ethers.utils.formatEther(res.amount)
     if(mintNum > 0) {
-      setText('Staking')
+      setText(intl.get('Staking'))
       setQuantity(mintNum)
     }
   }
@@ -128,7 +131,7 @@ export default function SignIn(props) {
     setIsAuthorization(authorization)
     if (!authorization) {
       setCanSend(true)
-      setBtnText('Approve')
+      setBtnText(intl.get('Approve'))
     }
 
   }
@@ -176,8 +179,8 @@ export default function SignIn(props) {
       if(+tokenBalance > 0) {
         setCanSend(true)
       }
-      setButtonText('Mint')
-      setBtnText('Mint')
+      setButtonText(intl.get('Mint'))
+      setBtnText(intl.get('Mint'))
     }
     setIsAuthorization(authorization)
   }, [authorization])
@@ -197,11 +200,11 @@ export default function SignIn(props) {
   useEffect(() => {
     if (approveLoading) {
       setCanSend(false)
-      setBtnText('APPROVE_ING')
+      setBtnText(intl.get('APPROVE_ING'))
     }
     if (swapButtonText) {
       setBtnText(swapButtonText)
-      if (swapButtonText === 'APPROVE_ING') {
+      if (swapButtonText === intl.get('APPROVE_ING')) {
         setCanSend(false)
       }
     }
@@ -219,14 +222,17 @@ export default function SignIn(props) {
       {
         showCountDown &&
         <div>
-          <div className="stake-num">Staked: <span>{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
+          {
+            !hiddenCountDown && 
+            <div className="stake-num">{intl.get('StakedAmount')}: <span>{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
+          }
           <CountDown timestamp={mintLastDate}/>
         </div>
         
       }
      
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
-        <div className="token-list-title">Choose Token</div>
+        <div className="token-list-title">{intl.get('SelectToken')}</div>
         <TokenList showBalance={true}></TokenList>
       </Modal>
       {
@@ -245,7 +251,7 @@ export default function SignIn(props) {
                 tokenLogo && <Image size={24} src={tokenLogo} style={{ 'borderRadius': '50%' }} />
               }
               {
-                !selectedToken ? <span>Select a Token</span> : <div className="name">{selectedToken}</div>
+                !selectedToken ? <span>{intl.get('SelectToken')}</span> : <div className="name">{selectedToken}</div>
               }
             </div>
           </div>
@@ -253,7 +259,7 @@ export default function SignIn(props) {
             btnText !== 'Approve' && btnText !== 'APPROVE_ING' && isAuthorization &&
             <div className="amount-wrapper quantity-wrapper">
               {
-                <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity} />
+                <input placeholder={intl.get('Enterquantity')} type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity} />
               }
               <span>{text}</span>
             </div>
@@ -274,13 +280,13 @@ export default function SignIn(props) {
           {
             !showNftList && nftImageList.length > 0 && !continueMint && canMint &&
             <div className='btn btn-primary' onClick={buttonActions}>
-              <span className={`btn-default ${canSend ? 'send-allowed' : ''}`}>Check In</span>
+              <span className={`btn-default ${canSend ? 'send-allowed' : ''}`}>{ intl.get('CheckIn') }</span>
             </div>
           }
           {
             !showNftList && nftImageList.length > 0 && !continueMint && canMint &&
             <div className='btn btn-light' onClick={buttonActions}>
-              <span className={`${canSend ? 'send-allowed' : ''}`}>End Stake</span>
+              <span className={`${canSend ? 'send-allowed' : ''}`}>{ intl.get('EndStake') }</span>
             </div>
           }
         </div>

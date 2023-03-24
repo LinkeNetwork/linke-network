@@ -35,7 +35,8 @@ const state = {
   hasOpenedSignIn: false,
   continueMint: false,
   canMint: false,
-  showTokenContent: false
+  showTokenContent: false,
+  hiddenCountDown: true
 }
 
 export default state

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import './chat.scss'
+import intl from "react-intl-universal"
 import 'emoji-mart/css/emoji-mart.css'
 import BigNumber from 'bignumber.js'
 import Loading from '../../component/Loading'
@@ -36,7 +37,7 @@ import useGlobal from '../../hooks/useGlobal'
 import SignIn from './SignIn'
 
 export default function Chat() {
-  const { collection, setDataBase } = useDataBase()
+  const { setDataBase } = useDataBase()
   const [collectedRedEnvelope, setCollectedRedEnvelope] = useState([])
   const history = useHistory()
   const { getReceiveInfo } = useReceiveInfo()
@@ -53,8 +54,7 @@ export default function Chat() {
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, signInClientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress, signInAddress} = useGlobal()
-  const [memberListInfo, setMemberListInfo] = useState([])
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress, signInAddress} = useGlobal()
   const [currentAddress, setCurrentAddress] = useState()
   const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
   const currentAddressRef = useRef(null)
@@ -338,6 +338,9 @@ export default function Chat() {
             _type: _type
           }
         ]
+        setState({
+          groupLists: [...roomInfo]
+        })
         setCurrentRoomName(name)
         setRoomList([...roomInfo])
       }
@@ -788,7 +791,7 @@ export default function Chat() {
     return encryptedMessage
   }
   const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {
-    const type_ = currentBonusType === 'Random Amount' ? 2 : 1
+    const type_ = currentBonusType === intl.get('RandomAmount') ? 2 : 1
     const address = giveAwayAddress
     const total = ethers.utils.parseUnits(String(totalAmount), tokenDecimals)
     console.log(totalAmount, total, '====handleSend')
@@ -901,7 +904,6 @@ export default function Chat() {
       let callback = await tx.wait()
       if (callback?.status === 1) {
         const index = chatList?.findIndex((item) => item.id.toLowerCase() == tx.hash.toLowerCase())
-        const sendIndex = memberListInfo?.findIndex((item) => item.id.toLowerCase() == tx.from.toLowerCase())
         chatList[index].isSuccess = true
         chatList[index].block = callback?.blockNumber
         chatList[index].isDecrypted = true
@@ -1321,7 +1323,7 @@ export default function Chat() {
     const tokensQuery = `
     {
       registerInfos(
-        where: {manager: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress.toLowerCase()+`"}
+        where: {manager: "`+ getLocal('account')?.toLowerCase() + `", register: "`+nftAddress?.toLowerCase()+`"}
       ) {
         id
         lastDate
@@ -1513,10 +1515,10 @@ export default function Chat() {
       }
       {
         showOpenAward &&
-        <Modal title="Open red envelope" visible={showOpenAward} onClose={() => { setShowOpenAward(false) }}>
+        <Modal title={intl.get('OpenRedEnvelope')} visible={showOpenAward} onClose={() => { setShowOpenAward(false) }}>
           <div className='btn-operate-award'>
-            <div className='btn btn-primary' onClick={handleOpenAward}>Open</div>
-            <div className='btn btn-light' onClick={() => { setShowOpenAward(false) }}>Cancel</div>
+            <div className='btn btn-primary' onClick={handleOpenAward}>{intl.get('Open')}</div>
+            <div className='btn btn-light' onClick={() => { setShowOpenAward(false) }}>{intl.get('Cancel')}</div>
           </div>
         </Modal>
       }
@@ -1531,7 +1533,7 @@ export default function Chat() {
         ></AwardBonus>
       }
       {
-        <Modal title="Sign in" visible={showSignIn} onClose={handleCloseSignIn}>
+        <Modal title={intl.get('CheckIn')} visible={showSignIn} onClose={handleCloseSignIn}>
           <div className="sign-in-wrapper">
             <SignIn
               showNftList={showNftList}
@@ -1546,7 +1548,7 @@ export default function Chat() {
       }
       {
         !detectMobile() &&
-        <Modal title="Award Bonus" visible={showAwardBonus} onClose={handleCloseAward}>
+        <Modal title={ intl.get('AwardBonus') } visible={showAwardBonus} onClose={handleCloseAward}>
           <AwardBonus
             handleCloseAward={() => { setShowAwardBonus(false) }}
             currentAddress={currentAddress}
@@ -1595,13 +1597,13 @@ export default function Chat() {
       {
 
         showJoinRoom &&
-        <Modal title="Start New Chat" visible={showJoinRoom} onClose={() => { setShowJoinRoom(false) }}>
+        <Modal title={intl.get('JoinInNewRoom')} visible={showJoinRoom} onClose={() => { setShowJoinRoom(false) }}>
           <JoinRooom getCurrentRoomInfo={(address) => getCurrentRoomInfo(address)} />
         </Modal>
       }
       {
         showCreateNewRoom &&
-        <Modal title="Create New Room" visible={showCreateNewRoom} onClose={() => { setShowCreateNewRoom(false) }}>
+        <Modal title={intl.get('CreateNewRoom')} visible={showCreateNewRoom} onClose={() => { setShowCreateNewRoom(false) }}>
           <CreateNewRoom createNewRoom={(address, name, currentGroupType) => createNewRoom(address, name, currentGroupType)} hiddenCreateInfo={() => { setShowCreateNewRoom(false) }} showGroupList={showGroupList}/>
         </Modal>
       }

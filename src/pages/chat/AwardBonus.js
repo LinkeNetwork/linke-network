@@ -2,23 +2,22 @@ import { useEffect, useRef, useState } from "react"
 import styled from "styled-components"
 import { Modal, Image }  from "../../component/index"
 import { NumericInput } from "numeric-keyboard"
-import { detectMobile, getDaiWithSigner } from "../../utils"
+import { detectMobile } from "../../utils"
 import TokenList from "./TokenList"
-import { ethers } from "ethers"
+import intl from "react-intl-universal"
 import useGlobal from "../../hooks/useGlobal"
 import UseTokenBalance from "../../hooks/UseTokenBalance"
-import { RED_PACKET } from '../../abi/index'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function AwardBonus(props) {
-  const { giveAwayAddress, swapButtonText, approveLoading, setButtonText } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
-  const { handleCloseAward, currentAddress, handleCloseMask, handleShowMask, handleGiveAway, handleSend } = props
+  const { handleCloseAward, handleSend } = props
   const [showBonusType, setShowBonusType] = useState(false)
   const [totalAmount, setTotalAmount] = useState()
   const [amount, setAmount] = useState()
   const [quantity, setQuantity] = useState('')
-  const [amountText, setAmountText] = useState('Total')
+  const [amountText, setAmountText] = useState(intl.get('Total'))
   const [clickNumber, setClickNumber] = useState(0)
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
@@ -28,19 +27,19 @@ export default function AwardBonus(props) {
   const [tokenLogo, setTokenLogo] = useState('')
   const [wishesText, setWishesText] = useState()
   const [canSend, setCanSend] = useState(false)
-  const [btnText, setBtnText] = useState('Send')
+  const [btnText, setBtnText] = useState(intl.get('Send'))
   const [tokenDecimals, setTokenDecimals] = useState()
   const amountRef = useRef()
   const BonusList = [
-    'Random Amount',
-    'Identical Amount'
+    intl.get('RandomAmount'),
+    intl.get('IdenticalAmount')
   ]
   const buttonActions = () => {
     switch (btnText) {
-      case "Send":
+      case intl.get('Send'):
         handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)
         break;
-      case "Approve":
+      case intl.get('Approve'):
         approveActions(selectedTokenInfo, 'envelope')
         break;
       default:
@@ -69,7 +68,6 @@ export default function AwardBonus(props) {
     setSelectTokenAddress(item.address)
     if(item.symbol === 'ETHF') return
     const authorization = await getAuthorization(item, 'envelope')
-    console.log(item,authorization, '===2=2221')
     if(!authorization) {
       setBtnText('Approve')
     }
@@ -84,14 +82,14 @@ export default function AwardBonus(props) {
     
   }
   useEffect(() => {
-    currentBonusType === 'Random Amount' ? setAmountText('Total') : setAmountText('Amount Each') 
-    if(currentBonusType === 'Identical Amount') {
+    currentBonusType === intl.get('RandomAmount') ? setAmountText(intl.get('Total')) : setAmountText(intl.get('AmountEach')) 
+    if(currentBonusType === intl.get('IdenticalAmount')) {
       if(totalAmount && quantity) {
         const amount = totalAmount/quantity < 1 ? (totalAmount/quantity).toFixed(2) : Math.floor((totalAmount/quantity) * 100)/100
         setAmount(amount)
       }
     }
-    if(currentBonusType === 'Random Amount') {
+    if(currentBonusType === intl.get('RandomAmount')) {
       const result = totalAmount
       if(result > 0) {
         setAmount(result)
@@ -99,7 +97,7 @@ export default function AwardBonus(props) {
     }
   }, [currentBonusType])
   useEffect(() => {
-    if(currentBonusType === 'Random Amount' && quantity && amount) {
+    if(currentBonusType === intl.get('RandomAmount') && quantity && amount) {
       setTotalAmount(amount)
     }
     if(!quantity || !amount) {
@@ -116,19 +114,18 @@ export default function AwardBonus(props) {
   useEffect(() => {
     if(authorization) {
       setCanSend(true)
-      setButtonText('Send')
-      setBtnText('Send')
+      setButtonText(intl.get('Send'))
+      setBtnText(intl.get('Send'))
     }
   }, [authorization])
   useEffect(() => {
-    console.log(approveLoading,swapButtonText, 'approveLoading=====>>>>')
     if(approveLoading) {
       setCanSend(false)
-      setBtnText('APPROVE_ING')
+      setBtnText(intl.get('APPROVE_ING'))
     }
     if(swapButtonText) {
       setBtnText(swapButtonText)
-      if(swapButtonText === 'APPROVE_ING') {
+      if(swapButtonText === intl.get('APPROVE_ING')) {
         setCanSend(false)
       }
     }
@@ -136,7 +133,7 @@ export default function AwardBonus(props) {
   return (
     <AwardBonusContanier>
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
-        <div className="token-list-title">Choose Token</div>
+        <div className="token-list-title">{intl.get('SelectToken')}</div>
         <TokenList selectToken={(item) => selectToken(item)} showBalance={true}></TokenList>
       </Modal>
       <Modal visible={showBonusType} onClose={() => setShowBonusType(false)} className={`modal bonus-type-modal ${detectMobile() ? 'modal-client' : ''}`}>
@@ -152,7 +149,7 @@ export default function AwardBonus(props) {
         detectMobile() && 
         <div className="header">
           <span className="iconfont icon-close" onClick={handleCloseAward}></span>
-          <span>Award Bonus</span>
+          <span>{ intl.get('AwardBonus') }</span>
           {/* <span className="iconfont icon-more"></span> */}
       </div>
       }
@@ -171,7 +168,7 @@ export default function AwardBonus(props) {
               tokenLogo && <Image size={24} src={tokenLogo} style={{ 'borderRadius': '50%'}} />
             }
             {
-              !selectedToken ?  <span>Select a Token</span> : <div className="name">{selectedToken}</div>
+              !selectedToken ?  <span>{ intl.get('SelectToken') }</span> : <div className="name">{selectedToken}</div>
             }
             <i className="iconfont icon-expand"></i>
           </div>
@@ -183,10 +180,10 @@ export default function AwardBonus(props) {
         <div className="amount-wrapper quantity-wrapper">
           {
             detectMobile() 
-            ? <NumericInput layout="tel" placeholder="Enter quantity" onInput={(key) => { handleQuantityInput(key) }} />
-            : <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity}/>
+            ? <NumericInput layout="tel" placeholder={ intl.get('Enterquantity') } onInput={(key) => { handleQuantityInput(key) }} />
+            : <input placeholder={ intl.get('Enterquantity') } type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity}/>
           }
-          <span><span className="iconfont icon-hongbao2"></span>Quantity</span>
+          <span><span className="iconfont icon-hongbao2"></span>{intl.get('Quantity')}</span>
         </div>
         <div className="amount-wrapper">
           {

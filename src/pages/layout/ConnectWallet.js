@@ -2,7 +2,6 @@ import styled from "styled-components"
 import useGlobal from "../../hooks/useGlobal"
 export default function ConnectWallet(props) {
   const { setState } = useGlobal()
-  // const { connectWallet } = props
   const connectWallet = () => {
     setState({
       showConnectNetwork: true
@@ -10,7 +9,7 @@ export default function ConnectWallet(props) {
   }
   return (
     <ConnectWalletContanier>
-      <span onClick={() => connectWallet()}>Connect to a wallet</span>
+      <span onClick={() => connectWallet()}>{intl.get('Connectwallet')}</span>
     </ConnectWalletContanier>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from "react"
-
+import intl from "react-intl-universal"
 export default function JoinRoom(props) {
   const {showTips, getCurrentRoomInfo} = props
   const [roomAddress,setRoomAddress] = useState()
@@ -11,7 +11,7 @@ export default function JoinRoom(props) {
   }
   return (
     <div>
-      <p>Enter an address (or .eth name) below to start a new chat</p>
+      <p>{intl.get('JoinInRoomTips')}</p>
       <div className="tips-wrapper">
         {
           showTips &&
@@ -23,13 +23,13 @@ export default function JoinRoom(props) {
         <input
           type="text"
           className="form-control form-control-lg"
-          placeholder="e.g. 0x... or yourname.eth"
+          placeholder={intl.get('JoinInRoomPlaceholder')}
           value={roomAddress}
           onChange={changeInput}
         />
       </div>
       <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={chatWithNewAddress}>
-        <i className="iconfont icon-liaotian me-1"></i>Start Chatting
+        <i className="iconfont icon-liaotian me-1"></i>{intl.get('StartChatting')}
       </button>
     </div>
   )

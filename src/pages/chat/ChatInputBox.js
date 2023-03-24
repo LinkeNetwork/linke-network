@@ -1,10 +1,10 @@
-import React, { Component, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Picker } from 'emoji-mart'
+import intl from "react-intl-universal"
 import { Modal, Loading } from '../../component/index'
 import { PUBLIC_GROUP_ABI, REGISTER_ABI } from '../../abi'
 import styled from "styled-components"
-import { ethers } from "ethers";
-import { detectMobile, getDaiWithSigner, getLocal } from '../../utils'
+import { detectMobile, getDaiWithSigner } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
 export default function ChatInputBox(props) {
@@ -16,7 +16,7 @@ export default function ChatInputBox(props) {
   const [showLoding, setShowLoding] = useState(false)
   const [editorBacker, setEditorBacker] = useState(null)
   const [textCounter, setTextCounter] = useState(null)
-  const [limitCnt, setLimitCnt] = useState(2048)
+  const limitCnt = 2048
   const [tokenAddress, setTokenAddress] = useState()
   const [isComposing, setIsComposing] = useState(false)
   const [chatText, setChatText] = useState()
@@ -264,12 +264,12 @@ export default function ChatInputBox(props) {
       }
       
       {
-        <Modal title="Open sign in" visible={showOpenSignIn} onClose={handleClose}>
+        <Modal title={intl.get('OpenCheckIn')} visible={showOpenSignIn} onClose={handleClose}>
           <div className="sign-in-wrapper">
             <OpenSignIn handleSelectedToken={(item) => {handleSelectedToken(item)}} />
             <div className='btn-operate-sign'>
-              <div className={`btn btn-primary ${!tokenAddress ? 'btn-not-allowed' : ''}`} onClick={handleOpenSignIn}>Open</div>
-              <div className='btn btn-light' onClick={() => { setShowOpenSignIn(false) }}>Cancel</div>
+              <div className={`btn btn-primary ${!tokenAddress ? 'btn-not-allowed' : ''}`} onClick={handleOpenSignIn}>{ intl.get('Open') }</div>
+              <div className='btn btn-light' onClick={() => { setShowOpenSignIn(false) }}>{ intl.get('Cancel') }</div>
             </div>
           </div>
         </Modal>

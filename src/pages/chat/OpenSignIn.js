@@ -3,6 +3,8 @@ import styled from "styled-components"
 import { Modal, Image }  from "../../component/index"
 import { detectMobile } from "../../utils"
 import TokenList from "./TokenList"
+import intl from "react-intl-universal"
+
 export default function OpenSign(props) {
   const { handleSelectedToken } = props
   const [showTokenList, setShowTokenList] = useState(false)
@@ -18,7 +20,7 @@ export default function OpenSign(props) {
   return (
     <OpenSignInContanier>
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
-        <div className="token-list-title">Choose Token</div>
+        <div className="token-list-title">{intl.get('SelectToken')}</div>
         <TokenList selectToken={(item) => selectToken(item)} showBalance={false}></TokenList>
       </Modal>
     
@@ -30,7 +32,7 @@ export default function OpenSign(props) {
               tokenLogo && <Image size={24} src={tokenLogo} style={{ 'borderRadius': '50%'}} />
             }
             {
-              !selectedToken ?  <span>Select a Token</span> : <div className="name">{selectedToken}</div>
+              !selectedToken ?  <span>{intl.get('SelectToken')}</span> : <div className="name">{selectedToken}</div>
             }
             <i className="iconfont icon-expand"></i>
           </div>

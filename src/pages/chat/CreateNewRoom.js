@@ -11,7 +11,7 @@ import Select from 'react-select'
 import Message from "../../component/Message"
 import { Buffer } from 'buffer/';
 import { useHistory } from 'react-router-dom'
-
+import intl from "react-intl-universal"
 const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
 const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
 const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
@@ -53,11 +53,11 @@ export default function CreateNewRoom(props) {
   const [transactionHash, setTransactionHash] = useState()
   const typeList = [
     {
-      label: 'Public Group',
+      label: intl.get('PublicGroup'),
       value: 4
     },
     {
-      label: 'Subscribe Group',
+      label: intl.get('SubscribeGroup'),
       value: 3
     },
   ]
@@ -187,8 +187,8 @@ export default function CreateNewRoom(props) {
       }
       <div className="form-content" style={{ height: `${contentHeight}` }}>
         <div className="form-wrap">
-          <legend className="name">Room Type
-            <span>Required</span>
+          <legend className="name">{intl.get('RoomType')}
+            <span>{intl.get('Required')}</span>
           </legend>
           <Select
             value={currentGroup}
@@ -210,8 +210,8 @@ export default function CreateNewRoom(props) {
           }
         </div>
         <div className="form-wrap">
-          <legend className="name">Name
-            <span>Required</span>
+          <legend className="name">{intl.get('RoomName')}
+            <span>{intl.get('Required')}</span>
           </legend>
           <input
             type="text"
@@ -230,7 +230,7 @@ export default function CreateNewRoom(props) {
           currentGroupType == 3 &&
           <div>
             <div className="form-wrap">
-              <legend className="name">Logo
+              <legend className="name">{intl.get('Logo')}
               </legend>
 
               {
@@ -252,7 +252,7 @@ export default function CreateNewRoom(props) {
               </div>
             </div>
             <div className="form-wrap">
-              <legend className="name">BackgroundColor
+              <legend className="name">{intl.get('BackgroundColor')}
               </legend>
               <input
                 type="color"
@@ -263,7 +263,7 @@ export default function CreateNewRoom(props) {
             </div>
             <div className="form-wrap">
               <div className="legend-wrapper">
-                <legend className="name">Footer Title
+                <legend className="name">{intl.get('FooterTitle')}
                 </legend>
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(1)}></span>
                 {
@@ -281,7 +281,7 @@ export default function CreateNewRoom(props) {
             </div>
             <div className="form-wrap">
               <div className="legend-wrapper">
-                <legend className="name">Footer Sub Title
+                <legend className="name">{intl.get('FooterSubTitle')}
                 </legend>
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(2)}></span>
                 {
@@ -299,7 +299,7 @@ export default function CreateNewRoom(props) {
             </div>
             <div className="form-wrap">
               <div className="legend-wrapper">
-                <legend className="name">Footer Tips
+                <legend className="name">{intl.get('FooterTips')}
                 </legend>
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(3)}></span>
                 {
@@ -318,7 +318,7 @@ export default function CreateNewRoom(props) {
           </div>
         }
         <div className="form-wrap">
-          <legend className="name">Describe
+          <legend className="name">{intl.get('GroupDescribe')}
           </legend>
           <textarea
             type="text"
@@ -331,7 +331,7 @@ export default function CreateNewRoom(props) {
       </div>
 
       <button className="submit-btn btn btn-lg btn-primary" onClick={() => handleCreate()}>
-        Create New Room
+        { intl.get('CreateNewRoom') }
       </button>
       {
         shoMask &&

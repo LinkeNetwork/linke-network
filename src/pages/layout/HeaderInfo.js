@@ -1,6 +1,7 @@
 import styled from "styled-components"
 import { useLocation } from 'react-router-dom'
 import Modal from '../../component/Modal'
+import intl from "react-intl-universal"
 import ConnectionInfo from '../chat/ConnectInfo'
 import { Jazzicon } from '@ukstv/jazzicon-react';
 import { detectMobile, formatAddress, getLocal } from '../../utils'
@@ -69,7 +70,7 @@ export default function HeaderInfo() {
       {
         showMenu && <Menu showMenu={showMenu} closeMenu={() => setShowMenu(false)}></Menu>
       }
-      <Modal title="Account" visible={showAccount} onClose={() => setShowAccount(false)}>
+      <Modal title={intl.get('Account')} visible={showAccount} onClose={() => setShowAccount(false)}>
         <ConnectionInfo account={accounts} handleDisconnect={() => handleDisconnect()} />
       </Modal>
       <Modal title="Connect Wallet" visible={showConnectWallet} onClose={() => setShowConnectWallet(false)}>

@@ -1,11 +1,12 @@
 import './index.scss'
 import { Link } from 'react-router-dom'
 import { useHistory } from 'react-router-dom'
-import { detectMobile, getLocal } from '../../utils'
+import { detectMobile } from '../../utils'
 import './index.scss'
 import Image from '../../component/Image'
 import homeIcon from '../../assets/images/linke.svg'
 import useGlobal from '../../hooks/useGlobal'
+import LanguageSwitch from '../layout/LanguageSwitch'
 export default function Nav(props) {
   const { setState , accounts} = useGlobal()
   const { hiddenMenuList, showMenulist } = props
@@ -60,6 +61,7 @@ export default function Nav(props) {
                 )
               })
             }
+            <li className='language-switch'><span>Language</span><LanguageSwitch/></li>
             <li className='home-icon-wrap'><Link to="/">
               <Image size={40} src={homeIcon} />
             </Link></li>
