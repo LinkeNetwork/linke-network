@@ -92,6 +92,12 @@
   "Connectwallet": "Connect to a wallet",
   "Disconnect": "Disconnect",
   "CopyAddress": "copy Address",
-  "Account": "Account"
+  "Account": "Account",
+  "StakedDuration": "Staked duration",
+  "Days": "days",
+  "Minutes": "minutes",
+  "Hours": "hours",
+  "Seconds": "seconds",
+  "Score": "Score"
 }
 

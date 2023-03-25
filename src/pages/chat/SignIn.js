@@ -13,6 +13,8 @@ import UseTokenBalance from "../../hooks/UseTokenBalance"
 import { SIGN_IN_ABI } from '../../abi/index'
 import CountDown from "./CountDown"
 import { createClient } from 'urql'
+import nftImage from '../../assets/images/nft.jpg'
+import CumulativeTime from './CumulativeTime'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
@@ -31,6 +33,7 @@ export default function SignIn(props) {
   const [text, setText] = useState(intl.get('Quantity'))
   const [mintLastDate, setMintLastDate] = useState()
   const [tokenId, setTokenId] = useState()
+  const [mintDate, setMintDate] = useState()
   const [showCountDown, setShowCountDown] = useState(false)
   const [stakedNum, setStakedNum] = useState()
   const buttonActions = (e) => {
@@ -51,7 +54,7 @@ export default function SignIn(props) {
         return null;
     }
   }
-  const getStakedNum = async () => {
+  const getStakedInfo = async () => {
     const tokensQuery = `
     {
       registerUserInfos(
@@ -74,6 +77,7 @@ export default function SignIn(props) {
     const res = await client?.query(tokensQuery).toPromise()
     const data = res.data.registerUserInfos
     if(data.length > 0) {
+      setMintDate(data[0].lastDate)
       setStakedNum(ethers.utils.formatUnits(data[0].amount))
     }
   }
@@ -87,7 +91,7 @@ export default function SignIn(props) {
     }
   }
   const setMintInfo = async() => {
-    getStakedNum()
+    getStakedInfo()
     setState({
       continueMint: false
     })
@@ -154,7 +158,9 @@ export default function SignIn(props) {
             nftImageList.map((item, index) => {
               return (
                 <li key={index} onClick={() => handleChooseNft(item)}>
-                  <span>NFT</span>
+                  <div className="nft-wrapper">
+                    <Image src={nftImage} size={120} alt="" />
+                  </div>
                   <div>#{item.tokenId}</div>
                 </li>
               )
@@ -198,6 +204,9 @@ export default function SignIn(props) {
     }
   }, [nftImageList])
   useEffect(() => {
+    getStakedInfo()
+  }, [nftAddress]) 
+  useEffect(() => {
     if (approveLoading) {
       setCanSend(false)
       setBtnText(intl.get('APPROVE_ING'))
@@ -217,14 +226,22 @@ export default function SignIn(props) {
   return (
     <SignInWrapper>
       {
-        showNftList && nftList()
+        showNftList && 
+        <div>
+          <div className="stake-num">{intl.get('StakedAmount')}: <span className="num">{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
+          <div className="staked-duration">{intl.get('StakedDuration')}:<CumulativeTime timestamp={mintDate}/></div>
+          <div className="score-wrapper">
+          {intl.get('Score')}:<span></span>
+          </div>
+          { nftList() }
+        </div>
       }
       {
         showCountDown &&
         <div>
           {
             !hiddenCountDown && 
-            <div className="stake-num">{intl.get('StakedAmount')}: <span>{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
+            <div className="stake-num">{intl.get('StakedAmount')}: <span className="num">{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
           }
           <CountDown timestamp={mintLastDate}/>
         </div>
@@ -427,30 +444,27 @@ background: #fff;
     animation: 1.5s ease-in-out 0.5s infinite normal none running animation-c7515d;
     background: #f6f6f6;
     border: 1px solid #ececec;
-    span {
+  }
+  .nft-wrapper {
+    div {
       border-radius: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 110px;
-      width: 110px;
-      background-color: rgba(0, 0, 0, 0.11);
     }
   }
 }
 .stake-num {
   margin-bottom: 10px;
-  font-size: 24px;
-  color: #FFCE00;
+  font-size: 16px;
   display: flex;
-  font-weight: bold;
   align-items: center;
-  span {
-    margin-left: 4px
+  .num {
+    color: #FFCE00;
+    font-weight: bold;
+    margin-left: 10px;
+    font-size: 20px;
   }
   .symbol {
-    font-size: 16px;
-    margin-top: 7px;
+    font-size: 14px;
+    margin: 2px 0 0 4px;
   }
 }
 `

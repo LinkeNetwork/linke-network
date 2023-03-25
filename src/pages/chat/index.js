@@ -1531,7 +1531,7 @@ export default function Chat() {
         ></AwardBonus>
       }
       {
-        <Modal title={intl.get('CheckIn')} visible={showSignIn} onClose={handleCloseSignIn}>
+        <Modal title={intl.get('CheckIn')} visible={showSignIn} onClose={handleCloseSignIn} style={{width: 460}}>
           <div className="sign-in-wrapper">
             <SignIn
               showNftList={showNftList}

@@ -89,5 +89,11 @@
   "Connectwallet": "連接錢包",
   "Disconnect": "斷開連接",
   "CopyAddress": "複製地址",
-  "Account": "賬號"
+  "Account": "賬號",
+  "StakedDuration": "質押時長",
+  "Days": "天",
+  "Minutes": "分",
+  "Hours": "時",
+  "Seconds": "秒",
+  "Score": "積分"
 }

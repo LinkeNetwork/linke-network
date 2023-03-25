@@ -831,6 +831,13 @@ ul.dropdown-menu {
 .count-down-tips {
   margin-bottom: 10px;
 }
+.staked-duration {
+  display: flex;
+  .cumulative-time {
+    margin-left: 10px;
+    font-weight: bold;
+  }
+}
 .red-packet-wrap {
   padding: 0.5rem 0.75rem;
   border-radius: 1rem;
