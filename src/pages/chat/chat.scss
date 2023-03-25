@@ -834,9 +834,15 @@ ul.dropdown-menu {
 .staked-duration {
   align-items: baseline;
   display: flex;
+  .name {
+    width: 70px;
+  }
   .cumulative-time {
     margin-left: 10px;
     font-weight: bold;
+    .name {
+      width: 70px;
+    }
   }
 }
 .red-packet-wrap {

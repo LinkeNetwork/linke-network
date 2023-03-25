@@ -99,6 +99,7 @@
   "Hours": "hours",
   "Seconds": "seconds",
   "Score": "Score",
-  "OneDayTips": "One day until the next pledge"
+  "OneDayTips": "One day until the next pledge",
+  "CancelCheckIN": "Cancel Check IN"
 }
 

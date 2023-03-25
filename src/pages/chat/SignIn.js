@@ -20,22 +20,26 @@ const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
   const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, networks, hiddenCountDown } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
-  const { handleMint, showNftList, nftImageList, handleSelectNft, handleEndStake, handleCheckIn } = props
+  const { handleMint, showNftList, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin } = props
   const [quantity, setQuantity] = useState('')
   const [isAuthorization, setIsAuthorization] = useState(false)
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
   const [selectedTokenInfo, setSelectedTokenInfo] = useState('')
   const [tokenBalance, setTokenBalance] = useState('')
+  const [selectTokenId, setSelectTokenId] = useState()
   const [tokenLogo, setTokenLogo] = useState('')
   const [canSend, setCanSend] = useState(false)
   const [btnText, setBtnText] = useState(intl.get('Mint'))
   const [text, setText] = useState(intl.get('Quantity'))
   const [mintLastDate, setMintLastDate] = useState()
+  const [score, setScore] = useState()
   const [tokenId, setTokenId] = useState()
   const [mintDate, setMintDate] = useState()
   const [showCountDown, setShowCountDown] = useState(false)
   const [stakedNum, setStakedNum] = useState()
+  const [cancelTime, setCancelTime] = useState()
+  const [isCancel, setIsCancel] = useState(false)
   const buttonActions = (e) => {
     switch (e.target.innerText) {
       case intl.get('Mint'):
@@ -50,6 +54,9 @@ export default function SignIn(props) {
       case intl.get('EndStake'):
         handleEndStake(quantity)
         break;
+      case intl.get('CancelCheckIN'):
+        handleCancelCheckin()
+        break;
       default:
         return null;
     }
@@ -57,13 +64,19 @@ export default function SignIn(props) {
   const getStakedInfo = async () => {
     const account = getLocal('account').toLowerCase()
     const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
-    const {lastDate, tokenId} = registerUserInfos
+    const {lastDate, tokenId, amount, cancelDate} = registerUserInfos
+    const userAmount = ethers.utils.formatEther(amount)
     const tokenId_ = (new BigNumber(Number(tokenId))).toNumber()
     const registerInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId_)
-    
+    setSelectTokenId(tokenId_)
     const timestamp = formatTimestamp(lastDate)
+    const cancelTime = formatTimestamp(cancelDate)
+    setCancelTime(cancelTime)
+    setIsCancel(cancelTime>0)
+    const score = (new BigNumber(Number(registerInfos.score))).toNumber()
+    setScore(score)
     
-    console.log(registerInfos,'registerInfos======')
+    console.log(cancelDate, cancelTime>0, cancelTime,'registerInfos======')
     // const tokensQuery = `
     // {
     //   registerUserInfos(
@@ -87,7 +100,7 @@ export default function SignIn(props) {
     // const data = res.data.registerUserInfos
     if(registerInfos.length > 0) {
       setMintDate(timestamp)
-      setStakedNum(ethers.utils.formatUnits(registerInfos.amount))
+      setStakedNum(userAmount)
     }
   }
   const handleContinueMint = async(quantity) => {
@@ -180,6 +193,11 @@ export default function SignIn(props) {
     )
   }
   useEffect(() => {
+    if(+stakedNum > 0) {
+      setBtnText(intl.get('CancelCheckIN'))
+    }
+  }, [stakedNum])
+  useEffect(() => {
     if (quantity > 0 && quantity <= tokenBalance) {
       setCanSend(true)
     } else {
@@ -235,15 +253,24 @@ export default function SignIn(props) {
   return (
     <SignInWrapper>
       {
-        showNftList && 
+        showNftList && !isCancel &&
         <div>
-          <div className="stake-num">{intl.get('StakedAmount')}: <span className="num">{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
-          <div className="staked-duration">{intl.get('StakedDuration')}:<CumulativeTime timestamp={mintDate}/></div>
+          <div className="stake-num"><span className="name">{intl.get('StakedAmount')}:</span><span className="num">{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
+          <div className="staked-duration"><span className="name">{intl.get('StakedDuration')}:</span><CumulativeTime timestamp={mintDate}/></div>
           {/* <CountDown timestamp={mintLastDate}/> */}
           <div className="score-wrapper">
-          {intl.get('Score')}:<span></span>
+          <span className="name">{intl.get('Score')}:</span><span className="score">{score}</span>
           </div>
-          { nftList() }
+          {/* { nftList() } */}
+          <div className="list-wrapper">
+            <div className="list-item">
+              <div className="nft-wrapper">
+                <Image src={nftImage} size={120} alt="" />
+              </div>
+              <div>#{selectTokenId}</div>
+            </div>
+          </div>
+
         </div>
       }
       {
@@ -326,6 +353,17 @@ const SignInWrapper = styled.div`
 height: 100%;
 width: 100%;
 background: #fff;
+.score-wrapper {
+  display: flex;
+  margin: 15px 0;
+  .name {
+    margin-right: 10px;
+    width: 70px;
+  }
+  .score {
+    font-weight: bold;
+  }
+}
 .amount-wrapper, .token-wrapper {
   justify-content: space-between;
   background: #f6f6f6;
@@ -442,7 +480,7 @@ background: #fff;
   margin-bottom: 20px;
   flex-wrap: wrap;
   justify-content: center;
-  li {
+  li, .list-item {
     cursor: pointer;
     flex-direction: column;
     align-items: center;

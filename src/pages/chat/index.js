@@ -1305,6 +1305,14 @@ export default function Chat() {
       showOpen: false
     })
   }
+  const handleCancelCheckin = async() => {
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).cancelCheckin()
+    console.log(tx, 'handleCancelCheckin==')
+    setShowSignIn(false)
+    setShowMask(true)
+    await tx.wait()
+    setShowMask(false)
+  }
   const handleOpenAward = async() => {
     setShowOpenAward(false)
     const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).register(currentAddress)
@@ -1338,8 +1346,9 @@ export default function Chat() {
       url: item?.signInGraphUrl
     })
     const res = await client?.query(tokensQuery).toPromise()
+    console.log(res, '====>>.')
     const registerNftInfos = res?.data?.registerInfos
-    setShowNftList(Boolean(registerNftInfos.length))
+    setShowNftList(Boolean(registerNftInfos?.length))
     setNftImageList(res.data.registerInfos)
     if(!registerNftInfos.length) {
       setState({
@@ -1539,6 +1548,7 @@ export default function Chat() {
               handleSelectNft={(id) => {handleSelectNft(id)}}
               nftImageList={nftImageList}
               handleCheckIn={(id, num) => {handleCheckIn(id, num)}}
+              handleCancelCheckin={handleCancelCheckin}
               handleEndStake={(num) => {handleEndStake(num)}}
             />
           </div>
