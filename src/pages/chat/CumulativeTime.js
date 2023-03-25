@@ -1,44 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import useGlobal from '../../hooks/useGlobal';
-import intl from "react-intl-universal"
+import React, { useState, useEffect } from "react";
+import intl from 'react-intl-universal'
 
-function CumulativeTime({ timestamp }) {
-  const [count, setCount] = useState(0);
-  const { setState } = useGlobal()
-  const seconds = Math.floor((count / 1000) % 60);
-  const minutes = Math.floor((count / 1000 / 60) % 60);
-  const hours = Math.floor((count / (1000 * 60 * 60)) % 24);
-  const days = Math.floor(count / (1000 * 60 * 60 * 24));
+const CumulativeTime = ({timestamp}) => {
+  const firstTimestamp = timestamp;
+  const firstDate = new Date(firstTimestamp * 1000);
+
+  const [remainingTime, setRemainingTime] = useState({});
+
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      const now = Date.now();
-      const distance = now - timestamp * 1000;
-      if (distance < 0) {
-        clearInterval(intervalId);
-        setCount(0);
-        setState({
-          canMint: true,
-          showTokenContent: true
-        })
-      } else {
-        setState({
-          showTokenContent: false,
-          canMint: false
-        })
-        setCount(distance);
-      }
+    const interval = setInterval(() => {
+      const now = new Date();
+      const timeDifference = now - firstDate;
+
+      const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+      const nextDay = new Date(firstDate);
+      nextDay.setDate(firstDate.getDate() + days + 1);
+      const remaining = nextDay - now;
+
+      const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+      setRemainingTime({ days, hours, minutes, seconds });
     }, 1000);
 
-    return () => clearInterval(intervalId);
-  }, [timestamp]);
+    return () => clearInterval(interval);
+  }, [firstDate]);
+
   return (
-    <div className='cumulative-time'>
-      {
-         <span>{days}{intl.get('Days')}</span>
-      }
-        {hours}{intl.get('Hours')}{minutes < 10 ? `0${minutes}`:minutes }{intl.get('Minutes')}{seconds < 10 ? `0${seconds}`:seconds }{intl.get('Seconds')}
+    <div className="cumulative-time">
+      <p>{remainingTime.days} {intl.get('Days')}</p>
+      <p>{intl.get('OneDayTips')}</p>
+      <div>{remainingTime.hours} {intl.get('Hours')} {remainingTime.minutes} {intl.get('Minutes')} {remainingTime.seconds} {intl.get('Seconds')}</div>
     </div>
   );
-}
+};
 
-export default CumulativeTime
+export default CumulativeTime;

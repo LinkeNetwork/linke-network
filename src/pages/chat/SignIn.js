@@ -55,30 +55,39 @@ export default function SignIn(props) {
     }
   }
   const getStakedInfo = async () => {
-    const tokensQuery = `
-    {
-      registerUserInfos(
-        orderBy:lastDate,orderDirection:desc,
-        where: {sender: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress?.toLowerCase()+`"}
-      ) {
-        id
-        lastDate
-        count
-        tokenId
-        amount
-        register
-      }
-    }
-    `
-    const item = networks.filter(i=> i.symbol === getLocal('network'))[0]
-    const client = createClient({
-      url: item?.signInGraphUrl
-    })
-    const res = await client?.query(tokensQuery).toPromise()
-    const data = res.data.registerUserInfos
-    if(data.length > 0) {
-      setMintDate(data[0].lastDate)
-      setStakedNum(ethers.utils.formatUnits(data[0].amount))
+    const account = getLocal('account').toLowerCase()
+    const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
+    const {lastDate, tokenId} = registerUserInfos
+    const tokenId_ = (new BigNumber(Number(tokenId))).toNumber()
+    const registerInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId_)
+    
+    const timestamp = formatTimestamp(lastDate)
+    
+    console.log(registerInfos,'registerInfos======')
+    // const tokensQuery = `
+    // {
+    //   registerUserInfos(
+    //     orderBy:lastDate,orderDirection:desc,
+    //     where: {sender: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress?.toLowerCase()+`"}
+    //   ) {
+    //     id
+    //     lastDate
+    //     count
+    //     tokenId
+    //     amount
+    //     register
+    //   }
+    // }
+    // `
+    // const item = networks.filter(i=> i.symbol === getLocal('network'))[0]
+    // const client = createClient({
+    //   url: item?.signInGraphUrl
+    // })
+    // const res = await client?.query(tokensQuery).toPromise()
+    // const data = res.data.registerUserInfos
+    if(registerInfos.length > 0) {
+      setMintDate(timestamp)
+      setStakedNum(ethers.utils.formatUnits(registerInfos.amount))
     }
   }
   const handleContinueMint = async(quantity) => {
@@ -230,6 +239,7 @@ export default function SignIn(props) {
         <div>
           <div className="stake-num">{intl.get('StakedAmount')}: <span className="num">{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
           <div className="staked-duration">{intl.get('StakedDuration')}:<CumulativeTime timestamp={mintDate}/></div>
+          {/* <CountDown timestamp={mintLastDate}/> */}
           <div className="score-wrapper">
           {intl.get('Score')}:<span></span>
           </div>
