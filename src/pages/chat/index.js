@@ -89,7 +89,6 @@ export default function Chat() {
   const roomListRef = useRef()
   const [clearChatInput, setClearChatInput] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const [chatListStatus, setChatListStatus] = useState(new Map())
   const [sendSuccess, setSendSuccess] = useState(false)
   const [dialogType, setDialogType] = useState()
   const [currentTabIndex, setCurrentTabIndex] = useState(0)
@@ -514,7 +513,6 @@ export default function Chat() {
       currentAddress: address
     })
     setChatList([])
-    setChatListStatus(new Map())
     setShowMask(false)
     setCurrentRoomName(name)
     setShowCreateNewRoom(false)

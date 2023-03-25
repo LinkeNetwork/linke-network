@@ -1,9 +1,9 @@
-import { detectMobile, formatAddress, getDaiWithSigner, getLocal, toThousands } from "../../utils"
+import { detectMobile, formatAddress, getDaiWithSigner, getLocal } from "../../utils"
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import BigNumber from 'bignumber.js'
 import networks from '../../context/networks'
 import { PROFILE_ABI } from '../../abi/index'
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { useHistory } from 'react-router-dom'
 import Image from "../../component/Image"
@@ -15,12 +15,10 @@ import { tokenListInfo } from '../../constant/tokenList'
 import { ethers } from "ethers"
 export default function ChatContext(props) {
   var numeral = require('numeral')
-  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive} = props
+  const { hasMore, chatList, currentAddress, shareInfo, loadingData, currentTabIndex, handleDecryptedMessage, handleReceive} = props
   const { setState, clientInfo } = useGlobal()
-  const [showViewBtn, setShowViewBtn] = useState(false)
   const [showOperate, setShowOperate] = useState(false)
   const [selectText, setSelectText] = useState('')
-  const [messagesEnd, setMessagesEnd] = useState(null)
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
   const [profileId, setProfileId] = useState()

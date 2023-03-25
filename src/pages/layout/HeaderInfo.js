@@ -26,6 +26,7 @@ export default function HeaderInfo() {
   const [showConnectWallet, setShowConnectWallet] = useState(false)
   const [showHomeHeader, setShowHomeHeader] = useState(true)
   const [showMenulist, setShowMenulist] = useState(false)
+  const isConnect = (+getLocal('isConnect'))
   const selectNetwrok = (item) => {
     switch(item.name) {
       case 'MetaX':
@@ -34,6 +35,8 @@ export default function HeaderInfo() {
       case 'MetaMask':
         changeNetwork(item.network)
         break;
+      default:
+        console.log('Unknown')
     }
     setShowConnectWallet(false)
   }
@@ -49,16 +52,16 @@ export default function HeaderInfo() {
       setShowConnectWallet(true)
     }
     setShowHomeHeader(locations.pathname !== '/')
-  }, [locations.pathname, showConnectNetwork, getLocal('isConnect')])
+  }, [locations, showConnectNetwork, isConnect])
   useEffect(() => {
-    const isShare = locations.search.split('share=')[1] || locations?.state?.share
+    const isShare = locations?.search.split('share=')[1] || locations?.state?.share
     if(Boolean(isShare)) {
       setState({
         showHeader: false
       })
       setShowHomeHeader(false)
     }
-  }, [locations?.search])
+  }, [locations, setState])
   useEffect(() => {
     let data = locations?.state?.share
     if (data) {
