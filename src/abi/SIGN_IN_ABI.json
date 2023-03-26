@@ -155,12 +155,6 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "count",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
         "name": "lastDate",
         "type": "uint256"
       }
@@ -344,11 +338,6 @@
           },
           {
             "internalType": "uint256",
-            "name": "amount",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
             "name": "count",
             "type": "uint256"
           },
@@ -390,11 +379,6 @@
           },
           {
             "internalType": "uint256",
-            "name": "count",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
             "name": "lastDate",
             "type": "uint256"
           },
@@ -407,6 +391,19 @@
         "internalType": "struct IRegister.RegisterUserInfo",
         "name": "",
         "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getVersion",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -572,11 +569,6 @@
       },
       {
         "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
         "name": "count",
         "type": "uint256"
       },
@@ -607,11 +599,6 @@
       {
         "internalType": "uint256",
         "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "count",
         "type": "uint256"
       },
       {
@@ -802,6 +789,19 @@
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "version",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
