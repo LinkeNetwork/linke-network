@@ -1311,6 +1311,9 @@ export default function Chat() {
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
+    setState({
+      isCancelCheckIn: true
+    })
     setShowMask(false)
   }
   const handleOpenAward = async() => {

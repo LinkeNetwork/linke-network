@@ -36,7 +36,8 @@ const state = {
   continueMint: false,
   canMint: false,
   showTokenContent: false,
-  hiddenCountDown: true
+  hiddenCountDown: true,
+  isCancelCheckIn: false
 }
 
 export default state

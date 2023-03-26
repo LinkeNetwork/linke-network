@@ -64,8 +64,13 @@ export default function SignIn(props) {
   const getStakedInfo = async () => {
     const account = getLocal('account').toLowerCase()
     const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
+    console.log(registerUserInfos, registerUserInfos.length, 'registerUserInfos====')
     const {lastDate, tokenId, amount, cancelDate} = registerUserInfos
     const userAmount = ethers.utils.formatEther(amount)
+    console.log(+userAmount,  +userAmount> 0, 'userAmount====')
+    setState({
+      canMint: !(+userAmount)
+    })
     const tokenId_ = (new BigNumber(Number(tokenId))).toNumber()
     const registerInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId_)
     setSelectTokenId(tokenId_)
@@ -73,10 +78,14 @@ export default function SignIn(props) {
     const cancelTime = formatTimestamp(cancelDate)
     setCancelTime(cancelTime)
     setIsCancel(cancelTime>0)
+    setState({
+      isCancelCheckIn: cancelTime>0
+    })
     const score = (new BigNumber(Number(registerInfos.score))).toNumber()
     setScore(score)
+    setShowCountDown(true)
     
-    console.log(cancelDate, cancelTime>0, cancelTime,'registerInfos======')
+    // console.log(cancelTime, cancelTime>0, cancelTime,'registerInfos======')
     // const tokensQuery = `
     // {
     //   registerUserInfos(
@@ -280,7 +289,7 @@ export default function SignIn(props) {
             !hiddenCountDown && 
             <div className="stake-num">{intl.get('StakedAmount')}: <span className="num">{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
           }
-          <CountDown timestamp={mintLastDate}/>
+          <CountDown timestamp={cancelTime}/>
         </div>
         
       }
@@ -325,7 +334,7 @@ export default function SignIn(props) {
       {
         <div className="btn-wrapper">
           {
-            (showNftList || continueMint || !nftImageList.length) && 
+            (showNftList || continueMint || !nftImageList.length) && !isCancel &&
             <div className='btn btn-primary' onClick={buttonActions}>
               <span className={`${canSend ? 'send-allowed' : 'btn-default'}`}>{btnText}</span>
             </div>

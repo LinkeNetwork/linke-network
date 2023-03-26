@@ -1,5 +1,6 @@
 import './index.scss'
 import { Link } from 'react-router-dom'
+import intl from "react-intl-universal"
 import { useHistory } from 'react-router-dom'
 import { detectMobile } from '../../utils'
 import './index.scss'
@@ -15,12 +16,12 @@ export default function Nav(props) {
   const navList = [
     {
       icon: 'icon-group',
-      name: 'Chat',
+      name: intl.get('Chat'),
       path: '/chat',
     },
     {
       icon: 'icon-view-profile',
-      name: 'Profile',
+      name: intl.get('Profile'),
       path: '/profile'
     }
   ]

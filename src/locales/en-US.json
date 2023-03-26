@@ -100,6 +100,10 @@
   "Seconds": "seconds",
   "Score": "Score",
   "OneDayTips": "One day until the next pledge",
-  "CancelCheckIN": "Cancel Check IN"
+  "CancelCheckIN": "Cancel Check IN",
+  "Chat": "Chat",
+  "Profile": "Profile",
+  "Group": "Group",
+  "Private": "Private"
 }
 

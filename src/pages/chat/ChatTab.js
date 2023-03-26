@@ -1,8 +1,9 @@
 import styled from "styled-components"
+import intl from "react-intl-universal"
 
 export default function ChatTab(props) {
   const { changeChatType, currentTabIndex } = props
-  const tabList = ['Group', 'Private']
+  const tabList = [intl.get('Group'), intl.get('Private')]
   return (
     <ChatTabContainer>
       <ul>

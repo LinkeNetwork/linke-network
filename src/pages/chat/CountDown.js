@@ -37,7 +37,6 @@ function CountDown({ timestamp }) {
     setState({
       hiddenCountDown: !(seconds > 0)
     })
-    console.log(seconds, 'seconds====')
   }, [seconds])
   return (
     
@@ -45,7 +44,7 @@ function CountDown({ timestamp }) {
       {
         seconds > 0 &&
         <div>
-          <div className="count-down-tips">{intl.get('StakedTips')}，{intl.get('UnlockTime')}</div>
+          <div className="count-down-tips">{intl.get('UnlockTime')}</div>
           <h1 className='count-down'> {hours}:{minutes < 10 ? `0${minutes}`:minutes }:{seconds < 10 ? `0${seconds}`:seconds }</h1>
         </div>
       }

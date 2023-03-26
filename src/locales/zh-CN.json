@@ -97,5 +97,9 @@
   "Seconds": "秒",
   "Score": "積分",
   "OneDayTips": "距質押一天，還剩",
-  "CancelCheckIN": "取消打卡"
+  "CancelCheckIN": "取消打卡",
+  "Chat": "聊天",
+  "Profile": "個人資料",
+  "Group": "群組",
+  "Private": "私信"
 }
