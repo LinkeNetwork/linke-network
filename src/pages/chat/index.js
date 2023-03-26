@@ -549,7 +549,8 @@ export default function Chat() {
       getManager(item.id, item._type)
       handleReadMessage(item.id)
       getJoinRoomAccess(item.id, item._type)
-      history.push(`/chat/${item.id}/${getLocal('network')}`)
+      // history.push(`/chat/${item.id}/${getLocal('network')}`)
+      history.push(`/chat`)
     }
     setShowChat(true)
     if (detectMobile()) {

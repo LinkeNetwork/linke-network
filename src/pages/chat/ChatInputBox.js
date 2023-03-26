@@ -196,7 +196,7 @@ export default function ChatInputBox(props) {
   }
   const sendText = () => {
     if (!canSendMessage) return
-    setChatText('')
+    // setChatText('')
     setIsClickSend(true)
     startChat(chatText)
   }
@@ -211,7 +211,7 @@ export default function ChatInputBox(props) {
     })
     handleSignIn(tx.nft)
   }
-  const clearInput = () => { 
+  const clearInput = () => {
     var editorArea = document.querySelector('.editor-area')
     var counter = document.querySelector('.counter')
     if (isClickSend) {
@@ -248,7 +248,7 @@ export default function ChatInputBox(props) {
   useEffect(() => {
     if(hasOpenedSignIn) {
       setShowOpenSignIn(false)
-    } 
+    }
   }, [hasOpenedSignIn])
   useEffect(() => {
     initClientHeight()
@@ -262,7 +262,7 @@ export default function ChatInputBox(props) {
       {
         showLoding && <Loading></Loading>
       }
-      
+
       {
         <Modal title={intl.get('OpenCheckIn')} visible={showOpenSignIn} onClose={handleClose}>
           <div className="sign-in-wrapper">
