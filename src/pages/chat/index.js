@@ -1386,8 +1386,9 @@ export default function Chat() {
       console.error(error, 'handleOpenSign')
     }
   }
-  const handleEndStake = async() => {
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receive()
+  const handleEndStake = async(status) => {
+    if(status) return
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receives()
     console.log(tx, '===handleEndStake=')
     setShowSignIn(false)
     setShowMask(true)
@@ -1544,7 +1545,7 @@ export default function Chat() {
         ></AwardBonus>
       }
       {
-        <Modal title={intl.get('CheckIn')} visible={showSignIn} onClose={handleCloseSignIn} style={{width: 460}}>
+        <Modal title={intl.get('CheckIn')} visible={showSignIn} onClose={handleCloseSignIn}>
           <div className="sign-in-wrapper">
             <SignIn
               showNftList={showNftList}
@@ -1553,7 +1554,7 @@ export default function Chat() {
               nftImageList={nftImageList}
               handleCheckIn={(id, num) => {handleCheckIn(id, num)}}
               handleCancelCheckin={handleCancelCheckin}
-              handleEndStake={(num) => {handleEndStake(num)}}
+              handleEndStake={(status) => {handleEndStake(status)}}
             />
           </div>
         </Modal>

@@ -12,15 +12,14 @@ import useGlobal from "../../hooks/useGlobal"
 import UseTokenBalance from "../../hooks/UseTokenBalance"
 import { SIGN_IN_ABI } from '../../abi/index'
 import CountDown from "./CountDown"
-import { createClient } from 'urql'
 import nftImage from '../../assets/images/nft.jpg'
 import CumulativeTime from './CumulativeTime'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
-  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, networks, hiddenCountDown } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
-  const { handleMint, showNftList, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin } = props
+  const { handleMint, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin } = props
   const [quantity, setQuantity] = useState('')
   const [isAuthorization, setIsAuthorization] = useState(false)
   const [showTokenList, setShowTokenList] = useState(false)
@@ -36,10 +35,10 @@ export default function SignIn(props) {
   const [score, setScore] = useState()
   const [tokenId, setTokenId] = useState()
   const [mintDate, setMintDate] = useState()
-  const [showCountDown, setShowCountDown] = useState(false)
   const [stakedNum, setStakedNum] = useState()
   const [cancelTime, setCancelTime] = useState()
   const [isCancel, setIsCancel] = useState(false)
+  const [endStack, setEndStack] = useState(false)
   const buttonActions = (e) => {
     switch (e.target.innerText) {
       case intl.get('Mint'):
@@ -52,7 +51,7 @@ export default function SignIn(props) {
         handleCheckIn(tokenId, quantity)
         break;
       case intl.get('EndStake'):
-        handleEndStake(quantity)
+        handleEndStake(endStack)
         break;
       case intl.get('CancelCheckIN'):
         handleCancelCheckin()
@@ -64,10 +63,9 @@ export default function SignIn(props) {
   const getStakedInfo = async () => {
     const account = getLocal('account').toLowerCase()
     const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
-    console.log(registerUserInfos, registerUserInfos.length, 'registerUserInfos====')
     const {lastDate, tokenId, amount, cancelDate} = registerUserInfos
+    console.log(lastDate, 'lastDate=====')
     const userAmount = ethers.utils.formatEther(amount)
-    console.log(+userAmount,  +userAmount> 0, 'userAmount====')
     setState({
       canMint: !(+userAmount)
     })
@@ -78,44 +76,21 @@ export default function SignIn(props) {
     const cancelTime = formatTimestamp(cancelDate)
     setCancelTime(cancelTime)
     setIsCancel(cancelTime>0)
+    setEndStack(cancelTime>0)
     setState({
       isCancelCheckIn: cancelTime>0
     })
     const score = (new BigNumber(Number(registerInfos.score))).toNumber()
     setScore(score)
-    setShowCountDown(true)
-    
-    // console.log(cancelTime, cancelTime>0, cancelTime,'registerInfos======')
-    // const tokensQuery = `
-    // {
-    //   registerUserInfos(
-    //     orderBy:lastDate,orderDirection:desc,
-    //     where: {sender: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress?.toLowerCase()+`"}
-    //   ) {
-    //     id
-    //     lastDate
-    //     count
-    //     tokenId
-    //     amount
-    //     register
-    //   }
-    // }
-    // `
-    // const item = networks.filter(i=> i.symbol === getLocal('network'))[0]
-    // const client = createClient({
-    //   url: item?.signInGraphUrl
-    // })
-    // const res = await client?.query(tokensQuery).toPromise()
-    // const data = res.data.registerUserInfos
     if(registerInfos.length > 0) {
       setMintDate(timestamp)
+      console.log(userAmount, cancelTime>0, 'userAmount===')
       setStakedNum(userAmount)
     }
   }
   const handleContinueMint = async(quantity) => {
     setMintInfo()
     if(!quantity) {
-      setShowCountDown(true)
       await handleMint(quantity, selectedToken)
     } else {
       handleMint(quantity, selectedToken)
@@ -127,8 +102,6 @@ export default function SignIn(props) {
       continueMint: false
     })
     const res = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).registerUserInfos(getLocal('account'))
-    const timestamp = formatTimestamp(res.lastDate)
-    setMintLastDate(timestamp)
     const mintNum = ethers.utils.formatEther(res.amount)
     if(mintNum > 0) {
       setText(intl.get('Staking'))
@@ -217,7 +190,7 @@ export default function SignIn(props) {
     getSelectedToken()
   }, [])
   useEffect(() => {
-    if (authorization && !showNftList) {
+    if (authorization) {
       if(+tokenBalance > 0) {
         setCanSend(true)
       }
@@ -226,14 +199,6 @@ export default function SignIn(props) {
     }
     setIsAuthorization(authorization)
   }, [authorization])
-  useEffect(() => {
-    if(!showNftList && !quantity) {
-      setCanSend(false)
-    }
-    if(!showNftList) {
-      setShowCountDown(!canMint)
-    }
-  }, [showNftList, canMint])
   useEffect(() => {
     if(nftImageList.length > 0) {
       setCanSend(true)
@@ -262,11 +227,10 @@ export default function SignIn(props) {
   return (
     <SignInWrapper>
       {
-        showNftList && !isCancel &&
+        (isCancel || +stakedNum > 0) &&
         <div>
           <div className="stake-num"><span className="name">{intl.get('StakedAmount')}:</span><span className="num">{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
           <div className="staked-duration"><span className="name">{intl.get('StakedDuration')}:</span><CumulativeTime timestamp={mintDate}/></div>
-          {/* <CountDown timestamp={mintLastDate}/> */}
           <div className="score-wrapper">
           <span className="name">{intl.get('Score')}:</span><span className="score">{score}</span>
           </div>
@@ -279,27 +243,26 @@ export default function SignIn(props) {
               <div>#{selectTokenId}</div>
             </div>
           </div>
-
-        </div>
-      }
-      {
-        showCountDown &&
-        <div>
           {
-            !hiddenCountDown && 
-            <div className="stake-num">{intl.get('StakedAmount')}: <span className="num">{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
+            cancelTime > 0 && <CountDown timestamp={cancelTime}/>
           }
-          <CountDown timestamp={cancelTime}/>
+          {
+            cancelTime > 0 && 
+            <div className="end-stake-btn">
+              <div className='btn btn-primary' onClick={buttonActions}>
+                <span className={`${endStack ? 'btn-default' : ''}`}>{ intl.get('EndStake') }</span>
+              </div>
+            </div>
+          }
+          
         </div>
-        
       }
-     
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
         <div className="token-list-title">{intl.get('SelectToken')}</div>
         <TokenList showBalance={true}></TokenList>
       </Modal>
       {
-        !showNftList && canMint &&
+        canMint && !isCancel &&
         <div className={`content ${detectMobile() ? 'content-client' : ''}`}>
           <div className="token-wrapper">
             <div className="token-detail">
@@ -334,22 +297,16 @@ export default function SignIn(props) {
       {
         <div className="btn-wrapper">
           {
-            (showNftList || continueMint || !nftImageList.length) && !isCancel &&
+            (continueMint || !nftImageList.length) && !isCancel && !endStack &&
             <div className='btn btn-primary' onClick={buttonActions}>
               <span className={`${canSend ? 'send-allowed' : 'btn-default'}`}>{btnText}</span>
             </div>
           }
           
           {
-            !showNftList && nftImageList.length > 0 && !continueMint && canMint &&
+            nftImageList.length > 0 && !continueMint && canMint &&
             <div className='btn btn-primary' onClick={buttonActions}>
               <span className={`btn-default ${canSend ? 'send-allowed' : ''}`}>{ intl.get('CheckIn') }</span>
-            </div>
-          }
-          {
-            !showNftList && nftImageList.length > 0 && !continueMint && canMint &&
-            <div className='btn btn-light' onClick={buttonActions}>
-              <span className={`${canSend ? 'send-allowed' : ''}`}>{ intl.get('EndStake') }</span>
             </div>
           }
         </div>
@@ -367,11 +324,14 @@ background: #fff;
   margin: 15px 0;
   .name {
     margin-right: 10px;
-    width: 70px;
   }
   .score {
     font-weight: bold;
   }
+}
+.end-stake-btn {
+  text-align: center;
+  margin: 20px auto 0;
 }
 .amount-wrapper, .token-wrapper {
   justify-content: space-between;

@@ -33,23 +33,12 @@ function CountDown({ timestamp }) {
 
     return () => clearInterval(intervalId);
   }, [timestamp]);
-  useEffect(() => {
-    setState({
-      hiddenCountDown: !(seconds > 0)
-    })
-  }, [seconds])
   return (
-    
     <div>
-      {
-        seconds > 0 &&
-        <div>
-          <div className="count-down-tips">{intl.get('UnlockTime')}</div>
-          <h1 className='count-down'> {hours}:{minutes < 10 ? `0${minutes}`:minutes }:{seconds < 10 ? `0${seconds}`:seconds }</h1>
-        </div>
-      }
+      <div className="count-down-tips">{intl.get('UnlockTime')}</div>
+      <h1 className='count-down'> {hours}:{minutes < 10 ? `0${minutes}`:minutes }:{seconds < 10 ? `0${seconds}`:seconds }</h1>
     </div>
-  );
+  )
 }
 
 export default CountDown

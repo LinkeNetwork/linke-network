@@ -835,14 +835,11 @@ ul.dropdown-menu {
   align-items: baseline;
   display: flex;
   .name {
-    width: 70px;
+    width: 124px;
   }
   .cumulative-time {
     margin-left: 10px;
     font-weight: bold;
-    .name {
-      width: 70px;
-    }
   }
 }
 .red-packet-wrap {
