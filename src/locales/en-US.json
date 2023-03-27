@@ -106,6 +106,7 @@
   "Group": "Group",
   "Private": "Private",
   "AutoCheckIn": "Automatic check-in",
-  "AutoCheckInTips": "1ethf fee is required to activate automatic check-in,Your balance is insufficient"
+  "OpenAutoCheckInTips": "1ethf fee is required to activate automatic check-in",
+  "Confirm": "Confirm"
 }
 

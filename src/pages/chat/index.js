@@ -72,6 +72,7 @@ export default function Chat() {
   const [chatList, setChatList] = useState([])
   const [showOpenAward, setShowOpenAward] = useState(false)
   const [showJoinGroupButton, setShowJoinGroupButton] = useState()
+  const [handlingFeeTips, setHandlingFeeTips] = useState()
   const chatListRef = useRef()
   const [hasScroll, setHasScroll] = useState(false)
   const hasScrollRef = useRef(null)
@@ -1236,6 +1237,15 @@ export default function Chat() {
   const handleDecryptedMessage = (id, text) => {
     getDecryptedMessage(id, text)
   }
+  const handleConfirmAutoCheckIn = async() => {
+    const fee = ethers.utils.parseEther('1')
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).automatic({value: fee})
+    setShowHandlingFee(false)
+    setShowSignIn(false)
+    setShowMask(true)
+    await tx.wait()
+    setShowMask(false)
+  }
   const handlePrivateChat = (item, res) => {
     setCurrentTabIndex(1)
     setShowGroupMember(false)
@@ -1400,17 +1410,8 @@ export default function Chat() {
     setShowMask(false)
   }
   const handleAutoCheckIn = async() => {
-    console.log(balance, 'handleAutoCheckIn===')
-    if(+balance < 1) {
-      setShowHandlingFee(true)
-    } else {
-      const fee = ethers.utils.parseEther('1')
-      const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).automatic({value: fee})
-      setShowSignIn(false)
-      setShowMask(true)
-      await tx.wait()
-      setShowMask(false)
-    }
+    setShowHandlingFee(true)
+    setHandlingFeeTips(intl.get('OpenAutoCheckInTips'))
   }
   const handleCheckIn = async(tokenId, quantity) => {
     setShowSignIn(false)
@@ -1505,9 +1506,10 @@ export default function Chat() {
       {
         
         <Modal title="Tips" visible={showHandlingFee} onClose={() => { setShowHandlingFee(false) }}>
-          <div>{intl.get('AutoCheckInTips')}</div>
+          <div>{handlingFeeTips}</div>
           <div className='btn-operate-award' style={{marginTop: '16px'}}>
-            <div className='btn btn-light' onClick={() => { setShowHandlingFee(false) }}>Cancel</div>
+            <div className='btn btn-primary' onClick={handleConfirmAutoCheckIn}>{intl.get('Confirm')}</div>
+            <div className='btn btn-light' onClick={() => { setShowHandlingFee(false) }}>{intl.get('Cancel')}</div>
           </div>
         </Modal>
       }
@@ -1515,8 +1517,8 @@ export default function Chat() {
         <Modal title="Tips" visible={showCanReceiveTips} onClose={() => { setCanReceiveTips(false) }}>
           <div>You should create profile first</div>
           <div className='btn-operate-award' style={{marginTop: '16px'}}>
-            <div className='btn btn-primary' onClick={() => {history.push(`/profile/${accounts}`)}}>Confirm</div>
-            <div className='btn btn-light' onClick={() => { setShowReceiveTips(false) }}>Cancel</div>
+            <div className='btn btn-primary' onClick={() => {history.push(`/profile/${accounts}`)}}>{intl.get('Confirm')}</div>
+            <div className='btn btn-light' onClick={() => { setShowReceiveTips(false) }}>{intl.get('Cancel')}</div>
           </div>
         </Modal>
       }

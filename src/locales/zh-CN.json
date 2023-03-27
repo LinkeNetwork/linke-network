@@ -103,5 +103,6 @@
   "Group": "群組",
   "Private": "私信",
   "AutoCheckIn": "自動打卡",
-  "AutoCheckInTips": "開通自動打卡需要1ethf手續費，您的餘額不足"
+  "OpenAutoCheckInTips": "開通自動打卡需要1ethf手續費",
+  "Confirm": "確認"
 }

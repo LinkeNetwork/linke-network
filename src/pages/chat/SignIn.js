@@ -241,7 +241,10 @@ export default function SignIn(props) {
           </div>
           {
             isOpenAutoCheckIn &&
-            <div className="staked-duration"><span className="name">{intl.get('StakedDuration')}:</span><CumulativeTime timestamp={mintDate}/></div>
+            <div className="staked-duration">
+              <span className="name">{intl.get('StakedDuration')}:</span>
+              <CumulativeTime timestamp={mintDate} stakedNum={stakedNum} isOpenAutoCheckIn={isOpenAutoCheckIn} cancelTime={cancelTime} />
+            </div>
           }
           <div className="list-wrapper">
             <div className="list-item">
