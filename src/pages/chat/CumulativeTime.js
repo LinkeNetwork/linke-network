@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import intl from 'react-intl-universal'
+import { detectMobile } from "../../utils";
 
 const CumulativeTime = ({timestamp}) => {
   const [remainingTime, setRemainingTime] = useState({});
@@ -24,7 +25,10 @@ const CumulativeTime = ({timestamp}) => {
   return (
     <div className="cumulative-time">
       <p>{remainingTime.days} {intl.get('Days')}</p>
-      <div className="count">{remainingTime.hours}:{remainingTime.minutes}:{remainingTime.seconds}<span className="tips">({intl.get('OneDayTips')})</span></div>
+      <div className="count">
+        {remainingTime.hours}:{remainingTime.minutes < 10 ? `0${remainingTime.minutes}`:remainingTime.minutes }:{remainingTime.seconds < 10 ? `0${remainingTime.seconds}`:remainingTime.seconds }
+      </div>
+      <div className="tips">({intl.get('OneDayTips')})</div>
     </div>
   );
 };
