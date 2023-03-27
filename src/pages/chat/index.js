@@ -35,15 +35,18 @@ import JoinGroupButton from './JoinGroupButton'
 import { useHistory } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
 import SignIn from './SignIn'
+import useWallet from '../../hooks/useWallet'
 
 export default function Chat() {
   const { setDataBase } = useDataBase()
+  const { balance } = useWallet()
   const [collectedRedEnvelope, setCollectedRedEnvelope] = useState([])
   const history = useHistory()
   const { getReceiveInfo } = useReceiveInfo()
   const { getGroupMember } = useGroupMember()
   const [showNftList, setShowNftList] = useState(false)
   const [showReceiveTips, setShowReceiveTips] = useState(false)
+  const [showHandlingFee, setShowHandlingFee] = useState(false)
   const [showGroupList, setShowGroupList] = useState(true)
   const skip = 0
   const [clickNumber, setClickNumber] = useState(0)
@@ -1386,14 +1389,27 @@ export default function Chat() {
       console.error(error, 'handleOpenSign')
     }
   }
-  const handleEndStake = async(status) => {
+  const handleEndStake = async(status, isOpenAutoCheckIn) => {
     if(status) return
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receives()
+    const tx = isOpenAutoCheckIn ? await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receivesAuto() : await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receives()
     console.log(tx, '===handleEndStake=')
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
     setShowMask(false)
+  }
+  const handleAutoCheckIn = async() => {
+    console.log(balance, 'handleAutoCheckIn===')
+    if(+balance < 1) {
+      setShowHandlingFee(true)
+    } else {
+      const fee = ethers.utils.parseEther('1')
+      const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).automatic({value: fee})
+      setShowSignIn(false)
+      setShowMask(true)
+      await tx.wait()
+      setShowMask(false)
+    }
   }
   const handleCheckIn = async(tokenId, quantity) => {
     setShowSignIn(false)
@@ -1489,6 +1505,15 @@ export default function Chat() {
         </Modal>
       }
       {
+        
+        <Modal title="Tips" visible={showHandlingFee} onClose={() => { setShowHandlingFee(false) }}>
+          <div>{intl.get('AutoCheckInTips')}</div>
+          <div className='btn-operate-award' style={{marginTop: '16px'}}>
+            <div className='btn btn-light' onClick={() => { setShowHandlingFee(false) }}>Cancel</div>
+          </div>
+        </Modal>
+      }
+      {
         <Modal title="Tips" visible={showCanReceiveTips} onClose={() => { setCanReceiveTips(false) }}>
           <div>You should create profile first</div>
           <div className='btn-operate-award' style={{marginTop: '16px'}}>
@@ -1554,7 +1579,8 @@ export default function Chat() {
               nftImageList={nftImageList}
               handleCheckIn={(id, num) => {handleCheckIn(id, num)}}
               handleCancelCheckin={handleCancelCheckin}
-              handleEndStake={(status) => {handleEndStake(status)}}
+              handleEndStake={(status, isOpenAutoCheckIn) => {handleEndStake(status, isOpenAutoCheckIn)}}
+              handleAutoCheckIn={handleAutoCheckIn}
             />
           </div>
         </Modal>

@@ -67,7 +67,7 @@
   "FooterSubTitle": "Footer SubTitle",
   "FooterTips": "Footer Tips",
   "Mint": "Mint",
-  "Approve": "授權",
+  "Approve": "Approve",
   "APPROVE_ING": "APPROVE_ING",
   "Quantity": "Quantity",
   "Staking": "Staking",
@@ -104,6 +104,8 @@
   "Chat": "Chat",
   "Profile": "Profile",
   "Group": "Group",
-  "Private": "Private"
+  "Private": "Private",
+  "AutoCheckIn": "Automatic check-in",
+  "AutoCheckInTips": "1ethf fee is required to activate automatic check-in,Your balance is insufficient"
 }
 

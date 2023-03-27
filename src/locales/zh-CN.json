@@ -64,11 +64,11 @@
   "FooterSubTitle": "頁腳子標題",
   "FooterTips": "頁腳提示",
   "Mint": "鑄造",
-  "Approve": "Approve",
+  "Approve": "授權",
   "APPROVE_ING": "授權中",
   "Quantity": "數量",
   "Staking": "質押數量",
-  "CheckIn": "簽到",
+  "CheckIn": "打卡",
   "EndStake": "解壓",
   "StakedAmount": "質押數量",
   "StakedTips": "現在還不是鑄造的時候",
@@ -101,5 +101,7 @@
   "Chat": "聊天",
   "Profile": "個人資料",
   "Group": "群組",
-  "Private": "私信"
+  "Private": "私信",
+  "AutoCheckIn": "自動打卡",
+  "AutoCheckInTips": "開通自動打卡需要1ethf手續費，您的餘額不足"
 }

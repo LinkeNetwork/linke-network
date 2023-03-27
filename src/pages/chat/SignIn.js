@@ -17,13 +17,14 @@ import CumulativeTime from './CumulativeTime'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
-  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
-  const { handleMint, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin } = props
+  const { handleMint, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin, handleAutoCheckIn } = props
   const [quantity, setQuantity] = useState('')
   const [isAuthorization, setIsAuthorization] = useState(false)
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
+  const [isOpenAutoCheckIn, setIsOpenAutoCheckIn] = useState(false)
   const [selectedTokenInfo, setSelectedTokenInfo] = useState('')
   const [tokenBalance, setTokenBalance] = useState('')
   const [selectTokenId, setSelectTokenId] = useState()
@@ -51,11 +52,13 @@ export default function SignIn(props) {
         handleCheckIn(tokenId, quantity)
         break;
       case intl.get('EndStake'):
-        handleEndStake(endStack)
+        handleEndStake(endStack, isOpenAutoCheckIn)
         break;
       case intl.get('CancelCheckIN'):
         handleCancelCheckin()
         break;
+      case intl.get('AutoCheckIn'): 
+        handleAutoCheckIn()
       default:
         return null;
     }
@@ -64,7 +67,7 @@ export default function SignIn(props) {
     const account = getLocal('account').toLowerCase()
     const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
     const {lastDate, tokenId, amount, cancelDate} = registerUserInfos
-    console.log(lastDate, 'lastDate=====')
+    console.log(lastDate, 'lastDate=====', cancelDate)
     const userAmount = ethers.utils.formatEther(amount)
     setState({
       canMint: !(+userAmount)
@@ -75,6 +78,7 @@ export default function SignIn(props) {
     const timestamp = formatTimestamp(lastDate)
     const cancelTime = formatTimestamp(cancelDate)
     setCancelTime(cancelTime)
+    console.log(cancelTime>0, timestamp, 'cancelTime>0===', cancelTime)
     setIsCancel(cancelTime>0)
     setEndStack(cancelTime>0)
     setState({
@@ -114,6 +118,10 @@ export default function SignIn(props) {
     handleSelectNft(item)
   }
   const getSelectedToken = async () => {
+    const res = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getAutomatic()
+    const isOpenAutoCheckIn = new BigNumber(Number(res)).toNumber()
+    setIsOpenAutoCheckIn(Boolean(isOpenAutoCheckIn))
+    console.log(res, isOpenAutoCheckIn, '====getAutomatic')
     const tx = await getDaiWithSigner(nftAddress.toLocaleLowerCase(), SIGN_IN_ABI).token()
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == tx.toLocaleLowerCase())
@@ -175,7 +183,7 @@ export default function SignIn(props) {
     )
   }
   useEffect(() => {
-    if(+stakedNum > 0) {
+    if(+stakedNum > 0 && isOpenAutoCheckIn) {
       setBtnText(intl.get('CancelCheckIN'))
     }
   }, [stakedNum])
@@ -230,11 +238,13 @@ export default function SignIn(props) {
         (isCancel || +stakedNum > 0) &&
         <div>
           <div className="stake-num"><span className="name">{intl.get('StakedAmount')}:</span><span className="num">{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
-          <div className="staked-duration"><span className="name">{intl.get('StakedDuration')}:</span><CumulativeTime timestamp={mintDate}/></div>
+          {
+            isOpenAutoCheckIn &&
+            <div className="staked-duration"><span className="name">{intl.get('StakedDuration')}:</span><CumulativeTime timestamp={mintDate}/></div>
+          }
           <div className="score-wrapper">
           <span className="name">{intl.get('Score')}:</span><span className="score">{score}</span>
           </div>
-          {/* { nftList() } */}
           <div className="list-wrapper">
             <div className="list-item">
               <div className="nft-wrapper">
@@ -244,17 +254,35 @@ export default function SignIn(props) {
             </div>
           </div>
           {
-            cancelTime > 0 && <CountDown timestamp={cancelTime}/>
+            !isOpenAutoCheckIn &&
+            <CountDown timestamp={mintDate}/>
           }
           {
-            cancelTime > 0 && 
+            (cancelTime > 0) && <CountDown timestamp={cancelTime}/>
+          }
+          {
+            
             <div className="end-stake-btn">
-              <div className='btn btn-primary' onClick={buttonActions}>
-                <span className={`${endStack ? 'btn-default' : ''}`}>{ intl.get('EndStake') }</span>
-              </div>
+              {
+                !isOpenAutoCheckIn &&
+                <div className='btn btn-primary auto-check-btn' onClick={buttonActions}>
+                  <span className={`${isOpenAutoCheckIn ? 'btn-default' : ''}`}>{ intl.get('AutoCheckIn') }</span>
+                </div>
+              }
+              {
+                isOpenAutoCheckIn && +cancelTime === 0 &&
+                <div className='btn btn-primary' onClick={buttonActions}>
+                  <span className={`${canSend ? 'send-allowed' : 'btn-default'}`}>{intl.get('CancelCheckIN')}</span>
+                </div>
+              }
+              {
+                cancelTime > 0 &&
+                 <div className='btn btn-primary' onClick={buttonActions}>
+                  <span className={`${!canMint > 0 ? 'btn-default' : ''}`}>{ intl.get('EndStake') }</span>
+                 </div>
+              }
             </div>
           }
-          
         </div>
       }
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
@@ -297,7 +325,7 @@ export default function SignIn(props) {
       {
         <div className="btn-wrapper">
           {
-            (continueMint || !nftImageList.length) && !isCancel && !endStack &&
+            (continueMint || !nftImageList.length) && !isCancel && !endStack && +stakedNum === 0 &&
             <div className='btn btn-primary' onClick={buttonActions}>
               <span className={`${canSend ? 'send-allowed' : 'btn-default'}`}>{btnText}</span>
             </div>
@@ -330,6 +358,8 @@ background: #fff;
   }
 }
 .end-stake-btn {
+  // display: flex;
+  // justify-content: space-between;
   text-align: center;
   margin: 20px auto 0;
 }
@@ -392,6 +422,9 @@ background: #fff;
   display: flex;
   justify-content: center;
   margin: 30px 0;
+}
+.auto-check-btn {
+  margin-right: 10px;
 }
 .send-allowed {
   cursor: pointer;
