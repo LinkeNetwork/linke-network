@@ -19,13 +19,11 @@ function CountDown({ timestamp }) {
         clearInterval(intervalId);
         setCount(0);
         setState({
-          // canMint: true,
-          showTokenContent: true
+          canUnstake: true
         })
       } else {
         setState({
-          showTokenContent: false,
-          canMint: false
+          canUnstake: false
         })
         setCount(distance);
       }

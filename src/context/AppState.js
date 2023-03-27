@@ -35,10 +35,10 @@ const state = {
   hasOpenedSignIn: false,
   continueMint: false,
   canMint: false,
-  showTokenContent: false,
   hiddenCountDown: true,
   isCancelCheckIn: false,
-  hasEndStack: false
+  hasEndStack: false,
+  canUnstake: false
 }
 
 export default state

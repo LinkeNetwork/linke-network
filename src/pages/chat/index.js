@@ -1355,16 +1355,14 @@ export default function Chat() {
     const res = await client?.query(tokensQuery).toPromise()
     const registerNftInfos = res?.data?.registerInfos
     setShowNftList(Boolean(registerNftInfos?.length))
-    setNftImageList(res.data.registerInfos)
+    setNftImageList(registerNftInfos)
     if(!registerNftInfos.length) {
       setState({
-        canMint: true,
-        showTokenContent: true
+        canMint: true
       })
     } else {
       setState({
-        canMint: false,
-        showTokenContent: false
+        canMint: false
       })
     }
     setShowSignIn(true)
@@ -1454,9 +1452,6 @@ export default function Chat() {
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
-    setState({
-      showTokenContent: false
-    })
     setShowMask(false)
   }
   useEffect(() => {
