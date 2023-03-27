@@ -840,6 +840,14 @@ ul.dropdown-menu {
   .cumulative-time {
     margin-left: 10px;
     font-weight: bold;
+    font-size: 20px;
+    .count {
+      font-size: 20px;
+    }
+    .tips {
+      font-weight: normal;
+      font-size: 12px;
+    }
   }
 }
 .red-packet-wrap {

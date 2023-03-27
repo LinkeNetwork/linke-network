@@ -288,7 +288,7 @@ export default function SignIn(props) {
         <TokenList showBalance={true}></TokenList>
       </Modal>
       {
-        nftImageList.length > 0 &&
+        nftImageList.length > 0 && +stakedNum === 0 &&
         nftList()
       }
       {
