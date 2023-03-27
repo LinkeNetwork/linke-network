@@ -52,7 +52,7 @@ export default function SignIn(props) {
         handleCheckIn(tokenId, quantity)
         break;
       case intl.get('EndStake'):
-        handleEndStake(endStack, isOpenAutoCheckIn)
+        handleEndStake(isOpenAutoCheckIn)
         break;
       case intl.get('CancelCheckIN'):
         handleCancelCheckin()
@@ -84,6 +84,7 @@ export default function SignIn(props) {
     })
     const score = (new BigNumber(Number(registerInfos.score))).toNumber()
     setScore(score)
+    console.log(timestamp, lastDate, 'timestamp====')
     if(registerInfos.length > 0) {
       setMintDate(timestamp)
       setStakedNum(userAmount)

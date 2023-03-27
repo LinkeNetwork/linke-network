@@ -1396,8 +1396,7 @@ export default function Chat() {
       console.error(error, 'handleOpenSign')
     }
   }
-  const handleEndStake = async(status, isOpenAutoCheckIn) => {
-    if(status) return
+  const handleEndStake = async(isOpenAutoCheckIn) => {
     const tx = isOpenAutoCheckIn ? await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receivesAuto() : await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receives()
     console.log(tx, '===handleEndStake=')
     setShowSignIn(false)
