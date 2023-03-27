@@ -17,7 +17,7 @@ import CumulativeTime from './CumulativeTime'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
-  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn, hasEndStack } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
   const { handleMint, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin, handleAutoCheckIn } = props
   const [quantity, setQuantity] = useState('')
@@ -67,7 +67,6 @@ export default function SignIn(props) {
     const account = getLocal('account').toLowerCase()
     const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
     const {lastDate, tokenId, amount, cancelDate} = registerUserInfos
-    console.log(lastDate, 'lastDate=====', cancelDate)
     const userAmount = ethers.utils.formatEther(amount)
     setState({
       canMint: !(+userAmount)
@@ -78,7 +77,6 @@ export default function SignIn(props) {
     const timestamp = formatTimestamp(lastDate)
     const cancelTime = formatTimestamp(cancelDate)
     setCancelTime(cancelTime)
-    console.log(cancelTime>0, timestamp, 'cancelTime>0===', cancelTime)
     setIsCancel(cancelTime>0)
     setEndStack(cancelTime>0)
     setState({
@@ -88,7 +86,6 @@ export default function SignIn(props) {
     setScore(score)
     if(registerInfos.length > 0) {
       setMintDate(timestamp)
-      console.log(userAmount, cancelTime>0, 'userAmount===')
       setStakedNum(userAmount)
     }
   }
@@ -121,7 +118,7 @@ export default function SignIn(props) {
     const res = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getAutomatic()
     const isOpenAutoCheckIn = new BigNumber(Number(res)).toNumber()
     setIsOpenAutoCheckIn(Boolean(isOpenAutoCheckIn))
-    console.log(res, isOpenAutoCheckIn, '====getAutomatic')
+    console.log(isOpenAutoCheckIn, '====getAutomatic')
     const tx = await getDaiWithSigner(nftAddress.toLocaleLowerCase(), SIGN_IN_ABI).token()
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == tx.toLocaleLowerCase())
@@ -276,9 +273,9 @@ export default function SignIn(props) {
                 </div>
               }
               {
-                cancelTime > 0 &&
+                (cancelTime > 0 || cancelTime === 0) &&
                  <div className='btn btn-primary' onClick={buttonActions}>
-                  <span className={`${!canMint > 0 ? 'btn-default' : ''}`}>{ intl.get('EndStake') }</span>
+                  <span className={`${!hasEndStack ? 'btn-default' : ''}`}>{ intl.get('EndStake') }</span>
                  </div>
               }
             </div>
@@ -290,7 +287,7 @@ export default function SignIn(props) {
         <TokenList showBalance={true}></TokenList>
       </Modal>
       {
-        canMint && !isCancel &&
+        (canMint ||  hasEndStack) && 
         <div className={`content ${detectMobile() ? 'content-client' : ''}`}>
           <div className="token-wrapper">
             <div className="token-detail">

@@ -37,7 +37,8 @@ const state = {
   canMint: false,
   showTokenContent: false,
   hiddenCountDown: true,
-  isCancelCheckIn: false
+  isCancelCheckIn: false,
+  hasEndStack: false
 }
 
 export default state

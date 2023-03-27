@@ -19,7 +19,7 @@ function CountDown({ timestamp }) {
         clearInterval(intervalId);
         setCount(0);
         setState({
-          canMint: true,
+          // canMint: true,
           showTokenContent: true
         })
       } else {

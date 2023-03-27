@@ -1353,7 +1353,6 @@ export default function Chat() {
       url: item?.signInGraphUrl
     })
     const res = await client?.query(tokensQuery).toPromise()
-    console.log(res, '====>>.')
     const registerNftInfos = res?.data?.registerInfos
     setShowNftList(Boolean(registerNftInfos?.length))
     setNftImageList(res.data.registerInfos)
@@ -1396,6 +1395,10 @@ export default function Chat() {
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
+    setState({
+      canMint: true,
+      hasEndStack: true
+    })
     setShowMask(false)
   }
   const handleAutoCheckIn = async() => {
