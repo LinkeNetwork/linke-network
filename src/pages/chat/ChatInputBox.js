@@ -186,7 +186,11 @@ export default function ChatInputBox(props) {
   const addEmoji = (emoji) => {
     getTextRange(emoji)
     setEmoji(emoji.native)
-    setChatText(chatText + '' + emoji.native)
+    if(chatText) {
+      setChatText(chatText + '' + emoji.native)
+    } else {
+      setChatText(emoji.native)
+    }
   }
 
   const onKeyPress = (e) => {
