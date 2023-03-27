@@ -25,7 +25,7 @@ const CumulativeTime = ({timestamp}) => {
     <div className="cumulative-time">
       <p>{remainingTime.days} {intl.get('Days')}</p>
       <p>{intl.get('OneDayTips')}</p>
-      <div>{remainingTime.hours} {intl.get('Hours')} {remainingTime.minutes} {intl.get('Minutes')} {remainingTime.seconds} {intl.get('Seconds')}</div>
+      <div>{remainingTime.hours}:{remainingTime.minutes}:{remainingTime.seconds}</div>
     </div>
   );
 };

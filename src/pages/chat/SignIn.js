@@ -235,13 +235,13 @@ export default function SignIn(props) {
         (isCancel || +stakedNum > 0) &&
         <div>
           <div className="stake-num"><span className="name">{intl.get('StakedAmount')}:</span><span className="num">{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
+          <div className="score-wrapper">
+            <span className="name">{intl.get('Score')}:</span><span className="score">{score}</span>
+          </div>
           {
             isOpenAutoCheckIn &&
             <div className="staked-duration"><span className="name">{intl.get('StakedDuration')}:</span><CumulativeTime timestamp={mintDate}/></div>
           }
-          <div className="score-wrapper">
-          <span className="name">{intl.get('Score')}:</span><span className="score">{score}</span>
-          </div>
           <div className="list-wrapper">
             <div className="list-item">
               <div className="nft-wrapper">
@@ -355,8 +355,8 @@ background: #fff;
   }
 }
 .end-stake-btn {
-  // display: flex;
-  // justify-content: space-between;
+  display: flex;
+  justify-content: space-around;
   text-align: center;
   margin: 20px auto 0;
 }
