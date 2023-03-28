@@ -1420,7 +1420,8 @@ export default function Chat() {
     })
     setShowMask(true)
     try {
-      const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity))
+      const valueE = +tokenId === 0 ? ethers.utils.parseEther(quantity) : 0
+      const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity), {value: valueE})
       await tx.wait()
       setShowMask(false)
     } catch {

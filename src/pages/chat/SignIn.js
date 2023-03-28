@@ -82,8 +82,8 @@ export default function SignIn(props) {
     setState({
       isCancelCheckIn: cancelTime>0
     })
-    const score = (new BigNumber(Number(registerInfos.score))).toNumber()
-    setScore(score)
+    const score = ethers.utils.formatEther(registerInfos.score)
+    setScore(Math.floor(score))
     if(registerInfos.length > 0) {
       setMintDate(timestamp)
       setStakedNum(userAmount)
