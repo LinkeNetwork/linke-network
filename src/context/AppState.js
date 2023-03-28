@@ -38,7 +38,8 @@ const state = {
   hiddenCountDown: true,
   isCancelCheckIn: false,
   hasEndStack: false,
-  canUnstake: false
+  canUnstake: false,
+  stakedDays: 0,
 }
 
 export default state

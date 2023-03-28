@@ -17,7 +17,7 @@ import CumulativeTime from './CumulativeTime'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
-  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn, hasEndStack, canUnstake } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn, hasEndStack, canUnstake, stakedDays } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
   const { handleMint, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin, handleAutoCheckIn, showNftList } = props
   const [quantity, setQuantity] = useState('')
@@ -83,7 +83,7 @@ export default function SignIn(props) {
       isCancelCheckIn: cancelTime>0
     })
     const score = ethers.utils.formatEther(registerInfos.score)
-    setScore(Math.floor(score))
+    setScore(score)
     if(registerInfos.length > 0) {
       setMintDate(timestamp)
       setStakedNum(userAmount)
@@ -172,6 +172,7 @@ export default function SignIn(props) {
                     <Image src={nftImage} size={120} alt="" />
                   </div>
                   <div>#{item.tokenId}</div>
+                  <div>integral: {score}</div>
                 </li>
               )
             })
@@ -180,6 +181,16 @@ export default function SignIn(props) {
       </div>
     )
   }
+  useEffect(() => {
+    if(!stakedNum && !stakedDays && score !== undefined) return
+    if(isOpenAutoCheckIn) {
+      const integral = (Number(stakedNum * stakedDays)) + Number(score)
+      setScore(integral)
+    } else {
+      const integral = canUnstake ? (+stakedNum + Number(score)) : Number(score)
+      setScore(integral)
+    }
+  }, [stakedDays, canUnstake, stakedNum])
   useEffect(() => {
     if(+stakedNum > 0 && isOpenAutoCheckIn) {
       setBtnText(intl.get('CancelCheckIN'))

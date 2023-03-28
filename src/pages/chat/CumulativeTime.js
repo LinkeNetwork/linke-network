@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import intl from 'react-intl-universal'
+import useGlobal from "../../hooks/useGlobal";
 const CumulativeTime = ({timestamp, stakedNum, isOpenAutoCheckIn, cancelTime}) => {
   const [remainingTime, setRemainingTime] = useState({});
   const firstDate = new Date(timestamp * 1000)
+  const { setState } = useGlobal()
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -15,6 +17,9 @@ const CumulativeTime = ({timestamp, stakedNum, isOpenAutoCheckIn, cancelTime}) =
       const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
       setRemainingTime({ days, hours, minutes, seconds });
+      setState({
+        stakedDays: days
+      })
     }, 1000);
 
     return () => clearInterval(interval);
