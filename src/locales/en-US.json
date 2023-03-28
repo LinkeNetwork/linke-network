@@ -107,6 +107,7 @@
   "Private": "Private",
   "AutoCheckIn": "Automatic check-in",
   "OpenAutoCheckInTips": "1ethf fee is required to activate automatic check-in",
-  "Confirm": "Confirm"
+  "Confirm": "Confirm",
+  "CreateProfileTips": "You should create profile first"
 }
 

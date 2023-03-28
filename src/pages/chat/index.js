@@ -1351,6 +1351,11 @@ export default function Chat() {
     setShowAwardBonus(false)
   }
   const handleSignIn = async(nftAddress) => {
+    const hasCreateProfile = await getProfileStatus(accounts)
+    if(!Boolean(hasCreateProfile)) {
+      setCanReceiveTips(true)
+      return
+    }
     const tokensQuery = `
     {
       registerInfos(
@@ -1524,7 +1529,7 @@ export default function Chat() {
       }
       {
         <Modal title="Tips" visible={showCanReceiveTips} onClose={() => { setCanReceiveTips(false) }}>
-          <div>You should create profile first</div>
+          <div>{intl.get('CreateProfileTips')}</div>
           <div className='btn-operate-award' style={{marginTop: '16px'}}>
             <div className='btn btn-primary' onClick={() => {history.push(`/profile/${accounts}`)}}>{intl.get('Confirm')}</div>
             <div className='btn btn-light' onClick={() => { setShowReceiveTips(false) }}>{intl.get('Cancel')}</div>
