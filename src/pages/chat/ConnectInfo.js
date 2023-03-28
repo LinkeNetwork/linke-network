@@ -34,7 +34,7 @@ export default function ConnectInfo(props) {
         </div>
         <div className="f-c-sb">
           <div>
-            <h3>{formatAddress(account)}</h3>
+            <h3>{formatAddress(account, 6, 6)}</h3>
             <div className="f-c connect-bar">
               <CopyButton toCopy={account}>{intl.get('CopyAddress')}</CopyButton>
               {/* <div onClick={handleClearCache} className="clear-btn">Clear Cache</div> */}

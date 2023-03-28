@@ -419,7 +419,7 @@ export default function GroupList(props) {
                 <div className='full-address'>{item.roomName}</div>
                 <div className='text-left'>
                   <div className='user-address fw-medium fs-6'>{item.name}</div>
-                  <div className='user-status fs-80x'>{formatAddress(item.id)}</div>
+                  <div className='user-status fs-80x'>{formatAddress(item.id, 6, 6)}</div>
                 </div>
                 {
                   !detectMobile() &&

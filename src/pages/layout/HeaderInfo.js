@@ -117,7 +117,7 @@ export default function HeaderInfo() {
               (chainId === 513100) && accounts &&
               <span className='header-top' onClick={() => setShowAccount(true)}>
                 <Jazzicon address={accounts} className="account-icon" />
-                {formatAddress(accounts)}
+                {formatAddress(accounts, 6, 6)}
               </span>
             }
           </div>

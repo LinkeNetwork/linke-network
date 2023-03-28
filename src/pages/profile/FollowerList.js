@@ -93,7 +93,7 @@ export default function FollowerList(props) {
                   : <Jazzicon address={item.id} className="avatar-icon" />
                 }
                 <div className="name">{item.name}</div>
-                <div className="address">({formatAddress(item.id)})</div>
+                <div className="address">({formatAddress(item.id, 6, 6)})</div>
               </div>
             )
           })

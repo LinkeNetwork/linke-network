@@ -31,7 +31,6 @@ export default function Nav(props) {
       setState({
         isJumpToProfile: true
       })
-      debugger
       if(accounts) {
         history.push(`/profile/${accounts}`)
       } else {

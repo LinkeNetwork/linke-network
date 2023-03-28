@@ -149,6 +149,7 @@ export default function Chat() {
     groupListRef.current = groupLists
   }, [currentTabIndex, groupLists])
   useEffect(() => {
+    // console.log(history.location, 'history.location===7')
     const isShare = history.location.search.split('share=')[1] || history?.location?.state?.share
     if(detectMobile()) {
       getAccount()
@@ -167,6 +168,7 @@ export default function Chat() {
   }
   useEffect(() => {
     const path = history.location.pathname.split('/chat/')[1]
+    // console.log(history.location, 'history.location===1')
     const address = path?.split('/')[0]
     const network = path?.split('/')[1] || getLocal('network')
     if(address && network && detectMobile()) {
@@ -260,6 +262,7 @@ export default function Chat() {
         return
       }
     }
+    // console.log(history.location, 'history.location===2')
     const path = history.location.pathname.split('/chat/')[1]
     const address = path?.split('/')[0]
     const network = path?.split('/')[1] || getLocal('network')
@@ -315,6 +318,7 @@ export default function Chat() {
       initCurrentAddress(roomAddress)
       // setShowMask(true)
       if (!(+getLocal('isConnect'))) {
+        // console.log(history.location, 'history.location===3')
         const path = history.location.pathname.split('/chat/')[1]
         var currentNetwork = path?.split('/')[1]
         var networkInfo = networks.filter(i => i.name === currentNetwork)[0]
@@ -446,6 +450,7 @@ export default function Chat() {
     }
     `
     if (!clientInfo) {
+      // console.log(history.location, 'history.location===4')
       const path = history.location.pathname.split('/chat/')[1]
       if(!path) return
       const network = path?.split('/')[1] || getLocal('network') || currentChain
@@ -1263,6 +1268,7 @@ export default function Chat() {
     }
   }
   useEffect(() => {
+    // console.log(history.location, 'history.location===5')
     const path = history.location.pathname.split('/chat/')[1]
     const currentRedEnvelopId = history.location.search.split("?id=")[1]
     setCurrentRedEnvelopId(currentRedEnvelopId)
@@ -1458,6 +1464,7 @@ export default function Chat() {
     setShowMask(false)
   }
   useEffect(() => {
+    // console.log(history.location, 'history.location===6')
     const redEnvelopId = history.location.search.split('?')[1]
     if(hasCreateRoom && redEnvelopId) {
       setShowRedEnvelope(true)

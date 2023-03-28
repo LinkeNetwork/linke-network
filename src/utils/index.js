@@ -6,9 +6,9 @@ import { TOKEN_ABI } from '../abi/index'
 const { utils } = Web3
 const { numberToHex } = utils
 
-export const formatAddress = (address) => {
+export const formatAddress = (address, start, end) => {
   if (address) {
-    return address.slice(0, 6) + '...' + address.slice(-6)
+    return address.slice(0, start) + '...' + address.slice(-end)
   }
 }
 

@@ -9,6 +9,15 @@
   &-share {
     margin-left: 0;
   }
+  .check-in-text {
+    background: #dee2e6;
+    padding: 2px 6px;
+    color: #6c757d;
+    border-radius: 4px;
+    .text,  .check-in-amount {
+      margin: 0 4px;
+    }
+  }
   .bottom-envelope-list {
     cursor: pointer;
     background: #f6f6f6;
@@ -122,6 +131,9 @@
   .chat-start {
     position: relative;
     align-items: flex-start;
+    &.chat-register {
+      justify-content: center;
+    }
     div.operate-btn-share {
       left: 60px;
       cursor: pointer;

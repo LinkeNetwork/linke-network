@@ -3,7 +3,8 @@ import { Jazzicon } from '@ukstv/jazzicon-react'
 import BigNumber from 'bignumber.js'
 import networks from '../../context/networks'
 import { PROFILE_ABI } from '../../abi/index'
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import intl from "react-intl-universal"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { useHistory } from 'react-router-dom'
 import Image from "../../component/Image"
@@ -16,7 +17,7 @@ import { ethers } from "ethers"
 export default function ChatContext(props) {
   var numeral = require('numeral')
   const { hasMore, chatList, currentAddress, shareInfo, loadingData, currentTabIndex, handleDecryptedMessage, handleReceive} = props
-  const { setState, clientInfo } = useGlobal()
+  const { setState, clientInfo, tokenAddress } = useGlobal()
   const [showOperate, setShowOperate] = useState(false)
   const [selectText, setSelectText] = useState('')
   const [timeOutEvent, setTimeOutEvent] = useState()
@@ -223,7 +224,7 @@ export default function ChatContext(props) {
               <div key={i} className="chat-item-wrap">
                 {
                   // !v.hasDelete &&
-                  <div className={`chat-item ${v.position ? 'chat-end' : 'chat-start'}`} id="chatItem">
+                  <div className={`chat-item ${v.position ? 'chat-end' : 'chat-start'} ${v._type === 'Register' ? 'chat-register': ''}`}>
                     {
                       <div
                         className="chat-avatar-wrap"
@@ -232,11 +233,11 @@ export default function ChatContext(props) {
                         onClick={(e) => { handleShowProfile(e, v) }}
                       >
                         {
-                          v.avatar &&
+                          v.avatar && v._type !== "Register" &&
                           <Image size={25} src={v.avatar} className="address-icon" />
                         }
                         {
-                          !v.avatar && v?.user?.id &&
+                          !v.avatar && v?.user?.id && v._type !== "Register" &&
                           <Jazzicon address={v?.user?.id} className="address-icon" />
                         }
                         {
@@ -250,13 +251,22 @@ export default function ChatContext(props) {
                               !v.avatar && v?.user?.id && 
                               <Jazzicon address={v?.user?.id} className="icon" />
                             }
-                            <div className='name'>{formatAddress(v?.user?.id)}</div>
+                            <div className='name'>{formatAddress(v?.user?.id, 6, 6)}</div>
                             <div className="view-btn" onClick={() => viewProfile(v)}>View</div>
                             {showOperate && <span></span>}
                           </div>
                         }
 
                       </div>
+                    }
+                    {
+                      v._type === 'Register' &&
+                      <div className="check-in-text">
+                          <span className="check-in-address">{formatAddress(v.chatText.split("---")[1], 5, 4)}</span>
+                          <span className="text">{intl.get('CheckIn')}</span>
+                          <span className="check-in-amount">{ethers.utils.formatEther(v.chatText.split("---")[2])}</span>
+                          <span>{tokenAddress}</span>
+                      </div> 
                     }
                     {
                       (v.showOperate) && v._type === 'Giveaway' && 
@@ -325,7 +335,7 @@ export default function ChatContext(props) {
                             }
                             {
                               v?.user?.id?.toLowerCase() !== getLocal('account')?.toLowerCase() &&
-                              <span><span>{formatAddress(v?.user?.id)}</span>&nbsp;</span>
+                              <span><span>{formatAddress(v?.user?.id, 6, 6)}</span>&nbsp;</span>
                             }
                             
                             {

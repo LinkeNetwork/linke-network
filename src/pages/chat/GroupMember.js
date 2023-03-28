@@ -237,7 +237,7 @@ export default function GroupMember(props) {
                           ? <Image src={item.profile.avatar} size={60} />
                           : <Jazzicon address={item.id} className="avatar-image" />
                       }
-                      <div className='name'>{formatAddress(item.id)}</div>
+                      <div className='name'>{formatAddress(item.id, 6, 6)}</div>
                       <div className="button-wrapper">
                         <div className="view-btn" onClick={() => viewProfile(item)}>View</div>
                         {
@@ -258,7 +258,7 @@ export default function GroupMember(props) {
                   </div>
                   <div className="name">{item.name || item.profile.name}</div>
                   <div className="address">
-                    {formatAddress(item.id)}
+                    {formatAddress(item.id, 6, 6)}
                   </div>
                   {(groupType == 1 || groupType == 2) && getLocal('account') == item.id && manager?.toLowerCase() !== item.id.toLowerCase() && <div>(You)</div>}
                   {

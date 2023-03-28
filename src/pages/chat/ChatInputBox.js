@@ -7,9 +7,11 @@ import styled from "styled-components"
 import { detectMobile, getDaiWithSigner } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
+import useCheckIn from '../../hooks/useCheckIn'
 export default function ChatInputBox(props) {
   const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, handleOpenSign } = props
   const { setState, accounts, signInAddress, groupType, hasOpenedSignIn, currentAddress } = useGlobal()
+  const { getCheckInToken } = useCheckIn()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
   const [emoji, setEmoji] = useState()
@@ -243,6 +245,12 @@ export default function ChatInputBox(props) {
     })
     handleShowPlace()
   }
+  const getSelectedToken = async() => {
+    const token =  await getCheckInToken()
+    setState({
+      tokenAddress: token
+    })
+  }
   useEffect(() => {
     clearInput()
   }, [clearChatInput])
@@ -255,6 +263,7 @@ export default function ChatInputBox(props) {
     }
   }, [hasOpenedSignIn])
   useEffect(() => {
+    getSelectedToken()
     initClientHeight()
     initTextArea()
     return () => {
