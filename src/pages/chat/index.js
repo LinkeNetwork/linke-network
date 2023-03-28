@@ -542,7 +542,8 @@ export default function Chat() {
   }
   const showChatList = (item) => {
     setState({
-      hasOpenedSignIn: false
+      hasOpenedSignIn: false,
+      canUnstake: false
     })
     setCurrentRedEnvelopId()
     setShowMask(true)

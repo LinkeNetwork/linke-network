@@ -84,7 +84,6 @@ export default function SignIn(props) {
     })
     const score = (new BigNumber(Number(registerInfos.score))).toNumber()
     setScore(score)
-    console.log(timestamp, lastDate, 'timestamp====')
     if(registerInfos.length > 0) {
       setMintDate(timestamp)
       setStakedNum(userAmount)
@@ -256,11 +255,7 @@ export default function SignIn(props) {
             </div>
           </div>
           {
-            !isOpenAutoCheckIn &&
-            <CountDown timestamp={mintDate}/>
-          }
-          {
-            (cancelTime > 0 && !canUnstake) && <CountDown timestamp={mintDate}/>
+            ((cancelTime > 0 && !canUnstake) || !isOpenAutoCheckIn) && <CountDown timestamp={mintDate}/>
           }
           {
             
@@ -278,7 +273,7 @@ export default function SignIn(props) {
                 </div>
               }
               {
-                (cancelTime > 0 || cancelTime === 0) &&
+                ((!isOpenAutoCheckIn) || (isOpenAutoCheckIn && isCancelCheckIn)) &&
                  <div className='btn btn-primary' onClick={buttonActions}>
                   <span className={`${canUnstake ? '' : 'btn-default'}`}>{ intl.get('EndStake') }</span>
                  </div>
