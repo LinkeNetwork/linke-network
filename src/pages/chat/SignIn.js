@@ -34,6 +34,7 @@ export default function SignIn(props) {
   const [btnText, setBtnText] = useState(intl.get('Mint'))
   const [text, setText] = useState(intl.get('Quantity'))
   const [score, setScore] = useState()
+  const [integral, setIntegral] = useState()
   const [tokenId, setTokenId] = useState()
   const [mintDate, setMintDate] = useState()
   const [stakedNum, setStakedNum] = useState()
@@ -191,10 +192,10 @@ export default function SignIn(props) {
     if(!stakedNum && !stakedDays && score !== undefined) return
     if(isOpenAutoCheckIn) {
       const integral = (Number(stakedNum * stakedDays)) + Number(score)
-      setScore(integral)
+      setIntegral(integral)
     } else {
       const integral = canUnstake ? (+stakedNum + Number(score)) : Number(score)
-      setScore(integral)
+      setIntegral(integral)
     }
   }, [stakedDays, canUnstake, stakedNum])
   useEffect(() => {
@@ -254,7 +255,7 @@ export default function SignIn(props) {
         <div>
           <div className="stake-num"><span className="name">{intl.get('StakedAmount')}:</span><span className="num">{stakedNum}</span><span className="symbol">{selectedToken}</span></div>
           <div className="score-wrapper">
-            <span className="name">{intl.get('Score')}:</span><span className="score">{score}</span>
+            <span className="name">{intl.get('Score')}:</span><span className="score">{integral}</span>
           </div>
           {
             isOpenAutoCheckIn &&
