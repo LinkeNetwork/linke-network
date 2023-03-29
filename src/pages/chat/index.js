@@ -1356,6 +1356,7 @@ export default function Chat() {
     setShowMask(true)
     await tx.wait()
     setState({
+      canUnstake: false,
       isCancelCheckIn: true
     })
     setShowMask(false)
@@ -1464,7 +1465,8 @@ export default function Chat() {
   const handleCloseSignIn = () => {
     setShowSignIn(false)
     setState({
-      canMint: false
+      canMint: false,
+      canUnstake: false
     })
   }
   const handleMint = async(quantity, token) => {

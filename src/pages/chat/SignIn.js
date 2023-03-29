@@ -24,6 +24,7 @@ export default function SignIn(props) {
   const [isAuthorization, setIsAuthorization] = useState(false)
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
+  const [unstackTime, setUnstackTime] = useState()
   const [isOpenAutoCheckIn, setIsOpenAutoCheckIn] = useState(false)
   const [selectedTokenInfo, setSelectedTokenInfo] = useState('')
   const [tokenBalance, setTokenBalance] = useState('')
@@ -76,6 +77,11 @@ export default function SignIn(props) {
     setSelectTokenId(tokenId_)
     const timestamp = formatTimestamp(lastDate)
     const cancelTime = formatTimestamp(cancelDate)
+    if(cancelTime > 0 ) {
+      setUnstackTime(cancelTime)
+    } else {
+      setUnstackTime(timestamp)
+    }
     setCancelTime(cancelTime)
     setIsCancel(cancelTime>0)
     setEndStack(cancelTime>0)
@@ -266,7 +272,7 @@ export default function SignIn(props) {
             </div>
           </div>
           {
-            ((cancelTime > 0 && !canUnstake) || !isOpenAutoCheckIn) && <CountDown timestamp={mintDate}/>
+            ((cancelTime > 0 && !canUnstake) || !isOpenAutoCheckIn) && <CountDown timestamp={unstackTime}/>
           }
           {
             
