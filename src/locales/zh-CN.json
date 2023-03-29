@@ -105,5 +105,7 @@
   "AutoCheckIn": "自動打卡",
   "OpenAutoCheckInTips": "開通自動打卡需要1ethf手續費",
   "Confirm": "確認",
-  "CreateProfileTips": "您應該先創建個人資料"
+  "CreateProfileTips": "您應該先創建個人資料",
+  "Copy": "復制",
+  "Copied": "已復制"
 }

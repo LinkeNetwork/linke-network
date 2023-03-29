@@ -10,6 +10,7 @@ import localForage from "localforage"
 import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 import useWallet from "../../hooks/useWallet"
+import intl from "react-intl-universal"
 export default function GroupList(props) {
   const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo, transactionRoomHash } = useGlobal()
   const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead, privateChatMember } = props
@@ -26,6 +27,7 @@ export default function GroupList(props) {
   const [moveX, setMoveX] = useState(0)
   const [moveY, setMoveY] = useState(0)
   const [copied, setCopied] = useState(false)
+  const [copyText, setCopyText] = useState(intl.get('Copy'))
   const [hasTransition, setHasTransition] = useState(false)
   const [moveStyle, setMoveStyle] = useState({})
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -200,11 +202,13 @@ export default function GroupList(props) {
     console.log(path)
   }
   const onCopy = (e) => {
+    setCopyText(intl.get('Copied'))
     e.stopPropagation()
     setCopied(true)
     setTimeout(() => {
+      setCopyText(intl.get('Copy'))
       setCopied(false)
-    }, 1500)
+    }, 1000)
   }
   const showCurrentChatList = (e, item, index) => {
     setCurrentRoomIndex(index)
@@ -420,11 +424,14 @@ export default function GroupList(props) {
                   !detectMobile() &&
                   <div className={`delete-btn-wrapper ${!detectMobile() ? 'delete-btn-web' : ''}`}>
                     {/* <div className='iconfont icon-shanchu' onClick={(e) => { deleteChatRoom(e, item.id) }}></div> */}
-                    <CopyToClipboard text={item.id}>
-                      <div className='iconfont icon-fuzhiwenjian' onClick={onCopy}></div>
-                    </CopyToClipboard>
                     {
-                      copied && <div className='message-tips message-tips-success'>{item.id}</div>
+                      !copied &&
+                      <CopyToClipboard text={`https://linke.network/chat/${item.id}/${getLocal('network')}`}>
+                        <div className='iconfont icon-fuzhiwenjian' onClick={onCopy}></div>
+                      </CopyToClipboard>
+                    }
+                    {
+                      copied && <div className="copied-text">{intl.get('Copied')}</div>
                     }
 
                   </div>
@@ -432,15 +439,15 @@ export default function GroupList(props) {
                 {
                   detectMobile() &&
                   <div className='operate-btn'>
-                    <CopyToClipboard text={item.id}>
-                      <div className='copy-btn' onClick={(e) => { onCopy(e) }}>copy</div>
+                    <CopyToClipboard text={`https://linke.network/chat/${item.id}/${getLocal('network')}`}>
+                      <div className='copy-btn' onClick={(e) => { onCopy(e) }}>{copyText}</div>
                     </CopyToClipboard>
                     <div onClick={(e) => { deleteChatRoom(e, item.id) }}>
                       <div className='del-btn'>delete</div>
                     </div>
-                    {
+                    {/* {
                       copied && <div className='message-tips message-tips-success'>{item.id}</div>
-                    }
+                    } */}
                   </div>
 
                 }
@@ -462,6 +469,9 @@ const ListGroupContainer = styled.div`
   overflow-y: auto;
   background-color: #fff;
   overflow-x: hidden;
+  .copied-text {
+    font-size: 12px;
+  }
 .chat-list {
   .operate-btn{
     // width: 120px;
@@ -494,10 +504,10 @@ const ListGroupContainer = styled.div`
     .copy-btn {
       background-color: rgba(128, 128, 128, 0.7);;
     }
-    .message-tips {
-      left: -270px;
-      bottom: 20px;
-    }
+    // .message-tips {
+    //   left: -270px;
+    //   bottom: 20px;
+    // }
   }
   .delete-btn-wrapper{
     position: absolute;
