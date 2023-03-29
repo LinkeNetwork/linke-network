@@ -16,12 +16,12 @@ export default function Nav(props) {
   const navList = [
     {
       icon: 'icon-group',
-      name: intl.get('Chat'),
+      name: 'Chat',
       path: '/chat',
     },
     {
       icon: 'icon-view-profile',
-      name: intl.get('Profile'),
+      name: 'Profile',
       path: '/profile'
     }
   ]
@@ -55,7 +55,7 @@ export default function Nav(props) {
                   <li className={`${path.includes(item.path) ? 'active' : ''}`} key={index}>
                     <div onClick={() => jumpPage(item.path)}>
                       <span className={`iconfont ${item.icon}`}></span>
-                      {item.name}
+                      {intl.get(item.name)}
                     </div>
                   </li>
                 )

@@ -31,6 +31,7 @@ export default function useGroupMember() {
     }
     `
     const item = networks.filter(i=> i.symbol === getLocal('network'))[0]
+    if(!item) return
     const client = createClient({
       url: item?.APIURL
     })

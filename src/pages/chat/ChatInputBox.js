@@ -29,7 +29,6 @@ export default function ChatInputBox(props) {
   const [showOpenSignIcon, setShowOpenSignIcon] = useState(false)
   const [showSignInIcon, setShowSignInIcon] = useState(false)
   const [showOpenSignIn, setShowOpenSignIn] = useState(false)
-  const [nftAddress, setNftAddress] = useState('')
   const initTextArea = () => {
     var editorArea = document.querySelector('.editor-area')
     var editorBacker = document.querySelector('.editor-backer')
@@ -49,7 +48,6 @@ export default function ChatInputBox(props) {
   }
   const isOpenSignIn = async() => {
     const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
-    setNftAddress(tx.nft)
     setState({
       nftAddress: tx.nft
     })
@@ -211,7 +209,6 @@ export default function ChatInputBox(props) {
   }
   const handleCheckIn = async() => {
     const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
-    setNftAddress(tx.nft)
     setState({
       nftAddress: tx.nft
     })

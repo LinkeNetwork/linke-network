@@ -60,11 +60,6 @@ export default function useWallet() {
         return accounts
       } else {
         window.location.href = 'https://chrome.google.com/webstore/detail/okx-wallet/mcohilncbfahbmgdjkbpemcciiolgcge/related'
-        // if(detectMobile()) {
-        //   // connectWallet()
-        // } else {
-         
-        // }
       }
     } catch (error) {
       throw error
@@ -132,13 +127,11 @@ export default function useWallet() {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const network = await provider.getNetwork()
       const item = networks.filter(i=> i.chainId === network.chainId)[0]
+      setChainId(network.chainId)
       setState({
         chainId: network.chainId
       })
-      if(!item) {
-        setChainId(network.chainId)
-        return
-      }
+      if(!item) return
       const currNetwork = networkList[network.chainId]
       const client = createClient({
         url: item?.APIURL
@@ -148,7 +141,6 @@ export default function useWallet() {
       })
       setLocal('network', currNetwork)
       setNetwork(currNetwork)
-      setChainId(network.chainId)
       setState({
         currentChain: currNetwork,
         currentNetworkInfo:item,
@@ -189,7 +181,6 @@ export default function useWallet() {
       const account = await window?.ethereum?.request({ method: 'eth_requestAccounts' })
       handleNewAccounts(account)
       getAccounInfo(account)
-      console.log(account, 'initWallet====')
       window.ethereum.on('chainChanged', chainId => {
         setState({
           chainId: parseInt(chainId, 16)

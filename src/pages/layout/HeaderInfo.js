@@ -61,7 +61,7 @@ export default function HeaderInfo() {
       })
       setShowHomeHeader(false)
     }
-  }, [locations, setState])
+  }, [locations])
   useEffect(() => {
     let data = locations?.state?.share
     if (data) {

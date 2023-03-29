@@ -64,6 +64,7 @@ export default function GroupList(props) {
           name: name,
           _type: _type
         })
+        // console.log('setGroupList===>1')
         setGroupList(groupList)
         setState({
           groupLists: groupList
@@ -91,6 +92,7 @@ export default function GroupList(props) {
           account[roomType] = groupList?.length ? [...groupList] : []
         }
         localForage.setItem('chatListInfo', res)
+        // console.log('setGroupList===>2')
         setGroupList(groupList)
         setState({
           groupLists: groupList
@@ -126,7 +128,6 @@ export default function GroupList(props) {
     let fetchData = await getCurrentGroupInfo(roomAddress)
     if (roomAddress) {
       const index = groupInfos?.findIndex((item) => item.id === roomAddress)
-      console.log(index, roomAddress, fetchData, '====>findIndex>>')
       if (index === -1 && !hasQuitRoom) {
         groupInfos.push({
           id: roomAddress,
@@ -136,6 +137,7 @@ export default function GroupList(props) {
         })
       }
     }
+    // console.log('setGroupList===>3')
     setGroupList([...groupInfos] || [])
     setState({
       groupLists: [...groupInfos]
@@ -274,6 +276,7 @@ export default function GroupList(props) {
         privateGroupList.push(list)
       }
     }
+    // console.log('setGroupList===>4')
     setGroupList(privateGroupList)
     setChatListInfo(privateGroupList, 2)
     setState({
@@ -286,10 +289,9 @@ export default function GroupList(props) {
     if (!currNetwork) return
     localForage.getItem('chatListInfo').then(res => {
       const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
-      const publicRooms = account ? account['publicRooms'] : []
-      const privateRooms = account ? account['privateRooms'] : []
       let chatListInfo = res ? res : {}
       if (!account && currNetwork) {
+        // console.log('publicRooms=====1')
         const list = Object.keys(chatListInfo)
         chatListInfo[currNetwork] = chatListInfo[currNetwork] && list.length ? chatListInfo[currNetwork] : {}
         chatListInfo[currNetwork][getLocal('account')] = {
@@ -298,9 +300,11 @@ export default function GroupList(props) {
         }
       }
       if (type === 1) {
+        // console.log('publicRooms=====2')
         chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...groupInfos]
         localForage.setItem('chatListInfo', chatListInfo)
       } else {
+        debugger
         chatListInfo[currNetwork][getLocal('account')]['privateRooms'] = [...groupInfos]
         localForage.setItem('chatListInfo', chatListInfo)
       }
@@ -322,6 +326,7 @@ export default function GroupList(props) {
             getGroupList()
           } else {
             const groupList = [...publicRooms]
+            // console.log('setGroupList===>5')
             setGroupList(groupList)
             setState({
               groupLists: groupList
@@ -341,6 +346,7 @@ export default function GroupList(props) {
             res[currNetwork][getLocal('account')]['privateRooms'] = [...groupList]
             localForage.setItem('chatListInfo', res)
             const currentChatInfo = groupList.filter((item) => item?.id?.toLowerCase() === currentAddress?.toLowerCase())
+            // console.log('setGroupList===>6')
             setGroupList(groupList)
             setState({
               groupLists: groupList,
@@ -354,22 +360,11 @@ export default function GroupList(props) {
     }
   }, [accounts, chainId, currentTabIndex, hasCreateRoom, transactionRoomHash])
   useEffect(() => {
-    if ((!getLocal('isConnect') || !chainId) && !clientInfo) {
-      setGroupList([])
-    }
-    if (!getLocal('isConnect') && clientInfo) {
-      setGroupList(newGroupList)
-    }
-  }, [getLocal('isConnect'), chainId, newGroupList])
-  useEffect(() => {
     getCurrentGroup()
   }, [currentAddress])
   useEffect(() => {
     updateChatCount()
   }, [newGroupList, hasChatCount, hasCreateRoom])
-  useEffect(() => {
-    setGroupList([...newGroupList])
-  }, [newGroupList, hasChatCount])
   return (
     <ListGroupContainer>
       {
