@@ -1452,14 +1452,14 @@ export default function Chat() {
     setShowHandlingFee(true)
     setHandlingFeeTips(intl.get('OpenAutoCheckInTips'))
   }
-  const handleCheckIn = async(tokenId, quantity) => {
+  const handleCheckIn = async(token, tokenId, quantity) => {
     setShowSignIn(false)
     setState({
       canMint: false
     })
     setShowMask(true)
     try {
-      const valueE = +tokenId === 0 ? ethers.utils.parseEther(quantity) : 0
+      const valueE = +token === 0 ? ethers.utils.parseEther(quantity) : 0
       const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity), {value: valueE})
       await tx.wait()
       setShowMask(false)
@@ -1637,7 +1637,7 @@ export default function Chat() {
               handleMint={(num, token) => {handleMint(num, token)}}
               handleSelectNft={(id) => {handleSelectNft(id)}}
               nftImageList={nftImageList}
-              handleCheckIn={(id, num) => {handleCheckIn(id, num)}}
+              handleCheckIn={(token,id, num) => {handleCheckIn(token, id, num)}}
               handleCancelCheckin={handleCancelCheckin}
               handleEndStake={(status, isOpenAutoCheckIn) => {handleEndStake(status, isOpenAutoCheckIn)}}
               handleAutoCheckIn={handleAutoCheckIn}

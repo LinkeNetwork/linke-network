@@ -29,6 +29,7 @@ export default function SignIn(props) {
   const [selectedTokenInfo, setSelectedTokenInfo] = useState('')
   const [tokenBalance, setTokenBalance] = useState('')
   const [selectTokenId, setSelectTokenId] = useState()
+  const [selectToken, setSelectToken] = useState()
   const [tokenLogo, setTokenLogo] = useState('')
   const [canSend, setCanSend] = useState(false)
   const [btnText, setBtnText] = useState(intl.get('Mint'))
@@ -51,7 +52,7 @@ export default function SignIn(props) {
         approveActions(selectedTokenInfo, 'signIn')
         break;
       case intl.get('CheckIn'):
-        handleCheckIn(tokenId, quantity)
+        handleCheckIn(selectToken, tokenId, quantity)
         break;
       case intl.get('EndStake'):
         handleEndStake(isOpenAutoCheckIn)
@@ -75,6 +76,7 @@ export default function SignIn(props) {
     })
     const tokenId_ = (new BigNumber(Number(tokenId))).toNumber()
     const registerInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId_)
+    console.log(registerUserInfos, 'registerUserInfos====')
     setSelectTokenId(tokenId_)
     const timestamp = formatTimestamp(lastDate)
     const cancelTime = formatTimestamp(cancelDate)
@@ -130,7 +132,8 @@ export default function SignIn(props) {
     const tx = await getDaiWithSigner(nftAddress.toLocaleLowerCase(), SIGN_IN_ABI).token()
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == tx.toLocaleLowerCase())
-    const { symbol, logoURI } = selectedToken.length && selectedToken[0]
+    const { symbol, logoURI, address } = selectedToken.length && selectedToken[0]
+    setSelectToken(address)
     if (tx == 0) {
       setTokenBalance(Number(currentTokenBalance).toFixed(4))
     } else {
