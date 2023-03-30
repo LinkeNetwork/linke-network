@@ -25,7 +25,7 @@ const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('b
 //   },
 // })
 
-const client = create('https://ipfs.etherfair.org')
+const client = create('https://ipfs.linke.network')
 
 export default function CreateNewRoom(props) {
   const { setState, currentNetworkInfo } = useGlobal()
@@ -100,7 +100,7 @@ export default function CreateNewRoom(props) {
     setShoMask(true)
     const avatar = getLocal('account') + name
     const info = await client.add(multiavatar(avatar))
-    const avatarUrl = `https://ipfs.etherfair.org/ipfs/${info.path}`
+    const avatarUrl = `https://ipfs.linke.network/ipfs/${info.path}`
     const style = {
       avatar: groupLogo,
       backgroundColor: currentColor,
@@ -158,7 +158,7 @@ export default function CreateNewRoom(props) {
     try {
       setShowLoading(true)
       const added = await client.add(file)
-      const url = `https://linke.infura-ipfs.io/ipfs/${added.path}`
+      const url = `https://ipfs.linke.network/ipfs/${added.path}`
       if (type === 1) {
         setGroupLogo(url)
         setShowLoading(false)
