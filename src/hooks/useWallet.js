@@ -1,6 +1,6 @@
 import { token } from "../constant/token"
 import { ethers } from "ethers"
-import { getLocal, setLocal } from "../utils"
+import { detectMobile, getLocal, setLocal } from "../utils"
 import { useState, useLayoutEffect } from "react"
 import useProfile from "./useProfile"
 import MetaMaskOnboarding from '@metamask/onboarding'
@@ -66,6 +66,9 @@ export default function useWallet() {
     }
   }
   const changeNetwork = async (network) => {
+    if(detectMobile()) {
+      window.open('https://metamask.app.link/dapp/https://linke.network', '_blank');
+    }
     setState({
       showConnectNetwork: false
     })
