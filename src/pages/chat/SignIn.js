@@ -19,7 +19,7 @@ const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
   const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn, hasEndStack, canUnstake, stakedDays } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
-  const { handleMint, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin, handleAutoCheckIn, showNftList } = props
+  const { handleMint, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin, handleAutoCheckIn, showNftList, currentAddress } = props
   const [quantity, setQuantity] = useState('')
   const [isAuthorization, setIsAuthorization] = useState(false)
   const [showTokenList, setShowTokenList] = useState(false)
@@ -188,6 +188,11 @@ export default function SignIn(props) {
       </div>
     )
   }
+  const shareToTwitter = async(e) => {
+    e.stopPropagation()
+    const str = `${intl.get('CheckInShareToTwitter')}https://linke.network/chat/${currentAddress}/${getLocal('network')}`
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(str)}`)
+  }
   useEffect(() => {
     if(!stakedNum && !stakedDays && score !== undefined) return
     if(isOpenAutoCheckIn) {
@@ -298,6 +303,10 @@ export default function SignIn(props) {
               }
             </div>
           }
+          <div onClick={(e) => { shareToTwitter(e) }} className="share-twitter">
+            <span className='iconfont icon-share'></span>
+            <span>{intl.get('Twitter')}</span>
+          </div>
         </div>
       }
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
@@ -366,6 +375,17 @@ const SignInWrapper = styled.div`
 height: 100%;
 width: 100%;
 background: #fff;
+.share-twitter {
+  text-align: center;
+  width: 100px;
+  background: rgb(29, 155, 240);
+  border-radius: 20px;
+  color: #fff;
+  padding: 10px 4px;
+  margin: 20px auto;
+  font-size: 14px;
+  font-weight: bold;
+}
 .token-id, .score-num {
   font-size: 18px;
 }

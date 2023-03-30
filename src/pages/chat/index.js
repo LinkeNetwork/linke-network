@@ -527,6 +527,12 @@ export default function Chat() {
     setState({
       currentAddress: address
     })
+    if(detectMobile()) {
+      setShowChat(true)
+      setState({
+        showHeader: false
+      })
+    }
     // console.log('setChatList=====>>4')
     setChatList([])
     setShowMask(false)
@@ -1626,6 +1632,7 @@ export default function Chat() {
         <Modal title={intl.get('CheckIn')} visible={showSignIn} onClose={handleCloseSignIn}>
           <div className="sign-in-wrapper">
             <SignIn
+              currentAddress={currentAddress}
               showNftList={showNftList}
               handleMint={(num, token) => {handleMint(num, token)}}
               handleSelectNft={(id) => {handleSelectNft(id)}}
