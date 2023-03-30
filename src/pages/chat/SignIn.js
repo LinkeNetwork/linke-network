@@ -190,7 +190,7 @@ export default function SignIn(props) {
   }
   const shareToTwitter = async(e) => {
     e.stopPropagation()
-    const str = `${intl.get('CheckInShareToTwitter')}https://linke.network/chat/${currentAddress}/${getLocal('network')}`
+    const str = `${intl.get('CheckInShareToTwitter')}https://linke.network/chat/${currentAddress}/${getLocal('network')} \n #Linke #ETHF #Airdrop`
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(str)}`)
   }
   useEffect(() => {
