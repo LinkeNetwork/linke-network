@@ -42,6 +42,7 @@ export default function SignIn(props) {
   const [cancelTime, setCancelTime] = useState()
   const [isCancel, setIsCancel] = useState(false)
   const [endStack, setEndStack] = useState(false)
+  const [nftInfo, setNftInfo] = useState([])
   const [selectNftIndex, setSelectNftIndex] = useState()
   const buttonActions = (e) => {
     switch (e.target.innerText) {
@@ -66,6 +67,16 @@ export default function SignIn(props) {
         return null;
     }
   }
+  const getNftInfo = async() => {
+    const list = [...nftImageList]
+    for (let i = 0; i < list.length; i++) {
+      const tokenId = list[i].tokenId;
+      const result = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId)
+      list[i].score = Number(ethers.utils.formatEther(result.score))
+    }
+    setNftInfo(list)
+    return list
+  }
   const getStakedInfo = async () => {
     const account = getLocal('account').toLowerCase()
     const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
@@ -76,7 +87,6 @@ export default function SignIn(props) {
     })
     const tokenId_ = (new BigNumber(Number(tokenId))).toNumber()
     const registerInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId_)
-    console.log(registerUserInfos, 'registerUserInfos====')
     setSelectTokenId(tokenId_)
     const timestamp = formatTimestamp(lastDate)
     const cancelTime = formatTimestamp(cancelDate)
@@ -175,14 +185,14 @@ export default function SignIn(props) {
       <div>
         <ul className="list-wrapper">
           {
-            nftImageList.map((item, index) => {
+            nftInfo?.map((item, index) => {
               return (
                 <li key={index} onClick={() => handleChooseNft(item, index)} className={selectNftIndex === index ? 'active' : ''}>
                   <div className="nft-wrapper">
                     <Image src={nftImage} size={120} alt="" />
                   </div>
                   <div className="token-id">#{item.tokenId}</div>
-                  <div className="score-num">Score: {score}</div>
+                  <div className="score-num">Score: {item.score}</div>
                 </li>
               )
             })
@@ -224,6 +234,7 @@ export default function SignIn(props) {
     }
   }, [quantity])
   useEffect(() => {
+    getNftInfo()
     getSelectedToken()
   }, [])
   useEffect(() => {
