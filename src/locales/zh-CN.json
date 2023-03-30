@@ -107,5 +107,10 @@
   "Confirm": "確認",
   "CreateProfileTips": "您應該先創建個人資料",
   "Copy": "復制",
-  "Copied": "已復制"
+  "Copied": "已復制",
+  "GroupQRCode": "群二維碼",
+  "GroupAddress": "群地址",
+  "Members": "群成員",
+  "QuitRoom": "退群",
+  "Search": "搜索"
 }

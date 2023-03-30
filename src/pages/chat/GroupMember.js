@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react"
 import styled from "styled-components"
+import intl from 'react-intl-universal'
 import Image from '../../component/Image'
 import { useHistory } from 'react-router-dom'
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import Modal from '../../component/Modal'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI } from '../../abi'
 import { detectMobile, formatAddress, getLocal, getDaiWithSigner } from "../../utils"
@@ -20,6 +22,8 @@ export default function GroupMember(props) {
   const [memberList, setMemberList] = useState([])
   const [manager, setManager] = useState()
   const history = useHistory()
+  const [copyText, setCopyText] = useState('copy')
+  const [showCopyText, setShowCopyText] = useState(false)
   const [showOperate, setShowOperate] = useState()
   const [groupInfo, setGroupInfo] = useState()
   const [showQuitRoomConfirm, setShowQuitRoomConfirm] = useState(false)
@@ -92,6 +96,14 @@ export default function GroupMember(props) {
       handleHiddenMask()
     }
   }
+  const onCopy = () => {
+    setShowCopyText(true)
+    setCopyText('copied')
+    setTimeout(() => {
+      setShowCopyText(false)
+      setCopyText('copy')
+    }, 200)
+  }
   const quitRoomConfirm = () => {
     return (
       <Modal title="Leave Group" visible={showQuitRoomConfirm} onClose={() => setShowQuitRoomConfirm(false)}>
@@ -116,15 +128,30 @@ export default function GroupMember(props) {
     return (
       <div className="group-info-wrap">
         <div className="item">
-          <span className="name">Group Name: </span>
+          <span className="name">{intl.get('RoomName')}: </span>
           <span className="value">{groupInfo?.name}</span>
         </div>
         <div className="item">
-          <span className="name">Group Description: </span>
+          <span className="name">{intl.get('GroupAddress')}: </span>
+          <div className="d-flex">
+            <span className="value">{formatAddress(groupInfo?.id, 7, 9) }</span>
+            <div>
+              {
+                showCopyText 
+                ? <div className="copy-text">{copyText}</div>
+                : <CopyToClipboard text={`https://linke.network/chat/${groupInfo?.id}/${getLocal('network')}`}>
+                    <div className='iconfont icon-fuzhiwenjian' onClick={onCopy}></div>
+                  </CopyToClipboard>
+              }
+            </div>
+          </div>
+        </div>
+        <div className="item">
+          <span className="name">{intl.get('GroupDescribe')}: </span>
           <span className="value">{groupInfo?.description}</span>
         </div>
         <div className="item">
-          <span className="name">Group QR Code: </span>
+          <span className="name">{intl.get('GroupQRCode')}: </span>
           <img src={ewmLogo} className="ewm-logo" alt='' onClick={shareGroup} />
         </div>
         {/* <div className="btn btn-lg btn-primary share-btn" onClick={shareGroup}>
@@ -202,7 +229,7 @@ export default function GroupMember(props) {
       <div className="member-list-wrapper">
         <div className="sub-title">
           <div>
-            Members {
+              {intl.get('Members')} {
               +userCount > 0 &&
               <span>({userCount})</span>
             }
@@ -214,7 +241,7 @@ export default function GroupMember(props) {
           <span className="icon-search-wrapper">
             <i className="iconfont icon-search"></i>
           </span>
-          <input className="search-input" type="search" placeholder="Search..." aria-label="Search..." />
+          <input className="search-input" type="search" placeholder={intl.get('Search')} aria-label="Search..." />
         </div>
       </div>
 
@@ -277,7 +304,7 @@ export default function GroupMember(props) {
       </InfiniteScroll>
       {
         !canQuitRoom && hasAccess &&
-        <div className="btn btn-lg btn-primary" onClick={() => setShowQuitRoomConfirm(true)}>Quit Room</div>
+        <div className="btn btn-lg btn-primary" onClick={() => setShowQuitRoomConfirm(true)}>{intl.get('QuitRoom')}</div>
       }
     </GroupMemberContainer>
   )
@@ -292,6 +319,9 @@ height: 100%;
 overflow: auto;
 background: #eee;
 z-index: 100;
+.copy-text {
+  font-size: 14px;
+}
 .share-btn {
   position: relative;
   .icon-share {
@@ -343,6 +373,10 @@ z-index: 100;
   position: absolute;
   right: 20px;
   cursor: pointer;
+}
+.icon-fuzhiwenjian {
+  right: inherit;
+  margin-left: 6px;
 }
 .search-wrap {
   margin: 10px;
@@ -420,9 +454,7 @@ z-index: 100;
     .name {
       font-weight: bold;
       font-size: 15px;
-    }
-    .value {
-
+      margin-right: 4px;
     }
   }
 }

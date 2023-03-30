@@ -404,7 +404,7 @@ export default function ChatContext(props) {
                                 onCopy={(e) => { onCopy(e, v) }}>
                                 <div>
                                   <span className='iconfont icon-fuzhiwenjian'></span>
-                                  <span>copy</span>
+                                  <span>{copyText}</span>
                                 </div>
                               </CopyToClipboard>
                             }

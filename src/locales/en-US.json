@@ -110,6 +110,11 @@
   "Confirm": "Confirm",
   "CreateProfileTips": "You should create profile first",
   "Copy": "Copy",
-  "Copied": "Copied"
+  "Copied": "Copied",
+  "GroupQRCode": "Group QR Code",
+  "GroupAddress": "Group Address",
+  "Members": "Members",
+  "QuitRoom": "Quit Room",
+  "Search": "Search"
 }
 
