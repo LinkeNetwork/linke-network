@@ -31,10 +31,10 @@ const CumulativeTime = ({timestamp, stakedNum, isOpenAutoCheckIn, cancelTime}) =
       {
         (+stakedNum > 0 && isOpenAutoCheckIn) && !(+cancelTime) &&
         <div>
+          <div className="tips">({intl.get('OneDayTips')})</div>
           <div className="count">
             {remainingTime.hours}:{remainingTime.minutes < 10 ? `0${remainingTime.minutes}`:remainingTime.minutes }:{remainingTime.seconds < 10 ? `0${remainingTime.seconds}`:remainingTime.seconds }
           </div>
-          <div className="tips">({intl.get('OneDayTips')})</div>
         </div>
       }
     </div>
