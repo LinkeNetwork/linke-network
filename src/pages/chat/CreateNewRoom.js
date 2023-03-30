@@ -16,14 +16,16 @@ const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
 const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
 const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
 
-const client = create({
-  host: 'ipfs.infura.io',
-  port: 5001,
-  protocol: 'https',
-  headers: {
-    authorization: auth,
-  },
-})
+// const client = create({
+//   host: 'ipfs.infura.io',
+//   port: 5001,
+//   protocol: 'https',
+//   headers: {
+//     authorization: auth,
+//   },
+// })
+
+const client = create('https://ipfs.etherfair.org')
 
 export default function CreateNewRoom(props) {
   const { setState, currentNetworkInfo } = useGlobal()
@@ -98,7 +100,7 @@ export default function CreateNewRoom(props) {
     setShoMask(true)
     const avatar = getLocal('account') + name
     const info = await client.add(multiavatar(avatar))
-    const avatarUrl = `https://linke.infura-ipfs.io/ipfs/${info.path}`
+    const avatarUrl = `https://ipfs.etherfair.org/ipfs/${info.path}`
     const style = {
       avatar: groupLogo,
       backgroundColor: currentColor,
@@ -110,6 +112,7 @@ export default function CreateNewRoom(props) {
     const name_ = 'group'
     const symbol_ = 'GROUP'
     const styleList = JSON.stringify(style)
+    debugger
     try {
       const params = ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, styleList, name_, symbol_]);
       const tx = await getDaiWithSigner(currentNetworkInfo?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)

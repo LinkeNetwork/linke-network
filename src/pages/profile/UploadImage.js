@@ -2,7 +2,7 @@ import styled from "styled-components"
 import { create } from 'ipfs-http-client'
 import { useEffect, useRef, useState } from 'react'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
-const client = create('https://ipfs.infura.io:5001')
+const client = create('https://ipfs.etherfair.org')
 export default function UploadImage(props) {
   const { uploadBg, myAddress } = props
   const avatarRef = useRef()
@@ -14,7 +14,7 @@ export default function UploadImage(props) {
     try {
       setShowLoading(true)
       const added = await client.add(file)
-      const url = `https://linke.infura-ipfs.io/ipfs/${added.path}`
+      const url = `https://ipfs.etherfair.org/ipfs/${added.path}`
       setShowLoading(false)
       updateFileUrl(url)
       uploadBg(url)
