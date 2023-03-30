@@ -194,13 +194,18 @@ export default function SignIn(props) {
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(str)}`)
   }
   useEffect(() => {
-    if(!stakedNum && !stakedDays && score !== undefined) return
+    if(!stakedNum && score === undefined) return
+    const amount = new BigNumber(stakedNum)
+    const days = new BigNumber(stakedDays)
+    const score_ = new BigNumber(score)
     if(isOpenAutoCheckIn) {
-      const integral = (Number(stakedNum * stakedDays)) + Number(score)
-      setIntegral(integral)
+      const result = amount.multipliedBy(days)
+      const integral = result.plus(score_)
+      setIntegral(integral.toString())
     } else {
-      const integral = canUnstake ? (+stakedNum + Number(score)) : Number(score)
-      setIntegral(integral)
+      const result = amount.plus(score_)
+      const integral = canUnstake ? result : score_
+      setIntegral(integral.toString())
     }
   }, [stakedDays, canUnstake, stakedNum])
   useEffect(() => {
