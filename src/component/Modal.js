@@ -33,7 +33,7 @@ export default function ModalContainer(props) {
                   title &&
                 <ModalHead className="f-c-sb">
                   { excat }
-                  <Titles style={{fontSize: '16px'}}>{title}</Titles>
+                  <Titles style={{fontSize: '18px'}}>{title}</Titles>
                 </ModalHead>
                 }
                 <div className="modal-container">

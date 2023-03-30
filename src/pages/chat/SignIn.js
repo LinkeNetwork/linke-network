@@ -178,8 +178,8 @@ export default function SignIn(props) {
                   <div className="nft-wrapper">
                     <Image src={nftImage} size={120} alt="" />
                   </div>
-                  <div>#{item.tokenId}</div>
-                  <div>integral: {score}</div>
+                  <div className="token-id">#{item.tokenId}</div>
+                  <div className="score-num">Score: {score}</div>
                 </li>
               )
             })
@@ -366,9 +366,16 @@ const SignInWrapper = styled.div`
 height: 100%;
 width: 100%;
 background: #fff;
+.token-id, .score-num {
+  font-size: 18px;
+}
+.token-id {
+  margin: 4px 0;
+}
 .score-wrapper {
   display: flex;
   margin: 15px 0;
+  font-size: 18px;
   .name {
     margin-right: 10px;
   }
@@ -525,17 +532,17 @@ background: #fff;
 }
 .stake-num {
   margin-bottom: 10px;
-  font-size: 16px;
+  font-size: 18px;
   display: flex;
   align-items: center;
   .num {
     color: #FFCE00;
     font-weight: bold;
     margin-left: 10px;
-    font-size: 20px;
+    font-size: 22px;
   }
   .symbol {
-    font-size: 14px;
+    font-size: 16px;
     margin: 2px 0 0 4px;
   }
 }
