@@ -9,8 +9,8 @@ import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
 import useCheckIn from '../../hooks/useCheckIn'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, handleOpenSign } = props
-  const { setState, accounts, signInAddress, groupType, hasOpenedSignIn, currentAddress } = useGlobal()
+  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, handleOpenSign, hasOpenedSignIn } = props
+  const { setState, accounts, signInAddress, groupType, currentAddress } = useGlobal()
   const { getCheckInToken } = useCheckIn()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
@@ -346,7 +346,6 @@ position: relative;
 .rich-editor {
   text-align: left;
   display: block;
-  // width: 100%;
   padding: 0.375rem 0.75rem;
   font-size: 1rem;
   font-weight: 400;
@@ -362,14 +361,11 @@ position: relative;
   transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 }
 .chat-input {
-  // height: 36px;
   overflow-y: auto;
   resize: none;
   margin-left: 7.6rem;
-  // max-height: 12rem;
   padding: 0.375rem 2.5rem 0.375rem 1rem;
   border-radius: 1rem;
-  // height: auto;
   &-client, &-pc {
     min-height: 22px;
     max-height: 211px;
@@ -378,25 +374,11 @@ position: relative;
       max-height: 211px;
     }
   }
-  // &-pc {
-  //   min-height: 71px;
-  //   max-height: 211px;
-  //   .editor-area, .editor-backer {
-  //     min-height: 71px;
-  //     max-height: 211px;
-  //   }
-  // }
 }
 .wrapper {
   position: relative;
   width: 100%;
   z-index: 1;
-  // &-pc {
-  //   min-height: 80px;
-  //   .editor-area {
-  //     min-height: 80px;
-  //   }
-  // }
 }
 .editor-area, .editor-backer {
   width: 100%;
@@ -451,7 +433,6 @@ position: relative;
   background-color: #FAFAFA;
   padding: 0.5rem 1rem 0rem 1rem;
   border-top: 1px solid #dee2e6;
-  // position: relative;
   .chat-tips {
     font-size: 12px;
     color: #6c757d;

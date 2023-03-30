@@ -32,7 +32,6 @@ const state = {
   transactionRoomHash: '',
   groupType: '',
   nftAddress: '',
-  hasOpenedSignIn: false,
   continueMint: false,
   canMint: false,
   hiddenCountDown: true,

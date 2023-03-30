@@ -75,6 +75,7 @@ export default function Chat() {
   const [currentRoomName, setCurrentRoomName] = useState()
   const [hasAccess, setHasAccess] = useState()
   const [chatList, setChatList] = useState([])
+  const [hasOpenedSignIn, setHasOpenedSignIn] = useState(false)
   const [showOpenAward, setShowOpenAward] = useState(false)
   const [showJoinGroupButton, setShowJoinGroupButton] = useState()
   const [handlingFeeTips, setHandlingFeeTips] = useState()
@@ -552,8 +553,8 @@ export default function Chat() {
     setShowSettingList(false)
   }
   const showChatList = (item) => {
+    setHasOpenedSignIn(false)
     setState({
-      hasOpenedSignIn: false,
       canUnstake: false,
       stakedDays: 0
     })
@@ -1424,9 +1425,7 @@ export default function Chat() {
       console.log("Block number:", receipt.blockNumber)
       console.log("Block hash:", receipt.blockHash)
       setShowOpenSignIn(false)
-      setState({
-        hasOpenedSignIn: true
-      })
+      setHasOpenedSignIn(true)
       setShowMask(false)
     } catch (error) {
       console.error(error, 'handleOpenSign')
@@ -1806,6 +1805,7 @@ export default function Chat() {
                           currentAddress={currentAddress}
                           startChat={(text) => startChat(text)}
                           clearChatInput={clearChatInput}
+                          hasOpenedSignIn={hasOpenedSignIn}
                           handleShowPlace={() => { setShowPlaceWrapper(true) }}
                           handleAwardBonus={handleAwardBonus}
                           handleOpenSign={(tokenAddress) => handleOpenSign(tokenAddress)}
