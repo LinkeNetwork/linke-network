@@ -377,7 +377,12 @@ export default function SignIn(props) {
               <span className={`${canSend ? 'send-allowed' : 'btn-default'}`}>{btnText}</span>
             </div>
           }
-          
+          {
+            (!isAuthorization && nftImageList?.length > 0) && stakedNum !== undefined&&
+            <div className='btn btn-primary' onClick={buttonActions}>
+              <span className={`btn-default ${canSend ? 'send-allowed' : ''}`}>{ intl.get('Approve') }</span>
+            </div>
+          }
           {
             nftImageList.length > 0 && !continueMint && canMint && !showNftList &&
             <div className='btn btn-primary' onClick={buttonActions}>
