@@ -45,6 +45,7 @@ export default function Chat() {
   const [collectedRedEnvelope, setCollectedRedEnvelope] = useState([])
   const history = useHistory()
   const location = useLocation()
+  const [searchGroup, setSearchGroup] = useState([])
   const ROOM_ADDRESS = location?.state?.address
   const CURRENT_NETWORK = location?.state?.network
   const { getReceiveInfo } = useReceiveInfo()
@@ -70,6 +71,7 @@ export default function Chat() {
   const [currentRedEnvelopId, setCurrentRedEnvelopId] = useState()
   const [memberCount, setMemberCount] = useState()
   const [myAddress, setMyAddress] = useState()
+  const [searchGrouName, setSearchGrouName] = useState()
   const [showReceiveInfo, setShowReceiveInfo] = useState(false)
   const [showRedEnvelope, setShowRedEnvelope] = useState(false)
   const [currentRoomName, setCurrentRoomName] = useState()
@@ -1328,8 +1330,9 @@ export default function Chat() {
   }
   const handleSearch = (event) => {
     const value = event.target.value
+    setSearchGrouName(value)
     var newList = groupList.filter(item => item.name.includes(value) || item.id.toUpperCase().includes(value.toUpperCase()))
-    setRoomList(newList)
+    setSearchGroup(newList)
   }
   const handleReceiveConfirm = async(e, id) => {
     setState({
@@ -1749,8 +1752,10 @@ export default function Chat() {
                     showMask={() => setShowMask(true)}
                     showChatList={(item) => showChatList(item)}
                     newGroupList={roomList}
+                    searchGroup={searchGroup}
                     currentRoomName={currentRoomName}
                     hasAccess={hasAccess}
+                    searchGrouName={searchGrouName}
                     currNetwork={currNetwork}
                     currentTabIndex={currentTabIndex}
                     currentAddress={currentAddress?.toLowerCase()}

@@ -13,7 +13,8 @@ import useWallet from "../../hooks/useWallet"
 import intl from "react-intl-universal"
 export default function GroupList(props) {
   const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo, transactionRoomHash } = useGlobal()
-  const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, currentTabIndex, currentAddress, hasChatCount, currNetwork } = props
+  const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, currentTabIndex, currentAddress, hasChatCount, currNetwork, searchGroup, searchGrouName } = props
+  console.log(newGroupList, 'newGroupList===')
   const [groupList, setGroupList] = useState([])
   const { chainId } = useWallet()
   const [timeOutEvent, setTimeOutEvent] = useState()
@@ -92,10 +93,12 @@ export default function GroupList(props) {
         }
         localForage.setItem('chatListInfo', res)
         // console.log('setGroupList===>2')
-        setGroupList(groupList)
-        setState({
-          groupLists: groupList
-        })
+        if(!searchGrouName) {
+          setGroupList(groupList)
+          setState({
+            groupLists: groupList
+          })
+        }
       }
     })
 
@@ -353,9 +356,9 @@ export default function GroupList(props) {
     }
   }, [accounts, chainId, currentTabIndex, hasCreateRoom, transactionRoomHash])
   useEffect(() => {
-    const group = [...newGroupList]
+    const group = searchGroup.slice()
     setGroupList(group)
-  }, [newGroupList])
+  }, [searchGroup])
   useEffect(() => {
     getCurrentGroup()
   }, [currentAddress])
