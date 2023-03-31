@@ -232,7 +232,7 @@ export default function GroupMember(props) {
         quitRoomConfirm()
       }
       <div className="title">
-        <span>Group Info</span>
+        <span>{intl.get('GroupInfo')}</span>
         <span className="iconfont icon-close" onClick={closeGroupMember}></span>
       </div>
       {
@@ -278,10 +278,10 @@ export default function GroupMember(props) {
                       }
                       <div className='name'>{formatAddress(item.id, 6, 6)}</div>
                       <div className="button-wrapper">
-                        <div className="view-btn" onClick={() => viewProfile(item)}>View</div>
+                        <div className="view-btn" onClick={() => viewProfile(item)}>{intl.get('View')}</div>
                         {
                           showPrivateChat && getLocal('account').toLowerCase() != item?.id.toLowerCase() &&
-                          <div className="view-btn" onClick={() => handleChat(item)}>Chat</div>
+                          <div className="view-btn" onClick={() => handleChat(item)}>{intl.get('Chat')}</div>
                         }
                       </div>
                       {showOperate && <span></span>}

@@ -1,6 +1,7 @@
 import homeIcon from '../../assets/images/linke-logo.svg'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components'
+import intl from 'react-intl-universal'
 import LanguageSwitch from '../layout/LanguageSwitch'
 import { detectMobile } from '../../utils';
 
@@ -15,8 +16,8 @@ export default function Header(props) {
           </a>
         </div>
         <ul className="header-right">
-          <li><Link to="/chat" target="_blank">CHAT</Link></li>
-          <li onClick={() => alert('coming soon')}>DEVELOPER GARDEN</li>
+          <li><Link to="/chat" target="_blank">{intl.get('Chat')}</Link></li>
+          {/* <li onClick={() => alert('coming soon')}>DEVELOPER GARDEN</li> */}
         </ul>
         <div className='right-contanier' onClick={() => handleShowMenu()}>
           <span className='iconfont icon-caidan'></span>

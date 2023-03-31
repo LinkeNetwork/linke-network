@@ -2,6 +2,7 @@ import styled from "styled-components"
 import useGlobal from "../../hooks/useGlobal"
 import { getLocal } from "../../utils"
 import ConnectButton from './ConnectButton'
+import intl from "react-intl-universal"
 export default function EmptyInfo(props) {
   const { onClickDialog } = props
   const { setState } = useGlobal()
@@ -24,7 +25,7 @@ export default function EmptyInfo(props) {
         getLocal('isConnect') &&
         <div className="d-block d-lg-none text-center">
           <button className="btn btn-lg btn-primary" type="button" onClick={() => onClickDialog()} >
-            <i className="bi bi-plus-lg me-1"></i>Start new conversation
+            <i className="bi bi-plus-lg me-1"></i>{intl.get('StartChatting')}
           </button>
         </div>
       }

@@ -239,7 +239,7 @@ export default function ChatContext(props) {
                               <Jazzicon address={v?.user?.id} className="icon" />
                             }
                             <div className='name'>{formatAddress(v?.user?.id, 6, 6)}</div>
-                            <div className="view-btn" onClick={() => viewProfile(v)}>View</div>
+                            <div className="view-btn" onClick={() => viewProfile(v)}>{intl.get('View')}</div>
                             {showOperate && <span></span>}
                           </div>
                         }
