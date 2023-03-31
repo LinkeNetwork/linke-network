@@ -3,7 +3,7 @@ import { Jazzicon } from '@ukstv/jazzicon-react'
 import BigNumber from 'bignumber.js'
 import networks from '../../context/networks'
 import { PROFILE_ABI } from '../../abi/index'
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import intl from "react-intl-universal"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { useHistory } from 'react-router-dom'
@@ -22,17 +22,15 @@ export default function ChatContext(props) {
   const [selectText, setSelectText] = useState('')
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
-  const [profileId, setProfileId] = useState()
-  const [copied, setCopied] = useState(false)
-  const [receiveSymbol, setReceiveSymbol] = useState()
   const [copyText, setCopyText] = useState('copy')
   const [optionsList, setOptionsList] = useState({})
   const [clickNumber, setClickNumber] = useState(0)
   const [twitterUrl, setTwitterUrl] = useState('')
   const history = useHistory()
-  const handleShowProfile = (e, v) => {
+  const handleShowProfile = async(e, v) => {
+    const hasCreate = await getProfileStatus(v?.user?.id)
+    if(+hasCreate <=0 ) return
     e.preventDefault()
-    getProfileStatus(v?.user?.id)
     v.showProfile = true
     setShowOperate(true)
     setTimeout(() => {
@@ -54,7 +52,6 @@ export default function ChatContext(props) {
     var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
     const amount = ethers.utils.formatUnits(res?.amount, newList?.decimals)
     const totalAmount = +amount > 1000 ? numeral(amount).format() : amount
-    setReceiveSymbol(newList?.symbol)
     const tokenList = `#Airdrop #ETHF #linke #${newList?.symbol}`
     const wishes = v?.wishesText ? v?.wishesText : 'Best wishes 🎁 🎁 🎁'
     const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?id=${chatText}`
@@ -63,19 +60,12 @@ export default function ChatContext(props) {
     const st = encodeURIComponent(text + url)
     window.open(`https://twitter.com/intent/tweet?text=${st}`)
   }
-  const handleEnterProfile = (e, v) => {
-    if (!detectMobile()) return
-    getProfileStatus(v?.user?.id)
-    e.preventDefault()
-    setShowOperate(true)
-    v.showProfile = true
-  }
   const getProfileStatus = async (account) => {
     const currentNetwork = getLocal('network')
     const networkList = networks.filter(item => item.name === currentNetwork)
     const res = await getDaiWithSigner(networkList[0].ProfileAddress, PROFILE_ABI).defaultToken(account)
     const hasCreate = res && (new BigNumber(Number(res))).toNumber()
-    setProfileId(hasCreate)
+    return hasCreate
   }
   const getGiveawaysInfo = async(currentRedEnvelopId) => {
     const tokensQuery = `
@@ -96,7 +86,6 @@ export default function ChatContext(props) {
     var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
     const amount = ethers.utils.formatUnits(res?.amount, newList?.decimals)
     const totalAmount = +amount > 1000 ? numeral(amount).format() : amount
-    setReceiveSymbol(newList?.symbol)
     const tokenList = `${'#Airdrop #ETHF #linke'} #${newList?.symbol}`
     const wishesText = v?.wishesText ? v?.wishesText : 'Best wishes 🎁 🎁 🎁'
     const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?id=${chatText}`
@@ -165,7 +154,7 @@ export default function ChatContext(props) {
     setTimeout(() => {
       v.showOperate = false
       setCopyText('copy')
-      setCopied(true)
+      // setCopied(true)
     }, 200)
   }
 
@@ -227,7 +216,6 @@ export default function ChatContext(props) {
                     {
                       <div
                         className="chat-avatar-wrap"
-                        onMouseEnter={(e) => { handleEnterProfile(e, v) }}
                         onMouseLeave={(e) => { handleLeaveProfile(e, v) }}
                         onClick={(e) => { handleShowProfile(e, v) }}
                       >
