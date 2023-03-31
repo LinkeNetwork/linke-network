@@ -17,6 +17,7 @@ import { ethers } from "ethers"
 export default function ChatContext(props) {
   var numeral = require('numeral')
   const { hasMore, chatList, currentAddress, shareInfo, loadingData, currentTabIndex, handleDecryptedMessage, handleReceive} = props
+  console.log(chatList, 'chatList===')
   const { setState, clientInfo, tokenAddress } = useGlobal()
   const [showOperate, setShowOperate] = useState(false)
   const [selectText, setSelectText] = useState('')
@@ -334,10 +335,13 @@ export default function ChatContext(props) {
                               <span>You on&nbsp;</span>
                             }
                             {
-                              v?.user?.id?.toLowerCase() !== getLocal('account')?.toLowerCase() &&
+                              v?.user?.id?.toLowerCase() !== getLocal('account')?.toLowerCase() && !v?.user?.profile?.name &&
                               <span><span>{formatAddress(v?.user?.id, 6, 6)}</span>&nbsp;</span>
                             }
-                            
+                            {
+                              // v?.userName &&
+                              <span>{v?.user?.profile?.name}</span>
+                            }
                             {
                               v.block &&
                               <span>({v.block})</span>
