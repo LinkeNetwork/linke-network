@@ -14,7 +14,6 @@ import intl from "react-intl-universal"
 export default function GroupList(props) {
   const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo, transactionRoomHash } = useGlobal()
   const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, currentTabIndex, currentAddress, hasChatCount, currNetwork, searchGroup, searchGrouName } = props
-  console.log(newGroupList, 'newGroupList===')
   const [groupList, setGroupList] = useState([])
   const { chainId } = useWallet()
   const [timeOutEvent, setTimeOutEvent] = useState()

@@ -28,6 +28,7 @@ export default function GroupMember(props) {
   const [groupInfo, setGroupInfo] = useState()
   const [showQuitRoomConfirm, setShowQuitRoomConfirm] = useState(false)
   const [groupType, setGroupType] = useState()
+  const [orignMemberList, setOrignMemberList] = useState([])
   const [showLoading, setShowLoading] = useState(false)
   const [showPrivateChat, setShowPrivateChat] = useState(false)
   const [privateKey, setPrivateKey] = useState()
@@ -45,10 +46,21 @@ export default function GroupMember(props) {
       }
     })
     setMemberList(memberList.concat(memberListInfo))
+    setOrignMemberList(memberList.concat(memberListInfo))
     const groupType = data?._type
     setGroupType(groupType)
     await getManager(groupType)
     setGroupInfo(data)
+  }
+  const handleSearchMember = (event) => {
+    const list = [...orignMemberList]
+    const value = event.target.value
+    if(value) {
+      var newList = list.filter(item => item.profile.name.includes(value) || item.name.includes(value) || item.id.toUpperCase().includes(value.toUpperCase()))
+      setMemberList(newList)
+    } else {
+      setMemberList([...orignMemberList])
+    }
   }
   const handleChat = (item) => {
     handlePrivateChat(item, privateKey)
@@ -241,7 +253,7 @@ export default function GroupMember(props) {
           <span className="icon-search-wrapper">
             <i className="iconfont icon-search"></i>
           </span>
-          <input className="search-input" type="search" placeholder={intl.get('Search')} aria-label="Search..." />
+          <input className="search-input" type="search" placeholder={intl.get('Search')} aria-label="Search..." onInput={handleSearchMember} />
         </div>
       </div>
 
@@ -255,7 +267,7 @@ export default function GroupMember(props) {
           {
             memberList?.map((item, index) => {
               return (
-                <div className="item" key={index} id="memberItem">
+                <div className="item" key={index}>
                   {
                     item.showProfile &&
                     <div className='user-profile-wrap'>

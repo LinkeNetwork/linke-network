@@ -1331,7 +1331,8 @@ export default function Chat() {
   const handleSearch = (event) => {
     const value = event.target.value
     setSearchGrouName(value)
-    var newList = groupList.filter(item => item.name.includes(value) || item.id.toUpperCase().includes(value.toUpperCase()))
+    const list = [...groupList]
+    var newList = list.filter(item => item.name.includes(value) || item.id.toUpperCase().includes(value.toUpperCase()))
     setSearchGroup(newList)
   }
   const handleReceiveConfirm = async(e, id) => {
