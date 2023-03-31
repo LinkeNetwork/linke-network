@@ -227,7 +227,7 @@ export default function SignIn(props) {
     }
   }, [stakedNum])
   useEffect(() => {
-    if (quantity > 0 && quantity <= tokenBalance) {
+    if (+quantity > 0 && +quantity <= +tokenBalance) {
       setCanSend(true)
     } else {
       setCanSend(false)

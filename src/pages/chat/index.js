@@ -1456,6 +1456,7 @@ export default function Chat() {
     setHandlingFeeTips(intl.get('OpenAutoCheckInTips'))
   }
   const handleCheckIn = async(token, tokenId, quantity) => {
+    console.log(token, tokenId, quantity, '====>>>>', +token === 0)
     setShowSignIn(false)
     setState({
       canMint: false
@@ -1466,7 +1467,8 @@ export default function Chat() {
       const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity), {value: valueE})
       await tx.wait()
       setShowMask(false)
-    } catch {
+    } catch(err) {
+      console.log(err, '--->>')
       setShowMask(false)
     }
   }
