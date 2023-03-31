@@ -1558,6 +1558,12 @@ export default function Chat() {
       setCurrentAddress(address)
     }
   }, [ROOM_ADDRESS, GROUP_ADDRESS])
+  useEffect(() => {
+    if(!location.state) {
+      setCurrentAddress('')
+      setShowChat(false)
+    }
+  }, [location])
   return(
     <div className={`chat-ui-wrapper ${!showGroupList ? 'chat-ui-wrapper-share' : ''}`}>
       {

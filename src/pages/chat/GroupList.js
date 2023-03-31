@@ -25,6 +25,7 @@ export default function GroupList(props) {
   const [moveX, setMoveX] = useState(0)
   const [moveY, setMoveY] = useState(0)
   const [copied, setCopied] = useState(false)
+  const [deletePath, setDeletePath] = useState()
   const [copyText, setCopyText] = useState(intl.get('Copy'))
   const [hasTransition, setHasTransition] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -182,21 +183,27 @@ export default function GroupList(props) {
     setHasTransition(true)
     return false
   }
-  const confirmDelete = (path) => {
+  const confirmDelete = () => {
+    const currentGroups = groupList.filter(item => item.id.toLowerCase() !== deletePath.toLowerCase()) 
+    setGroupList(currentGroups)
+    setCacheGroup(currentGroups)
+    setMoveX(0)
+    setMoveY(0)
+    history.push('/chat')
     setShowDeleteConfirm(false)
-    handleDeleteChatRoom(path)
+  }
+  const setCacheGroup = (currentGroups) => {
+    const currNetwork = currentNetworkInfo?.name || getLocal('network')
+    localForage.getItem('chatListInfo').then(res => {
+      let chatListInfo = res ? res : {}
+      chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...currentGroups]
+      localForage.setItem('chatListInfo', chatListInfo)
+    })
   }
   const deleteChatRoom = (e, path) => {
     e.stopPropagation()
-    if (!detectMobile()) {
-      setShowDeleteConfirm(true)
-    } else {
-      this.handleTouchEnd(e)
-      handleDeleteChatRoom(path)
-    }
-  }
-  const handleDeleteChatRoom = (path) => {
-    console.log(path)
+    setDeletePath(path)
+    setShowDeleteConfirm(true)
   }
   const onCopy = (e) => {
     setCopyText(intl.get('Copied'))
@@ -366,6 +373,14 @@ export default function GroupList(props) {
   }, [newGroupList, hasChatCount, hasCreateRoom])
   return (
     <ListGroupContainer>
+      <Modal title="Confirm" visible={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
+        <div className='dialog-title mb-3'>Do you want to delete this group?</div>
+        <div className='btn-wrapper'>
+          <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={() => confirmDelete()}>
+            Confirm
+          </button>
+        </div>
+      </Modal>
       {
         (groupList?.length === 0) && Boolean(Number(localStorage.getItem('isConnect'))) &&
         <EmptyInfo onClickDialog={onClickDialog}></EmptyInfo>
@@ -392,14 +407,6 @@ export default function GroupList(props) {
                 key={item.id}
               >
 
-                <Modal title="Confirm" visible={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
-                  <div className='dialog-title'>Do you want to delete this chat room?</div>
-                  <div className='btn-wrapper'>
-                    <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={() => confirmDelete(item.id)}>
-                      Confirm
-                    </button>
-                  </div>
-                </Modal>
                 <div className='user-image rounded-circle me-2'>
                   {
                     item && item.id && !item?.avatar &&
@@ -418,7 +425,7 @@ export default function GroupList(props) {
                 {
                   !detectMobile() &&
                   <div className={`delete-btn-wrapper ${!detectMobile() ? 'delete-btn-web' : ''}`}>
-                    {/* <div className='iconfont icon-shanchu' onClick={(e) => { deleteChatRoom(e, item.id) }}></div> */}
+                    <div className='iconfont icon-shanchu' onClick={(e) => { deleteChatRoom(e, item.id) }}></div>
                     {
                       !copied &&
                       <CopyToClipboard text={`https://linke.network/chat/${item.id}/${getLocal('network')}`}>
