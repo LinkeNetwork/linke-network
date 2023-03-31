@@ -17,7 +17,6 @@ import { ethers } from "ethers"
 export default function ChatContext(props) {
   var numeral = require('numeral')
   const { hasMore, chatList, currentAddress, shareInfo, loadingData, currentTabIndex, handleDecryptedMessage, handleReceive} = props
-  console.log(chatList, 'chatList===')
   const { setState, clientInfo, tokenAddress } = useGlobal()
   const [showOperate, setShowOperate] = useState(false)
   const [selectText, setSelectText] = useState('')
