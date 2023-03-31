@@ -1476,7 +1476,8 @@ export default function Chat() {
     setShowSignIn(false)
     setState({
       canMint: false,
-      canUnstake: false
+      canUnstake: false,
+      allowanceTotal: ''
     })
   }
   const handleMint = async(quantity, token) => {

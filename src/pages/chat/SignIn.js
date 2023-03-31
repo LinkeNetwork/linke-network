@@ -17,7 +17,7 @@ import CumulativeTime from './CumulativeTime'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
-  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn, hasEndStack, canUnstake, stakedDays } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn, hasEndStack, canUnstake, stakedDays, allowanceTotal } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
   const { handleMint, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin, handleAutoCheckIn, showNftList, currentAddress } = props
   const [quantity, setQuantity] = useState('')
@@ -161,6 +161,7 @@ export default function SignIn(props) {
       setIsAuthorization(true)
       return
     }
+    
     const authorization = await getAuthorization(selectedToken[0], 'signIn')
     setIsAuthorization(authorization)
     if (!authorization) {
@@ -272,6 +273,11 @@ export default function SignIn(props) {
       setCanSend(false)
     }
   }, [tokenBalance])
+  useEffect(() => {
+    if(+allowanceTotal < +quantity) {
+      setIsAuthorization(false)
+    }
+  }, [allowanceTotal, quantity])
   return (
     <SignInWrapper>
       {

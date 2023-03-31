@@ -5,7 +5,7 @@ import useGlobal from './useGlobal'
 import { ethers } from "ethers"
 import { getBalanceNumber, getLocal, getBalance, allowance, approve } from '../utils'
 export default function UseTokenBalance() {
-  const { accounts, giveAwayAddress, setButtonText, currentTokenBalance, nftAddress} = useGlobal()
+  const { accounts, giveAwayAddress, setButtonText, currentTokenBalance, nftAddress, setState} = useGlobal()
   const [authorization, setAuthorization] = useState(false)
   const [poolBalance,setPoolBalance] = useState(0)
   const [approveLoading, setApproveLoading] = useState(false)
@@ -35,7 +35,9 @@ export default function UseTokenBalance() {
     const { address: tokenAddress } = from
     const spender = type === 'signIn' ?  nftAddress : giveAwayAddress
     const allowanceTotal = await allowance({provider, tokenAddress, spender, account})
-    console.log()
+    setState({
+      allowanceTotal: ethers.utils.formatUnits(allowanceTotal)
+    })
     const tokenValue = from.address == 0 ? currentTokenBalance : from.balance
     const amountToken = ethers.utils.parseEther(tokenValue)
     const allonceNum = ethers.utils.parseEther(allowanceTotal)

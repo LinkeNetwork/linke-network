@@ -39,7 +39,8 @@ const state = {
   hasEndStack: false,
   canUnstake: false,
   stakedDays: 0,
-  tokenAddress: ''
+  tokenAddress: '',
+  allowanceTotal: ''
 }
 
 export default state
