@@ -13,23 +13,20 @@ import useWallet from "../../hooks/useWallet"
 import intl from "react-intl-universal"
 export default function GroupList(props) {
   const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo, transactionRoomHash } = useGlobal()
-  const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead, privateChatMember } = props
+  const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, currentTabIndex, currentAddress, hasChatCount, currNetwork } = props
   const [groupList, setGroupList] = useState([])
-  const { chainId, network } = useWallet()
+  const { chainId } = useWallet()
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
-  const [canCopy, setCanCopy] = useState(false)
   const [startX, setStartX] = useState()
   const [startY, setStartY] = useState()
   const [currentIndex, setCurrentIndex] = useState()
-  const [currentRoomIndex, setCurrentRoomIndex] = useState()
   const [currentX, setCurrentX] = useState(0)
   const [moveX, setMoveX] = useState(0)
   const [moveY, setMoveY] = useState(0)
   const [copied, setCopied] = useState(false)
   const [copyText, setCopyText] = useState(intl.get('Copy'))
   const [hasTransition, setHasTransition] = useState(false)
-  const [moveStyle, setMoveStyle] = useState({})
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const history = useHistory()
   const path = history.location.pathname
@@ -145,14 +142,12 @@ export default function GroupList(props) {
       groupLists: [...groupInfos]
     })
     setChatListInfo(groupInfos, 1)
-    getCurrentRoomIndex(groupInfos)
     hiddenMask()
   }
   const handleTouchStart = (e) => {
     e.stopPropagation();
     setTimeOutEvent(setTimeout(() => {
       setLongClick(1)
-      setCanCopy(true)
     }, 500))
     setStartX(e.touches[0].pageX)
     setStartY(e.touches[0].pageY)
@@ -211,13 +206,7 @@ export default function GroupList(props) {
     }, 1000)
   }
   const showCurrentChatList = (e, item, index) => {
-    setCurrentRoomIndex(index)
     showChatList(item)
-  }
-  const getCurrentRoomIndex = (groupInfos) => {
-    const roomAddress = path.split('/chat/')[1]?.toLowerCase()
-    const index = groupInfos && groupInfos.findIndex((item) => item?.id?.toLowerCase() == roomAddress)
-    setCurrentRoomIndex(index)
   }
   const initPrivateMember = () => {
     const data = history.location?.state
@@ -363,6 +352,10 @@ export default function GroupList(props) {
       })
     }
   }, [accounts, chainId, currentTabIndex, hasCreateRoom, transactionRoomHash])
+  useEffect(() => {
+    const group = [...newGroupList]
+    setGroupList(group)
+  }, [newGroupList])
   useEffect(() => {
     getCurrentGroup()
   }, [currentAddress])
