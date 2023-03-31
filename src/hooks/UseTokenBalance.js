@@ -35,6 +35,7 @@ export default function UseTokenBalance() {
     const { address: tokenAddress } = from
     const spender = type === 'signIn' ?  nftAddress : giveAwayAddress
     const allowanceTotal = await allowance({provider, tokenAddress, spender, account})
+    console.log()
     const tokenValue = from.address == 0 ? currentTokenBalance : from.balance
     const amountToken = ethers.utils.parseEther(tokenValue)
     const allonceNum = ethers.utils.parseEther(allowanceTotal)
