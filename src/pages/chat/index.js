@@ -564,7 +564,8 @@ export default function Chat() {
     setHasOpenedSignIn(false)
     setState({
       canUnstake: false,
-      stakedDays: 0
+      stakedDays: 0,
+      tokenAddress: ''
     })
     setCurrentRedEnvelopId()
     setShowMask(true)
