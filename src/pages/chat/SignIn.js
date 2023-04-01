@@ -241,6 +241,7 @@ export default function SignIn(props) {
   useEffect(() => {
     if (authorization) {
       if(+tokenBalance > 0) {
+        getSelectedToken()
         setCanSend(true)
       }
       setButtonText(intl.get('Mint'))
@@ -274,7 +275,8 @@ export default function SignIn(props) {
     }
   }, [tokenBalance])
   useEffect(() => {
-    if(+allowanceTotal < +quantity) {
+    if(allowanceTotal && (+allowanceTotal < +quantity)) {
+      setBtnText(intl.get('Approve'))
       setIsAuthorization(false)
     }
   }, [allowanceTotal, quantity])
