@@ -1438,6 +1438,14 @@ export default function Chat() {
       setHasOpenedSignIn(true)
       setShowMask(false)
     } catch (error) {
+      history.push()
+      const state = { 
+        address: currentAddress,
+        network: getLocal('network'),
+        currentIndex: 0,
+        name: currentRoomName
+      }
+      history.push('/chat', state)
       console.error(error, 'handleOpenSign')
     }
   }

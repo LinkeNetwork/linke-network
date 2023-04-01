@@ -386,7 +386,7 @@ export default function SignIn(props) {
             </div>
           }
           {
-            (!isAuthorization && nftImageList?.length > 0) && stakedNum !== undefined&&
+            (!isAuthorization && nftImageList?.length > 0) && stakedNum !== undefined && +stakedNum === 0 &&
             <div className='btn btn-primary' onClick={buttonActions}>
               <span className={`btn-default ${canSend ? 'send-allowed' : ''}`}>{ intl.get('Approve') }</span>
             </div>
