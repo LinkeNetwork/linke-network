@@ -25,8 +25,14 @@ export default function AwardBonus(props) {
   const [tokenBalance, setTokenBalance] = useState('')
   const [selectTokenAddress, setSelectTokenAddress] = useState('')
   const [tokenLogo, setTokenLogo] = useState('')
+  const [haveTokenLogo, setHaveTokenLogo] = useState('')
+  const [mustHaveToken, setMustHaveToken] = useState()
+  const [mustHaveTokenAddress, setMustHaveTokenAddress] = useState()
   const [wishesText, setWishesText] = useState()
   const [canSend, setCanSend] = useState(false)
+  const [tokenStatus, setTokenStatus] = useState()
+  const [minAmount, setMinAmount] = useState()
+  const [openStatus, setOpenStatus] = useState('')
   const [btnText, setBtnText] = useState(intl.get('Send'))
   const [tokenDecimals, setTokenDecimals] = useState()
   const amountRef = useRef()
@@ -37,7 +43,7 @@ export default function AwardBonus(props) {
   const buttonActions = () => {
     switch (btnText) {
       case intl.get('Send'):
-        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)
+        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress)
         break;
       case intl.get('Approve'):
         approveActions(selectedTokenInfo, 'envelope')
@@ -57,20 +63,32 @@ export default function AwardBonus(props) {
     setCurrentBonusType(BonusList[i])
     setShowBonusType(false)
   }
+
+  const handleOptionChange = (event) => {
+    setOpenStatus(event.target.value)
+  }
   const selectToken = async(item) => {
-    setQuantity()
-    setSelectedTokenInfo(item)
-    setShowTokenList(false)
-    setSelectedToken(item.symbol)
-    setTokenBalance(item.balance)
-    setTokenLogo(item.logoURI)
-    setTokenDecimals(item.decimals)
-    setSelectTokenAddress(item.address)
-    if(item.symbol === 'ETHF') return
-    const authorization = await getAuthorization(item, 'envelope')
-    if(!authorization) {
-      setBtnText('Approve')
+    if(tokenStatus === 1) {
+      setShowTokenList(false)
+      setSelectedTokenInfo(item)
+      setSelectedToken(item.symbol)
+      setTokenBalance(item.balance)
+      setTokenLogo(item.logoURI)
+      setTokenDecimals(item.decimals)
+      setSelectTokenAddress(item.address)
+      if(item.symbol === 'ETHF') return
+      const authorization = await getAuthorization(item, 'envelope')
+      if(!authorization) {
+        setBtnText('Approve')
+      }
+    } else {
+      setShowTokenList(false)
+      setHaveTokenLogo(item.logoURI)
+      setMustHaveToken(item.symbol)
+      setMustHaveTokenAddress(item.address)
     }
+    setQuantity()
+    
   }
   const enforcer = (nextUserInput, type) => {
     if (nextUserInput === '' || inputRegex.test(escapeRegExp(nextUserInput))) {
@@ -78,8 +96,15 @@ export default function AwardBonus(props) {
     }
   }
   const valChange = (tokenValue, type) => {
-    type === 0 ? setQuantity(tokenValue) : setAmount(tokenValue)
-    
+    if(type === 2) {
+      setMinAmount(tokenValue)
+    } else {
+      type === 0 ? setQuantity(tokenValue) : setAmount(tokenValue)
+    }
+  }
+  const handleShowToken = (status) => {
+    setTokenStatus(status)
+    setShowTokenList(true)
   }
   useEffect(() => {
     currentBonusType === intl.get('RandomAmount') ? setAmountText(intl.get('Total')) : setAmountText(intl.get('AmountEach')) 
@@ -109,7 +134,7 @@ export default function AwardBonus(props) {
     setClickNumber(clickNumber+1)
   }, [currentBonusType, amount])
   useEffect(() => {
-    ( tokenBalance > totalAmount && quantity && amount) ? setCanSend(true) : setCanSend(false)
+    (tokenBalance > totalAmount && quantity && amount) ? setCanSend(true) : setCanSend(false)
   }, [totalAmount, quantity, amount])
   useEffect(() => {
     if(authorization) {
@@ -130,6 +155,9 @@ export default function AwardBonus(props) {
       }
     }
   }, [approveLoading, swapButtonText])
+  useEffect(() => {
+    setBtnText(intl.get('Send'))
+  }, [])
   return (
     <AwardBonusContanier>
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
@@ -163,7 +191,7 @@ export default function AwardBonus(props) {
             }
             <div className="balance">{tokenBalance}</div>
           </div>
-          <div onClick={() => {setShowTokenList(true)}} className="token-info">
+          <div onClick={() => {handleShowToken(1)}} className="token-info">
             {
               tokenLogo && <Image size={24} src={tokenLogo} style={{ 'borderRadius': '50%'}} />
             }
@@ -172,6 +200,45 @@ export default function AwardBonus(props) {
             }
             <i className="iconfont icon-expand"></i>
           </div>
+        </div>
+        <div className="token-wrapper">
+          <div className="token-detail have-token">
+            <div>Must-Have Tokens</div>
+          </div>
+          <div onClick={() => {handleShowToken(0)}} className="token-info">
+            {
+              haveTokenLogo && <Image size={24} src={haveTokenLogo} style={{ 'borderRadius': '50%'}} />
+            }
+            {
+              !mustHaveToken ?  <span>{ intl.get('SelectToken') }</span> : <div className="name">{mustHaveToken}</div>
+            }
+            <i className="iconfont icon-expand"></i>
+          </div>
+        </div>
+        <div className="amount-wrapper">
+          <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 2)} defaultValue={minAmount}/>
+          <div>{intl.get('HaveTokenText')}</div>
+        </div>
+        <div className="check-in-radio">
+          <span className="label">{intl.get('IsOpenCheckInText')}:</span>
+          <label>
+            <input
+              type="radio"
+              value="1"
+              checked={openStatus === '1'}
+              onChange={handleOptionChange}
+            />
+             {intl.get('Yes')}
+          </label>
+          <label>
+            <input
+              type="radio"
+              value="0"
+              checked={openStatus === '0'}
+              onChange={handleOptionChange}
+            />
+            {intl.get('No')}
+          </label>
         </div>
         <div className="bonus-type-wrapper" onClick={() => { setShowBonusType(true) }}>
           <span>{currentBonusType}</span>
@@ -225,6 +292,20 @@ background: #fff;
   height: 54px;
   align-items: center;
 }
+.check-in-radio{
+  margin: 20px 0;
+  align-items: center;
+  display: flex;
+  font-size: 16px;
+  .label, label {
+    margin-right: 10px
+  }
+  label {
+    input {
+      margin-right: 4px;
+    }
+  }
+}
 .icon-hongbao2 {
   color: red;
   margin-right: 2px;
@@ -248,6 +329,11 @@ background: #fff;
       font-size: 18px;
       margin-top: 6px;
     }
+  }
+  .have-token {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
   }
   .icon-expand {
     margin-left: 4px;

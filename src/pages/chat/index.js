@@ -23,7 +23,7 @@ import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
 import { detectMobile, throttle, uniqueChatList } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
-import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI } from '../../abi/index'
+import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2 } from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
 import SearchChat from './SearchChat'
@@ -63,7 +63,7 @@ export default function Chat() {
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress, signInAddress} = useGlobal()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress, signInAddress, giveAwayAddressV2} = useGlobal()
   const [currentAddress, setCurrentAddress] = useState()
   const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
   const currentAddressRef = useRef(null)
@@ -828,16 +828,22 @@ export default function Chat() {
     )
     return encryptedMessage
   }
-  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {
+  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress) => {
+    
+    const haveAmount = !minAmount ? 0 : ethers.utils.parseEther(minAmount)
+    const haveTokenAddress= !mustHaveTokenAddress ? 0 : mustHaveTokenAddress
+    const checkInAddress = !nftAddress ? 0 : nftAddress
+    const scoreToken = Boolean(+openStatus) ? checkInAddress : 0
     const type_ = currentBonusType === intl.get('RandomAmount') ? 2 : 1
-    const address = giveAwayAddress
+    const address = giveAwayAddressV2
     const total = ethers.utils.parseUnits(String(totalAmount), tokenDecimals)
     if(!wishesText) {
       wishesText = 'Best Wishes'
     }
+    console.log( haveTokenAddress, haveAmount, scoreToken, 'nftAddress====', nftAddress)
     const tx = selectTokenAddress == 0
-                ? await getDaiWithSigner(address, RED_PACKET).sendETH(currentAddress, total, quantity, type_, wishesText, {value:total})
-                : await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText)
+                ? await getDaiWithSigner(address, RED_PACKET_V2).sendETH(currentAddress, total, quantity, type_, wishesText, haveTokenAddress, haveAmount, scoreToken, {value:total})
+                : await getDaiWithSigner(address, RED_PACKET_V2).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText, haveTokenAddress, haveAmount, scoreToken)
     setShowMask(true)
     setShowAwardBonus(false)
     const db = await setDataBase()
@@ -1645,7 +1651,7 @@ export default function Chat() {
         <AwardBonus
           handleCloseAward={() => { setShowAwardBonus(false) }}
           currentAddress={currentAddress}
-          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)}}
+          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress)}}
           handleGiveAway={(tx) => {handleGiveAway(tx)}}
         ></AwardBonus>
       }
@@ -1672,7 +1678,7 @@ export default function Chat() {
           <AwardBonus
             handleCloseAward={() => { setShowAwardBonus(false) }}
             currentAddress={currentAddress}
-            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)}}
+            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress)}}
             handleGiveAway={(tx) => {handleGiveAway(tx)}}
           ></AwardBonus>
         </Modal>
