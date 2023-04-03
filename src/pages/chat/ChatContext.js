@@ -16,7 +16,7 @@ import { tokenListInfo } from '../../constant/tokenList'
 import { ethers } from "ethers"
 export default function ChatContext(props) {
   var numeral = require('numeral')
-  const { hasMore, chatList, currentAddress, shareInfo, loadingData, currentTabIndex, handleDecryptedMessage, handleReceive} = props
+  const { hasMore, chatList, currentAddress, shareInfo, loadingData, currentTabIndex, handleDecryptedMessage, handleReceive, currentGiveAwayVersion} = props
   const { setState, clientInfo, tokenAddress } = useGlobal()
   const [showOperate, setShowOperate] = useState(false)
   const [selectText, setSelectText] = useState('')
@@ -68,16 +68,18 @@ export default function ChatContext(props) {
     return hasCreate
   }
   const getGiveawaysInfo = async(currentRedEnvelopId) => {
+    const giveawayVersion = currentGiveAwayVersion === 'GiveawayV2' ? 'giveawayV2S' : 'giveaways'
     const tokensQuery = `
     {
-      giveaways(where: {id: "`+  currentRedEnvelopId + `"}){
+      ${giveawayVersion}(where: {id: "`+  currentRedEnvelopId + `"}){
         token,
         amount
       }
     }
     `
     const res = await clientInfo?.query(tokensQuery).toPromise()
-    return res?.data?.giveaways[0]
+    const giveaways = currentGiveAwayVersion === 'GiveawayV2' ? res?.data?.giveawayV2S[0] : res?.data?.giveaways[0]
+    return giveaways
   }
   const setTwitterInfo = async(v) => {
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText?.split('---')[0] : v?.chatText

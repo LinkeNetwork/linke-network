@@ -41,7 +41,8 @@ const state = {
   canUnstake: false,
   stakedDays: 0,
   tokenAddress: '',
-  allowanceTotal: ''
+  allowanceTotal: '',
+  showOpenSignIcon: false
 }
 
 export default state

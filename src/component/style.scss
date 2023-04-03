@@ -6,6 +6,10 @@
   position: relative;
   animation: sliderUp .5s ease;
   font-family: 'Helvetica';
+  .tip-text{
+    font-size: 16px;
+    margin: 10px 0 30px;
+   }
   &-client{
     position: absolute;
     left: 0;

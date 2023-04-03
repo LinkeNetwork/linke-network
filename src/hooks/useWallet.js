@@ -124,6 +124,7 @@ export default function useWallet() {
     setState({
       currentTokenBalance: etherString
     })
+    return etherString
   }
   const getNetworkInfo = async() => {
     try {
@@ -217,5 +218,5 @@ export default function useWallet() {
   useLayoutEffect(() => {
     initWallet()
   }, [getLocal('account')])
-  return { disConnect, chainId, balance ,network, changeNetwork, connectOkexchain}
+  return { disConnect, chainId, balance ,network, changeNetwork, connectOkexchain, getCurrentBalance}
 }

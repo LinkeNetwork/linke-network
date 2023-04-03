@@ -127,6 +127,10 @@
   "HaveTokenText": "Minimum number",
   "Yes": "Yes",
   "No": "No",
-  "IsOpenCheckInText": "Whether to open check in"
+  "IsOpenCheckInText": "Whether to open check in",
+  "YouMust": "You must have",
+  "ReceiveRedEnvelope": "to receive the red envelope",
+  "TipsText": "Tip",
+  "Have": "Have"
 }
 

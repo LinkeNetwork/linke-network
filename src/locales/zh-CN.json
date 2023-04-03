@@ -124,5 +124,9 @@
   "HaveTokenText": "持有代幣最小數量",
   "Yes": "是",
   "No": "否",
-  "IsOpenCheckInText": "是否開通打卡"
+  "IsOpenCheckInText": "是否開通打卡",
+  "YouMust": "你必須擁有",
+  "ReceiveRedEnvelope": "才可以領取紅包",
+  "TipsText": "提示",
+  "Have": "擁有"
 }

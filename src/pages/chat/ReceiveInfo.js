@@ -9,7 +9,7 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import Image from "../../component/Image"
 import { List } from 'react-virtualized'
 export default function ReceiveInfo(props) {
-  const { currentRedEnvelopId, handleCloseReceiveInfo } = props
+  const { currentRedEnvelopId, handleCloseReceiveInfo, currentGiveAwayVersion } = props
   const [receivedInfo, setReceivedInfo] = useState()
   const [profileInfo, setProfileInfo] = useState()
   const [receiveList, setReceiveList] = useState([])
@@ -53,9 +53,10 @@ export default function ReceiveInfo(props) {
   }
 
   const getReceiveInfo = async (skip = 0) => {
+    const giveawayVersion = currentGiveAwayVersion === 'GiveawayV2' ? 'giveawayV2S' : 'giveaways'
     const tokensQuery = `
     {
-      giveaways(where: {id: "`+ currentRedEnvelopId + `"}){
+      ${giveawayVersion}(where: {id: "`+ currentRedEnvelopId + `"}){
         sender,
         token,
         lastCount,
@@ -87,8 +88,8 @@ export default function ReceiveInfo(props) {
   const handleReceiveInfo = async () => {
     const res = await getReceiveInfo(skipNum)
     setSkipNum(skipNum + 50)
-    const receivedInfo = res?.data?.giveaways[0]
-    const currentReceiveList = receivedInfo?.receiveProfile
+    const receivedInfo = currentGiveAwayVersion === 'GiveawayV2' ?  res?.data?.giveawayV2S[0] : res?.data?.giveaways[0]
+    const currentReceiveList = receivedInfo?.receiveProfile || []
     const receiveLists = receiveList.concat([...currentReceiveList])
     setReceiveList(receiveLists)
     setReceivedInfo(receivedInfo)

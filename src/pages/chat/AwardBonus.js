@@ -10,7 +10,7 @@ import UseTokenBalance from "../../hooks/UseTokenBalance"
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function AwardBonus(props) {
-  const { swapButtonText, approveLoading, setButtonText } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText, showOpenSignIcon, hasOpenedSignIn } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
   const { handleCloseAward, handleSend } = props
   const [showBonusType, setShowBonusType] = useState(false)
@@ -219,27 +219,30 @@ export default function AwardBonus(props) {
           <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 2)} defaultValue={minAmount}/>
           <div>{intl.get('HaveTokenText')}</div>
         </div>
-        <div className="check-in-radio">
-          <span className="label">{intl.get('IsOpenCheckInText')}:</span>
-          <label>
-            <input
-              type="radio"
-              value="1"
-              checked={openStatus === '1'}
-              onChange={handleOptionChange}
-            />
-             {intl.get('Yes')}
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="0"
-              checked={openStatus === '0'}
-              onChange={handleOptionChange}
-            />
-            {intl.get('No')}
-          </label>
-        </div>
+        {
+          showOpenSignIcon &&
+          <div className="check-in-radio">
+            <span className="label">{intl.get('IsOpenCheckInText')}:</span>
+            <label>
+              <input
+                type="radio"
+                value="1"
+                checked={openStatus === '1'}
+                onChange={handleOptionChange}
+              />
+              {intl.get('Yes')}
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="0"
+                checked={openStatus === '0'}
+                onChange={handleOptionChange}
+              />
+              {intl.get('No')}
+            </label>
+          </div>
+        }
         <div className="bonus-type-wrapper" onClick={() => { setShowBonusType(true) }}>
           <span>{currentBonusType}</span>
           <span className="iconfont icon-expand"></span>

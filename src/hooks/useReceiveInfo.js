@@ -2,16 +2,19 @@ import useGlobal from "./useGlobal"
 
 export default function useReceiveInfo() {
   const { clientInfo } = useGlobal()
-  const getReceiveInfo = async(currentRedEnvelopId) => {
+  const getReceiveInfo = async(currentRedEnvelopId, giveawayVersion) => {
     const tokensQuery = `
     {
-      giveaways(where: {id: "`+  currentRedEnvelopId + `"}){
+      ${giveawayVersion}(where: {id: "`+  currentRedEnvelopId + `"}){
         sender,
         token,
         lastCount,
         amount,
         content,
         count,
+        haveToken,
+        haveAmount,
+        scoreToken,
         profile {
           name,
           avatar
@@ -32,8 +35,8 @@ export default function useReceiveInfo() {
     }
     `
     const res = await clientInfo?.query(tokensQuery).toPromise()
-    const lastCount = res?.data?.giveaways[0]?.lastCount || 0
-    return lastCount
+    const giveawayInfos = giveawayVersion === 'giveawayV2S' ? (res?.data?.giveawayV2S[0]) : (res?.data?.giveaways[0])
+    return giveawayInfos
   }
 
   return { getReceiveInfo}

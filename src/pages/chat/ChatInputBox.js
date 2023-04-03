@@ -54,10 +54,19 @@ export default function ChatInputBox(props) {
     const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
     if(tx && tx[0] == 0 && res?.manager?.toLowerCase() == accounts?.toLowerCase() && +groupType === 4) {
       setShowOpenSignIcon(true)
+      setState({
+        showOpenSignIcon: false
+      })
     }
     if(tx && tx[0] != 0 && +groupType === 4) {
+      setState({
+        showOpenSignIcon: true
+      })
       setShowSignInIcon(true)
     } else {
+      setState({
+        showOpenSignIcon: false
+      })
       setShowSignInIcon(false)
     }
   }
@@ -242,6 +251,10 @@ export default function ChatInputBox(props) {
     })
     handleShowPlace()
   }
+  const handleAward = async() => {
+    await isOpenSignIn()
+    handleAwardBonus()
+  }
   const getSelectedToken = async() => {
     const token =  await getCheckInToken()
     setState({
@@ -296,7 +309,7 @@ export default function ChatInputBox(props) {
           {/* <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handlePlaceClick}>
             <span className='iconfont icon-yanse'></span>
           </div> */}
-          <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleAwardBonus}>
+          <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleAward}>
             <span className='iconfont icon-hongbao'></span>
           </div>
           {
