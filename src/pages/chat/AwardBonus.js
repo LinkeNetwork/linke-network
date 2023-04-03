@@ -2,23 +2,22 @@ import { useEffect, useRef, useState } from "react"
 import styled from "styled-components"
 import { Modal, Image }  from "../../component/index"
 import { NumericInput } from "numeric-keyboard"
-import { detectMobile, getDaiWithSigner } from "../../utils"
+import { detectMobile } from "../../utils"
 import TokenList from "./TokenList"
-import { ethers } from "ethers"
+import intl from "react-intl-universal"
 import useGlobal from "../../hooks/useGlobal"
 import UseTokenBalance from "../../hooks/UseTokenBalance"
-import { RED_PACKET } from '../../abi/index'
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function AwardBonus(props) {
-  const { giveAwayAddress, swapButtonText, approveLoading, setButtonText } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText } = useGlobal()
   const { getAuthorization, approveActions, authorization } = UseTokenBalance()
-  const { handleCloseAward, currentAddress, handleCloseMask, handleShowMask, handleGiveAway, handleSend } = props
+  const { handleCloseAward, handleSend } = props
   const [showBonusType, setShowBonusType] = useState(false)
   const [totalAmount, setTotalAmount] = useState()
   const [amount, setAmount] = useState()
   const [quantity, setQuantity] = useState('')
-  const [amountText, setAmountText] = useState('Total')
+  const [amountText, setAmountText] = useState(intl.get('Total'))
   const [clickNumber, setClickNumber] = useState(0)
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
@@ -26,21 +25,27 @@ export default function AwardBonus(props) {
   const [tokenBalance, setTokenBalance] = useState('')
   const [selectTokenAddress, setSelectTokenAddress] = useState('')
   const [tokenLogo, setTokenLogo] = useState('')
+  const [haveTokenLogo, setHaveTokenLogo] = useState('')
+  const [mustHaveToken, setMustHaveToken] = useState()
+  const [mustHaveTokenAddress, setMustHaveTokenAddress] = useState()
   const [wishesText, setWishesText] = useState()
   const [canSend, setCanSend] = useState(false)
-  const [btnText, setBtnText] = useState('Send')
+  const [tokenStatus, setTokenStatus] = useState()
+  const [minAmount, setMinAmount] = useState()
+  const [openStatus, setOpenStatus] = useState('')
+  const [btnText, setBtnText] = useState(intl.get('Send'))
   const [tokenDecimals, setTokenDecimals] = useState()
   const amountRef = useRef()
   const BonusList = [
-    'Random Amount',
-    'Identical Amount'
+    intl.get('RandomAmount'),
+    intl.get('IdenticalAmount')
   ]
   const buttonActions = () => {
     switch (btnText) {
-      case "Send":
-        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)
+      case intl.get('Send'):
+        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress)
         break;
-      case "Approve":
+      case intl.get('Approve'):
         approveActions(selectedTokenInfo, 'envelope')
         break;
       default:
@@ -58,21 +63,32 @@ export default function AwardBonus(props) {
     setCurrentBonusType(BonusList[i])
     setShowBonusType(false)
   }
+
+  const handleOptionChange = (event) => {
+    setOpenStatus(event.target.value)
+  }
   const selectToken = async(item) => {
-    setQuantity()
-    setSelectedTokenInfo(item)
-    setShowTokenList(false)
-    setSelectedToken(item.symbol)
-    setTokenBalance(item.balance)
-    setTokenLogo(item.logoURI)
-    setTokenDecimals(item.decimals)
-    setSelectTokenAddress(item.address)
-    if(item.symbol === 'ETHF') return
-    const authorization = await getAuthorization(item, 'envelope')
-    console.log(item,authorization, '===2=2221')
-    if(!authorization) {
-      setBtnText('Approve')
+    if(tokenStatus === 1) {
+      setShowTokenList(false)
+      setSelectedTokenInfo(item)
+      setSelectedToken(item.symbol)
+      setTokenBalance(item.balance)
+      setTokenLogo(item.logoURI)
+      setTokenDecimals(item.decimals)
+      setSelectTokenAddress(item.address)
+      if(item.symbol === 'ETHF') return
+      const authorization = await getAuthorization(item, 'envelope')
+      if(!authorization) {
+        setBtnText('Approve')
+      }
+    } else {
+      setShowTokenList(false)
+      setHaveTokenLogo(item.logoURI)
+      setMustHaveToken(item.symbol)
+      setMustHaveTokenAddress(item.address)
     }
+    setQuantity()
+    
   }
   const enforcer = (nextUserInput, type) => {
     if (nextUserInput === '' || inputRegex.test(escapeRegExp(nextUserInput))) {
@@ -80,18 +96,25 @@ export default function AwardBonus(props) {
     }
   }
   const valChange = (tokenValue, type) => {
-    type === 0 ? setQuantity(tokenValue) : setAmount(tokenValue)
-    
+    if(type === 2) {
+      setMinAmount(tokenValue)
+    } else {
+      type === 0 ? setQuantity(tokenValue) : setAmount(tokenValue)
+    }
+  }
+  const handleShowToken = (status) => {
+    setTokenStatus(status)
+    setShowTokenList(true)
   }
   useEffect(() => {
-    currentBonusType === 'Random Amount' ? setAmountText('Total') : setAmountText('Amount Each') 
-    if(currentBonusType === 'Identical Amount') {
+    currentBonusType === intl.get('RandomAmount') ? setAmountText(intl.get('Total')) : setAmountText(intl.get('AmountEach')) 
+    if(currentBonusType === intl.get('IdenticalAmount')) {
       if(totalAmount && quantity) {
         const amount = totalAmount/quantity < 1 ? (totalAmount/quantity).toFixed(2) : Math.floor((totalAmount/quantity) * 100)/100
         setAmount(amount)
       }
     }
-    if(currentBonusType === 'Random Amount') {
+    if(currentBonusType === intl.get('RandomAmount')) {
       const result = totalAmount
       if(result > 0) {
         setAmount(result)
@@ -99,7 +122,7 @@ export default function AwardBonus(props) {
     }
   }, [currentBonusType])
   useEffect(() => {
-    if(currentBonusType === 'Random Amount' && quantity && amount) {
+    if(currentBonusType === intl.get('RandomAmount') && quantity && amount) {
       setTotalAmount(amount)
     }
     if(!quantity || !amount) {
@@ -111,32 +134,34 @@ export default function AwardBonus(props) {
     setClickNumber(clickNumber+1)
   }, [currentBonusType, amount])
   useEffect(() => {
-    ( tokenBalance > totalAmount && quantity && amount) ? setCanSend(true) : setCanSend(false)
+    (tokenBalance > totalAmount && quantity && amount) ? setCanSend(true) : setCanSend(false)
   }, [totalAmount, quantity, amount])
   useEffect(() => {
     if(authorization) {
       setCanSend(true)
-      setButtonText('Send')
-      setBtnText('Send')
+      setButtonText(intl.get('Send'))
+      setBtnText(intl.get('Send'))
     }
   }, [authorization])
   useEffect(() => {
-    console.log(approveLoading,swapButtonText, 'approveLoading=====>>>>')
     if(approveLoading) {
       setCanSend(false)
-      setBtnText('APPROVE_ING')
+      setBtnText(intl.get('APPROVE_ING'))
     }
     if(swapButtonText) {
       setBtnText(swapButtonText)
-      if(swapButtonText === 'APPROVE_ING') {
+      if(swapButtonText === intl.get('APPROVE_ING')) {
         setCanSend(false)
       }
     }
   }, [approveLoading, swapButtonText])
+  useEffect(() => {
+    setBtnText(intl.get('Send'))
+  }, [])
   return (
     <AwardBonusContanier>
       <Modal visible={showTokenList} onClose={() => setShowTokenList(false)}>
-        <div className="token-list-title">Choose Token</div>
+        <div className="token-list-title">{intl.get('SelectToken')}</div>
         <TokenList selectToken={(item) => selectToken(item)} showBalance={true}></TokenList>
       </Modal>
       <Modal visible={showBonusType} onClose={() => setShowBonusType(false)} className={`modal bonus-type-modal ${detectMobile() ? 'modal-client' : ''}`}>
@@ -152,7 +177,7 @@ export default function AwardBonus(props) {
         detectMobile() && 
         <div className="header">
           <span className="iconfont icon-close" onClick={handleCloseAward}></span>
-          <span>Award Bonus</span>
+          <span>{ intl.get('AwardBonus') }</span>
           {/* <span className="iconfont icon-more"></span> */}
       </div>
       }
@@ -166,15 +191,54 @@ export default function AwardBonus(props) {
             }
             <div className="balance">{tokenBalance}</div>
           </div>
-          <div onClick={() => {setShowTokenList(true)}} className="token-info">
+          <div onClick={() => {handleShowToken(1)}} className="token-info">
             {
               tokenLogo && <Image size={24} src={tokenLogo} style={{ 'borderRadius': '50%'}} />
             }
             {
-              !selectedToken ?  <span>Select a Token</span> : <div className="name">{selectedToken}</div>
+              !selectedToken ?  <span>{ intl.get('SelectToken') }</span> : <div className="name">{selectedToken}</div>
             }
             <i className="iconfont icon-expand"></i>
           </div>
+        </div>
+        <div className="token-wrapper">
+          <div className="token-detail have-token">
+            <div>Must-Have Tokens</div>
+          </div>
+          <div onClick={() => {handleShowToken(0)}} className="token-info">
+            {
+              haveTokenLogo && <Image size={24} src={haveTokenLogo} style={{ 'borderRadius': '50%'}} />
+            }
+            {
+              !mustHaveToken ?  <span>{ intl.get('SelectToken') }</span> : <div className="name">{mustHaveToken}</div>
+            }
+            <i className="iconfont icon-expand"></i>
+          </div>
+        </div>
+        <div className="amount-wrapper">
+          <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 2)} defaultValue={minAmount}/>
+          <div>{intl.get('HaveTokenText')}</div>
+        </div>
+        <div className="check-in-radio">
+          <span className="label">{intl.get('IsOpenCheckInText')}:</span>
+          <label>
+            <input
+              type="radio"
+              value="1"
+              checked={openStatus === '1'}
+              onChange={handleOptionChange}
+            />
+             {intl.get('Yes')}
+          </label>
+          <label>
+            <input
+              type="radio"
+              value="0"
+              checked={openStatus === '0'}
+              onChange={handleOptionChange}
+            />
+            {intl.get('No')}
+          </label>
         </div>
         <div className="bonus-type-wrapper" onClick={() => { setShowBonusType(true) }}>
           <span>{currentBonusType}</span>
@@ -183,10 +247,10 @@ export default function AwardBonus(props) {
         <div className="amount-wrapper quantity-wrapper">
           {
             detectMobile() 
-            ? <NumericInput layout="tel" placeholder="Enter quantity" onInput={(key) => { handleQuantityInput(key) }} />
-            : <input placeholder="Enter quantity" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity}/>
+            ? <NumericInput layout="tel" placeholder={ intl.get('Enterquantity') } onInput={(key) => { handleQuantityInput(key) }} />
+            : <input placeholder={ intl.get('Enterquantity') } type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 0)} defaultValue={quantity}/>
           }
-          <span><span className="iconfont icon-hongbao2"></span>Quantity</span>
+          <span><span className="iconfont icon-hongbao2"></span>{intl.get('Quantity')}</span>
         </div>
         <div className="amount-wrapper">
           {
@@ -228,6 +292,20 @@ background: #fff;
   height: 54px;
   align-items: center;
 }
+.check-in-radio{
+  margin: 20px 0;
+  align-items: center;
+  display: flex;
+  font-size: 16px;
+  .label, label {
+    margin-right: 10px
+  }
+  label {
+    input {
+      margin-right: 4px;
+    }
+  }
+}
 .icon-hongbao2 {
   color: red;
   margin-right: 2px;
@@ -251,6 +329,11 @@ background: #fff;
       font-size: 18px;
       margin-top: 6px;
     }
+  }
+  .have-token {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
   }
   .icon-expand {
     margin-left: 4px;

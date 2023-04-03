@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import './chat.scss'
+import intl from "react-intl-universal"
 import 'emoji-mart/css/emoji-mart.css'
 import BigNumber from 'bignumber.js'
 import Loading from '../../component/Loading'
@@ -23,7 +24,7 @@ import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
 import { detectMobile, throttle, uniqueChatList } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
-import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI } from '../../abi/index'
+import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
 import SearchChat from './SearchChat'
@@ -32,18 +33,27 @@ import RoomHeader from './RoomHeader'
 import ChatContext from './ChatContext'
 import GroupMember from './GroupMember'
 import JoinGroupButton from './JoinGroupButton'
-import { useHistory } from 'react-router-dom'
+import { useHistory, useLocation } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
 import SignIn from './SignIn'
-
+import useWallet from '../../hooks/useWallet'
+const PAGE_PATH = window.location.pathname.split('/chat/')[1]
+const GROUP_ADDRESS = PAGE_PATH?.split('/')[0]
+const NETWORK = PAGE_PATH?.split('/')[1] || getLocal('network')
 export default function Chat() {
-  const { collection, setDataBase } = useDataBase()
+  const { setDataBase } = useDataBase()
+  const { balance } = useWallet()
   const [collectedRedEnvelope, setCollectedRedEnvelope] = useState([])
   const history = useHistory()
+  const location = useLocation()
+  const [searchGroup, setSearchGroup] = useState([])
+  const ROOM_ADDRESS = location?.state?.address
+  const CURRENT_NETWORK = location?.state?.network
   const { getReceiveInfo } = useReceiveInfo()
   const { getGroupMember } = useGroupMember()
   const [showNftList, setShowNftList] = useState(false)
   const [showReceiveTips, setShowReceiveTips] = useState(false)
+  const [showHandlingFee, setShowHandlingFee] = useState(false)
   const [showGroupList, setShowGroupList] = useState(true)
   const skip = 0
   const [clickNumber, setClickNumber] = useState(0)
@@ -54,8 +64,7 @@ export default function Chat() {
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, signInClientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress, signInAddress} = useGlobal()
-  const [memberListInfo, setMemberListInfo] = useState([])
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress, signInAddress, giveAwayAddressV2} = useGlobal()
   const [currentAddress, setCurrentAddress] = useState()
   const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
   const currentAddressRef = useRef(null)
@@ -63,13 +72,16 @@ export default function Chat() {
   const [currentRedEnvelopId, setCurrentRedEnvelopId] = useState()
   const [memberCount, setMemberCount] = useState()
   const [myAddress, setMyAddress] = useState()
+  const [searchGrouName, setSearchGrouName] = useState()
   const [showReceiveInfo, setShowReceiveInfo] = useState(false)
   const [showRedEnvelope, setShowRedEnvelope] = useState(false)
   const [currentRoomName, setCurrentRoomName] = useState()
   const [hasAccess, setHasAccess] = useState()
   const [chatList, setChatList] = useState([])
+  const [hasOpenedSignIn, setHasOpenedSignIn] = useState(false)
   const [showOpenAward, setShowOpenAward] = useState(false)
   const [showJoinGroupButton, setShowJoinGroupButton] = useState()
+  const [handlingFeeTips, setHandlingFeeTips] = useState()
   const chatListRef = useRef()
   const [hasScroll, setHasScroll] = useState(false)
   const hasScrollRef = useRef(null)
@@ -91,7 +103,6 @@ export default function Chat() {
   const [showTradeInfo, setShowTradeInfo] = useState(false)
   const [clearChatInput, setClearChatInput] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const [chatListStatus, setChatListStatus] = useState(new Map())
   const [sendSuccess, setSendSuccess] = useState(false)
   const [dialogType, setDialogType] = useState()
   const [currentTabIndex, setCurrentTabIndex] = useState(0)
@@ -127,7 +138,7 @@ export default function Chat() {
   }, [clientInfo])
   useEffect(() => {
     myAvatarRef.current = myAvatar
-    currentAddressRef.current = currentAddress
+    currentAddressRef.current = currentAddress || ROOM_ADDRESS
     hasScrollRef.current = hasScroll
     roomListRef.current = roomList
     chatListRef.current = chatList
@@ -155,6 +166,9 @@ export default function Chat() {
     if(Boolean(isShare)) {
       setShowChat(true)
       setShowGroupList(false)
+    } else {
+      const address = location?.state?.room || GROUP_ADDRESS
+      setCurrentAddress(address)
     }
   }, [])
   const getAccount = async() => {
@@ -165,10 +179,7 @@ export default function Chat() {
     }
   }
   useEffect(() => {
-    const path = history.location.pathname.split('/chat/')[1]
-    const address = path?.split('/')[0]
-    const network = path?.split('/')[1] || getLocal('network')
-    if(address && network && detectMobile()) {
+    if(GROUP_ADDRESS && NETWORK && detectMobile()) {
       setShowChat(true)
       setState({
         showHeader: false
@@ -259,10 +270,9 @@ export default function Chat() {
         return
       }
     }
-    const path = history.location.pathname.split('/chat/')[1]
-    const address = path?.split('/')[0]
-    const network = path?.split('/')[1] || getLocal('network')
-
+    // console.log(history.location, 'history.location===2')
+    const address = GROUP_ADDRESS || ROOM_ADDRESS
+    const network = NETWORK || CURRENT_NETWORK || getLocal('network')
     if (network) {
       setState({
         currNetwork: network
@@ -300,6 +310,7 @@ export default function Chat() {
       chatListInfo[currentNetwork][getLocal('account')] = chatListInfo[currentNetwork][getLocal('account')] ? chatListInfo[currentNetwork][getLocal('account')] : {}
       chatListInfo[currentNetwork][getLocal('account')]['publicRooms'] = [...groupList]
       localForage.setItem('chatListInfo', chatListInfo).then(res => {
+        // console.log('setRoomList====>>2')
         setRoomList(groupList)
         setState({
           groupLists: groupList
@@ -314,14 +325,13 @@ export default function Chat() {
       initCurrentAddress(roomAddress)
       // setShowMask(true)
       if (!(+getLocal('isConnect'))) {
-        const path = history.location.pathname.split('/chat/')[1]
-        var currentNetwork = path?.split('/')[1]
-        var networkInfo = networks.filter(i => i.name === currentNetwork)[0]
+        // console.log(history.location, 'history.location===3')
+        var networkInfo = networks.filter(i => i.name === NETWORK)[0]
         setLocal('currentGraphqlApi', networkInfo?.APIURL)
-        setLocal('network', currentNetwork)
-        setCurrNetwork(currentNetwork)
+        setLocal('network', NETWORK)
+        setCurrNetwork(NETWORK)
       } else {
-        const currentNetwork = getLocal('network') || currNetwork
+        const currentNetwork = NETWORK || CURRENT_NETWORK
         var networkInfo = networks.filter(i => i.name === currentNetwork)[0]
       }
       const groupInfo = await getGroupMember(roomAddress, skip)
@@ -329,7 +339,7 @@ export default function Chat() {
         groupType: groupInfo?._type
       })
       const groupType = groupInfo?._type
-      if(chainId !== 513100 && groupInfo) {
+      if(chainId !== 513100 && groupInfo && !(+getLocal('isConnect')) ) {
         const { chatCount, id, name, __typename, _type } = groupInfo
         const roomInfo = [
           {
@@ -340,7 +350,11 @@ export default function Chat() {
             _type: _type
           }
         ]
+        setState({
+          groupLists: [...roomInfo]
+        })
         setCurrentRoomName(name)
+        // console.log('setRoomList====>>3')
         setRoomList([...roomInfo])
       }
       if(Boolean(+getLocal('isConnect')) || accounts || chainId) {
@@ -368,7 +382,7 @@ export default function Chat() {
         if(Boolean(+getLocal('isConnect'))) {
           alert('This is not a chat room.')
         } else {
-          if(!currentNetwork) {
+          if(!NETWORK) {
             alert('Please connect wallet first')
           }
         }
@@ -380,6 +394,7 @@ export default function Chat() {
     setShowMask(false)
   }
   const getJoinRoomAccess = async (roomAddress, groupType) => {
+    if(!roomAddress && !groupType) return
     try {
       if (groupType == 3) {
         if(chainId !== 513100) return
@@ -442,15 +457,15 @@ export default function Chat() {
     }
     `
     if (!clientInfo) {
-      const path = history.location.pathname.split('/chat/')[1]
-      if(!path) return
-      const network = path?.split('/')[1] || getLocal('network') || currentChain
-      const currentNetwork = getLocal('network') || network
-      const item = networks.filter(i => i.name === currentNetwork.toUpperCase())[0]
-      setLocal('network', currentNetwork.toUpperCase())
+      const state = history?.location?.state
+      const address = state?.address || GROUP_ADDRESS || ROOM_ADDRESS
+      const network = state?.network || NETWORK || CURRENT_NETWORK
+      if(!address) return
+      // console.log(address, history.location, GROUP_ADDRESS, ROOM_ADDRESS, 'history.location===4')
+      const item = networks.filter(i => i.name === network.toUpperCase())[0]
+      setLocal('network', network.toUpperCase())
       setShowMask(false)
       setCurrNetwork(network)
-      // if(!item?.APIURL) return
       var clientInfo = createClient({
         url: item?.APIURL
       })
@@ -465,8 +480,10 @@ export default function Chat() {
     await insertData(result)
     if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
       if (res?.length > 0) {
+        // console.log('setChatList=====>>1')
         setChatList(res)
       } else {
+        // console.log('setChatList=====>>2')
         setChatList(result)
       }
       setShowMask(false)
@@ -502,8 +519,10 @@ export default function Chat() {
   const getCurrentRoomInfo = (roomAddress) => {
     setShowJoinRoom(false)
     setHasScroll(false)
+    // console.log('setChatList=====>>3')
     setChatList([])
     setShowMask(true)
+    // console.log('isroom===>1')
     isRoom(roomAddress)
   }
   const createNewRoom = async (address, name, currentGroupType) => {
@@ -512,8 +531,14 @@ export default function Chat() {
     setState({
       currentAddress: address
     })
+    if(detectMobile()) {
+      setShowChat(true)
+      setState({
+        showHeader: false
+      })
+    }
+    // console.log('setChatList=====>>4')
     setChatList([])
-    setChatListStatus(new Map())
     setShowMask(false)
     setCurrentRoomName(name)
     setShowCreateNewRoom(false)
@@ -538,19 +563,31 @@ export default function Chat() {
     setShowSettingList(false)
   }
   const showChatList = (item) => {
+    setHasOpenedSignIn(false)
     setState({
-      hasOpenedSignIn: false
+      canUnstake: false,
+      stakedDays: 0,
+      tokenAddress: ''
     })
     setCurrentRedEnvelopId()
     setShowMask(true)
     setHasAccess()
+    // console.log('setChatList=====>>5')
     setChatList([])
     setHasMore(true)
     if (currentTabIndex === 0 && window.ethereum) {
       getManager(item.id, item._type)
       handleReadMessage(item.id)
       getJoinRoomAccess(item.id, item._type)
-      history.push(`/chat/${item.id}/${getLocal('network')}`)
+      // history.push(`/chat/${item.id}/${getLocal('network')}`)
+      const state = { 
+        address: item.id,
+        network: getLocal('network'),
+        currentIndex: 0,
+        name: item.name
+      }
+      history.push('/chat', state)
+      // history.push('/chat')
     }
     setShowChat(true)
     if (detectMobile()) {
@@ -626,6 +663,7 @@ export default function Chat() {
     if(chatListRef.current.length && newfetchData?.length > 0) {
       const list = [...chatListRef.current]
       const result = list.concat(newfetchData)
+      // console.log('setChatList=====>>6')
       setChatList(result)
     }
   }
@@ -672,6 +710,7 @@ export default function Chat() {
       setHasMore(false)
     }
     const list = [...chatListRef.current]
+    // console.log('setChatList=====>>7')
     setChatList(currentList.concat(list))
     // insertData(currentList)
   }
@@ -734,6 +773,7 @@ export default function Chat() {
     `
     try{
       const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, toAddress, avatar)
+      // console.log('setChatList=====>>8')
       setChatList(currentList)
       // insertData(currentList)
       setShowMask(false)
@@ -765,6 +805,7 @@ export default function Chat() {
     } else {
       if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
         const list = uniqueChatList(res, 'block')
+        // console.log('setChatList=====>>9')
         setChatList(list)
       }
       setShowMask(false)
@@ -789,17 +830,21 @@ export default function Chat() {
     )
     return encryptedMessage
   }
-  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {
-    const type_ = currentBonusType === 'Random Amount' ? 2 : 1
-    const address = giveAwayAddress
+  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress) => {
+    
+    const haveAmount = !minAmount ? 0 : ethers.utils.parseEther(minAmount)
+    const haveTokenAddress= !mustHaveTokenAddress ? '0x0000000000000000000000000000000000000000' : mustHaveTokenAddress
+    const scoreToken = Boolean(+openStatus) ? nftAddress : '0x0000000000000000000000000000000000000000'
+    const type_ = currentBonusType === intl.get('RandomAmount') ? 2 : 1
+    const address = giveAwayAddressV2
     const total = ethers.utils.parseUnits(String(totalAmount), tokenDecimals)
-    console.log(totalAmount, total, '====handleSend')
     if(!wishesText) {
       wishesText = 'Best Wishes'
     }
+    console.log( haveTokenAddress, haveAmount, scoreToken, 'nftAddress====', nftAddress)
     const tx = selectTokenAddress == 0
-                ? await getDaiWithSigner(address, RED_PACKET).sendETH(currentAddress, total, quantity, type_, wishesText, {value:total})
-                : await getDaiWithSigner(address, RED_PACKET).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText)
+                ? await getDaiWithSigner(address, RED_PACKET_V2).sendETH(currentAddress, total, quantity, type_, wishesText, haveTokenAddress, haveAmount, scoreToken, {value:total})
+                : await getDaiWithSigner(address, RED_PACKET_V2).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText, haveTokenAddress, haveAmount, scoreToken)
     setShowMask(true)
     setShowAwardBonus(false)
     const db = await setDataBase()
@@ -818,11 +863,13 @@ export default function Chat() {
       collection.insert(chatList[index])
       setClickNumber(clickNumber+1)
     } else {
+      // console.log('setChatList=====>>10')
       setChatList([])
       chatList[0].isSuccess = true
       chatList[0].block = callback?.blockNumber
       chatList[0].chatText = String((new BigNumber(Number(id))).toNumber())
       chatList[0].wishesText = wishesText
+      // console.log('setChatList=====>>11')
       setChatList(chatList)
       collection.insert(chatList)
       setClickNumber(clickNumber+1)
@@ -845,7 +892,7 @@ export default function Chat() {
         showProfile: false,
         showOperate: false,
         avatar: myAvatar,
-        _type: 'Giveaway',
+        _type: 'GiveawayV2',
         isOpen: false,
         wishesText: wishesText,
         user: {
@@ -903,7 +950,6 @@ export default function Chat() {
       let callback = await tx.wait()
       if (callback?.status === 1) {
         const index = chatList?.findIndex((item) => item.id.toLowerCase() == tx.hash.toLowerCase())
-        const sendIndex = memberListInfo?.findIndex((item) => item.id.toLowerCase() == tx.from.toLowerCase())
         chatList[index].isSuccess = true
         chatList[index].block = callback?.blockNumber
         chatList[index].isDecrypted = true
@@ -943,6 +989,7 @@ export default function Chat() {
       publicRooms[index]['newChatCount'] = 0
       res[currNetwork][getLocal('account')]['publicRooms'] = [...publicRooms]
       localForage.setItem('chatListInfo', res)
+      // console.log('setRoomList====>>4')
       setRoomList(publicRooms)
     }
   }
@@ -983,6 +1030,7 @@ export default function Chat() {
       const roomType = currentTabIndex === 0 ? 'publicRooms' : 'privateRooms'
       list[currNetwork][getLocal('account')][roomType] = [...publicRooms]
       localForage.setItem('chatListInfo', list)
+      // console.log('setRoomList====>>5')
       setRoomList(publicRooms)
     }
   }
@@ -1030,6 +1078,7 @@ export default function Chat() {
     if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
       const index = list?.findIndex(item => item.id == newList[0]?.id)
       if(index === -1) {
+        // console.log('setChatList=====>>12')
         setChatList(newList.concat(list))
       }
     }
@@ -1044,7 +1093,7 @@ export default function Chat() {
       }
       setHasChatCount(true)
     }
-
+    // console.log('setRoomList====>>6')
     setRoomList([...groupLists])
   }
   const getCurrentChatList = async (roomAddress) => {
@@ -1086,6 +1135,7 @@ export default function Chat() {
     const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, roomAddress)
     const list = [...chatListRef.current]
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && currentList.length) {
+      // console.log('setChatList=====>>13')
       setChatList(currentList.concat(list))
     }
     // insertData(currentList)
@@ -1154,7 +1204,7 @@ export default function Chat() {
     let collectedRedEnvelope = []
     await Promise.all(
       result.map(async(item) => {
-        if(item?._type ==='Giveaway') {
+        if(item?._type ==='Giveaway' || item?._type === 'GiveawayV2') {
           const id = item?.chatText?.indexOf('---') ? item?.chatText.split('---')[0] : item?.chatText
           var res = await getGiveawaysInfo(id)
           if(+res?.lastCount > 0) {
@@ -1167,11 +1217,11 @@ export default function Chat() {
           }
         }
         let params = {
-            avatar: item?._type ==='Giveaway' ? res?.profile?.avatar : item?.user?.profile?.avatar,
+            avatar: (item?._type ==='Giveaway' || item?._type === 'GiveawayV2') ? res?.profile?.avatar : item?.user?.profile?.avatar,
             hasDelete: false,
             isSuccess: true,
             showProfile: false,
-            position: Boolean(+getLocal('isConnect')) ? (item?._type ==='Giveaway' ? (res?.sender)?.toLowerCase() === (getLocal('account'))?.toLowerCase() : (item?.user?.id).toLowerCase() === (getLocal('account'))?.toLowerCase()) : false,
+            position: Boolean(+getLocal('isConnect')) ? (item?._type ==='Giveaway' || item?._type === 'GiveawayV2' ? res?.sender?.toLowerCase() === getLocal('account')?.toLowerCase() : item?.user?.id.toLowerCase() === getLocal('account')?.toLowerCase()) : false,
             showOperate: false,
             isOpen: false,
             wishesText: item?.chatText?.split('---')[1]
@@ -1234,6 +1284,15 @@ export default function Chat() {
   const handleDecryptedMessage = (id, text) => {
     getDecryptedMessage(id, text)
   }
+  const handleConfirmAutoCheckIn = async() => {
+    const fee = ethers.utils.parseEther('1')
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).automatic({value: fee})
+    setShowHandlingFee(false)
+    setShowSignIn(false)
+    setShowMask(true)
+    await tx.wait()
+    setShowMask(false)
+  }
   const handlePrivateChat = (item, res) => {
     setCurrentTabIndex(1)
     setShowGroupMember(false)
@@ -1249,25 +1308,25 @@ export default function Chat() {
     }
   }
   useEffect(() => {
-    const path = history.location.pathname.split('/chat/')[1]
+    // console.log(history.location, 'history.location===5')
     const currentRedEnvelopId = history.location.search.split("?id=")[1]
     setCurrentRedEnvelopId(currentRedEnvelopId)
-    const address = path?.split('/')[0]
-    const network = path?.split('/')[1] || getLocal('network') || currentChain
+    const address = GROUP_ADDRESS || ROOM_ADDRESS
+    const network = NETWORK || CURRENT_NETWORK
     const hash = history.location.hash
     hash ? setCurrentTabIndex(1) : setCurrentTabIndex(0)
-    if(!(+getLocal('isConnect'))) {
+    if(!(+getLocal('isConnect')) && address) {
       fetchPublicChatList(address)
     }
     if(network) {
       initRoomAddress(hash)
     }
     if(address && !(+getLocal('isConnect')) && !network) {
-      alert('Please connect wallet first')
+      // alert('Please connect wallet first')
     }
   }, [currentChain])
   const handleAwardBonus = async() => {
-    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddress)
+    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddressV2)
     if(!Boolean(res?.state)) {
       setShowOpenAward(true)
     } else {
@@ -1279,8 +1338,10 @@ export default function Chat() {
   }
   const handleSearch = (event) => {
     const value = event.target.value
-    var newList = groupList.filter(item => item.name.includes(value) || item.id.toUpperCase().includes(value.toUpperCase()))
-    setRoomList(newList)
+    setSearchGrouName(value)
+    const list = [...groupList]
+    var newList = list.filter(item => item.name.includes(value) || item.id.toUpperCase().includes(value.toUpperCase()))
+    setSearchGroup(newList)
   }
   const handleReceiveConfirm = async(e, id) => {
     setState({
@@ -1307,9 +1368,20 @@ export default function Chat() {
       showOpen: false
     })
   }
+  const handleCancelCheckin = async() => {
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).cancelCheckin()
+    setShowSignIn(false)
+    setShowMask(true)
+    await tx.wait()
+    setState({
+      canUnstake: false,
+      isCancelCheckIn: true
+    })
+    setShowMask(false)
+  }
   const handleOpenAward = async() => {
     setShowOpenAward(false)
-    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).register(currentAddress)
+    const tx = await getDaiWithSigner(giveAwayAddressV2, RED_PACKET_V2).register(currentAddress)
     setShowMask(true)
     await tx.wait()
     setShowMask(false)
@@ -1320,10 +1392,15 @@ export default function Chat() {
     setShowAwardBonus(false)
   }
   const handleSignIn = async(nftAddress) => {
+    const hasCreateProfile = await getProfileStatus(accounts)
+    if(!Boolean(hasCreateProfile)) {
+      setCanReceiveTips(true)
+      return
+    }
     const tokensQuery = `
     {
       registerInfos(
-        where: {manager: "`+ getLocal('account').toLowerCase() + `", register: "`+nftAddress.toLowerCase()+`"}
+        where: {manager: "`+ getLocal('account')?.toLowerCase() + `", register: "`+nftAddress?.toLowerCase()+`"}
       ) {
         id
         lastDate
@@ -1341,20 +1418,18 @@ export default function Chat() {
     })
     const res = await client?.query(tokensQuery).toPromise()
     const registerNftInfos = res?.data?.registerInfos
-    setShowNftList(Boolean(registerNftInfos.length))
-    setNftImageList(res.data.registerInfos)
+    setShowNftList(Boolean(registerNftInfos?.length))
+    setNftImageList(registerNftInfos)
     if(!registerNftInfos.length) {
       setState({
-        canMint: true,
-        showTokenContent: true
+        canMint: true
       })
     } else {
       setState({
-        canMint: false,
-        showTokenContent: false
+        canMint: false
       })
     }
-    setShowSignIn(true) 
+    setShowSignIn(true)
   }
   const handleOpenSign = async(tokenAddress) => {
     try {
@@ -1367,40 +1442,58 @@ export default function Chat() {
       console.log("Block number:", receipt.blockNumber)
       console.log("Block hash:", receipt.blockHash)
       setShowOpenSignIn(false)
-      setState({
-        hasOpenedSignIn: true
-      })
+      setHasOpenedSignIn(true)
       setShowMask(false)
     } catch (error) {
+      history.push()
+      const state = { 
+        address: currentAddress,
+        network: getLocal('network'),
+        currentIndex: 0,
+        name: currentRoomName
+      }
+      history.push('/chat', state)
       console.error(error, 'handleOpenSign')
     }
   }
-  const handleEndStake = async() => {
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receive()
-    console.log(tx, '===handleEndStake=')
+  const handleEndStake = async(isOpenAutoCheckIn) => {
+    const tx = isOpenAutoCheckIn ? await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receivesAuto() : await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receives()
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
+    setState({
+      canMint: true,
+      hasEndStack: true
+    })
     setShowMask(false)
   }
-  const handleCheckIn = async(tokenId, quantity) => {
+  const handleAutoCheckIn = async() => {
+    setShowHandlingFee(true)
+    setHandlingFeeTips(intl.get('OpenAutoCheckInTips'))
+  }
+  const handleCheckIn = async(token, tokenId, quantity) => {
+    console.log(token, tokenId, quantity, '====>>>>', +token === 0)
     setShowSignIn(false)
     setState({
       canMint: false
     })
     setShowMask(true)
     try {
-      const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity))
+      const valueE = +token === 0 ? ethers.utils.parseEther(quantity) : 0
+      const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity), {value: valueE})
       await tx.wait()
       setShowMask(false)
-    } catch {
+    } catch(err) {
+      console.log(err, '--->>')
       setShowMask(false)
     }
   }
   const handleCloseSignIn = () => {
     setShowSignIn(false)
     setState({
-      canMint: false
+      canMint: false,
+      canUnstake: false,
+      allowanceTotal: ''
     })
   }
   const handleMint = async(quantity, token) => {
@@ -1415,19 +1508,16 @@ export default function Chat() {
         continueMint: true
       })
     }
-   
-    const value = token === 'ETHF' ? ethers.utils.parseUnits(String(Number(quantity)), 18) : 0
-    console.log(Number(quantity), value, '====handleMint')
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity),{value: value})
+
+    const valueE = token === 'ETHF' ? ethers.utils.parseEther(quantity) : 0
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity),{value: valueE})
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
-    setState({
-      showTokenContent: false
-    })
     setShowMask(false)
   }
   useEffect(() => {
+    // console.log(history.location, 'history.location===6')
     const redEnvelopId = history.location.search.split('?')[1]
     if(hasCreateRoom && redEnvelopId) {
       setShowRedEnvelope(true)
@@ -1437,7 +1527,7 @@ export default function Chat() {
     if(accounts) {
       setMyAddress(accounts)
     }
-    setRoomList([])
+    // console.log('setRoomList====>>1')
     setMyAddress(getLocal('account'))
     return () => {
       clearInterval(timer.current)
@@ -1460,14 +1550,39 @@ export default function Chat() {
     }
   }, [showPlaceWrapper])
   useEffect(() => {
-    const path = history?.location?.pathname?.split('/chat/')[1]?.split('/')[0]
-    isRoom(path)
+    isRoom(ROOM_ADDRESS)
   }, [chainId])
   useEffect(() => {
     if(!(+getLocal('isConnect'))) {
       getclientInfo()
     }
-  }, [getLocal('isConnect')])
+    if(!groupLists?.length && !(+getLocal('isConnect'))) {
+      setRoomList([])
+      setShowChat(false)
+      setState({
+        showHeader: true
+      })
+    }
+  }, [getLocal('isConnect'), groupLists])
+  useEffect(() => {
+    const address = ROOM_ADDRESS || GROUP_ADDRESS
+    if(address) {
+      if(detectMobile()) {
+        setShowChat(true)
+        setState({
+          showHeader: false
+        })
+      }
+      getInitChatList(address)
+      setCurrentAddress(address)
+    }
+  }, [ROOM_ADDRESS, GROUP_ADDRESS])
+  useEffect(() => {
+    if(!location.state) {
+      setCurrentAddress('')
+      setShowChat(false)
+    }
+  }, [location])
   return(
     <div className={`chat-ui-wrapper ${!showGroupList ? 'chat-ui-wrapper-share' : ''}`}>
       {
@@ -1476,11 +1591,21 @@ export default function Chat() {
         </Modal>
       }
       {
-        <Modal title="Tips" visible={showCanReceiveTips} onClose={() => { setCanReceiveTips(false) }}>
-          <div>You should create profile first</div>
+        
+        <Modal title="Tips" visible={showHandlingFee} onClose={() => { setShowHandlingFee(false) }}>
+          <div>{handlingFeeTips}</div>
           <div className='btn-operate-award' style={{marginTop: '16px'}}>
-            <div className='btn btn-primary' onClick={() => {history.push(`/profile/${accounts}`)}}>Confirm</div>
-            <div className='btn btn-light' onClick={() => { setShowReceiveTips(false) }}>Cancel</div>
+            <div className='btn btn-primary' onClick={handleConfirmAutoCheckIn}>{intl.get('Confirm')}</div>
+            <div className='btn btn-light' onClick={() => { setShowHandlingFee(false) }}>{intl.get('Cancel')}</div>
+          </div>
+        </Modal>
+      }
+      {
+        <Modal title="Tips" visible={showCanReceiveTips} onClose={() => { setCanReceiveTips(false) }}>
+          <div>{intl.get('CreateProfileTips')}</div>
+          <div className='btn-operate-award' style={{marginTop: '16px'}}>
+            <div className='btn btn-primary' onClick={() => {history.push(`/profile/${accounts}`)}}>{intl.get('Confirm')}</div>
+            <div className='btn btn-light' onClick={() => { setShowReceiveTips(false) }}>{intl.get('Cancel')}</div>
           </div>
         </Modal>
       }
@@ -1514,10 +1639,10 @@ export default function Chat() {
       }
       {
         showOpenAward &&
-        <Modal title="Open red envelope" visible={showOpenAward} onClose={() => { setShowOpenAward(false) }}>
+        <Modal title={intl.get('OpenRedEnvelope')} visible={showOpenAward} onClose={() => { setShowOpenAward(false) }}>
           <div className='btn-operate-award'>
-            <div className='btn btn-primary' onClick={handleOpenAward}>Open</div>
-            <div className='btn btn-light' onClick={() => { setShowOpenAward(false) }}>Cancel</div>
+            <div className='btn btn-primary' onClick={handleOpenAward}>{intl.get('Open')}</div>
+            <div className='btn btn-light' onClick={() => { setShowOpenAward(false) }}>{intl.get('Cancel')}</div>
           </div>
         </Modal>
       }
@@ -1527,31 +1652,34 @@ export default function Chat() {
         <AwardBonus
           handleCloseAward={() => { setShowAwardBonus(false) }}
           currentAddress={currentAddress}
-          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)}}
+          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress)}}
           handleGiveAway={(tx) => {handleGiveAway(tx)}}
         ></AwardBonus>
       }
       {
-        <Modal title="Sign in" visible={showSignIn} onClose={handleCloseSignIn}>
+        <Modal title={intl.get('CheckIn')} visible={showSignIn} onClose={handleCloseSignIn}>
           <div className="sign-in-wrapper">
-            <SignIn 
+            <SignIn
+              currentAddress={currentAddress}
               showNftList={showNftList}
               handleMint={(num, token) => {handleMint(num, token)}}
               handleSelectNft={(id) => {handleSelectNft(id)}}
               nftImageList={nftImageList}
-              handleCheckIn={(id, num) => {handleCheckIn(id, num)}}
-              handleEndStake={(num) => {handleEndStake(num)}}
+              handleCheckIn={(token,id, num) => {handleCheckIn(token, id, num)}}
+              handleCancelCheckin={handleCancelCheckin}
+              handleEndStake={(status, isOpenAutoCheckIn) => {handleEndStake(status, isOpenAutoCheckIn)}}
+              handleAutoCheckIn={handleAutoCheckIn}
             />
           </div>
         </Modal>
       }
       {
         !detectMobile() &&
-        <Modal title="Award Bonus" visible={showAwardBonus} onClose={handleCloseAward}>
+        <Modal title={ intl.get('AwardBonus') } visible={showAwardBonus} onClose={handleCloseAward}>
           <AwardBonus
             handleCloseAward={() => { setShowAwardBonus(false) }}
             currentAddress={currentAddress}
-            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals)}}
+            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress)}}
             handleGiveAway={(tx) => {handleGiveAway(tx)}}
           ></AwardBonus>
         </Modal>
@@ -1596,13 +1724,13 @@ export default function Chat() {
       {
 
         showJoinRoom &&
-        <Modal title="Start New Chat" visible={showJoinRoom} onClose={() => { setShowJoinRoom(false) }}>
+        <Modal title={intl.get('JoinInNewRoom')} visible={showJoinRoom} onClose={() => { setShowJoinRoom(false) }}>
           <JoinRooom getCurrentRoomInfo={(address) => getCurrentRoomInfo(address)} />
         </Modal>
       }
       {
         showCreateNewRoom &&
-        <Modal title="Create New Room" visible={showCreateNewRoom} onClose={() => { setShowCreateNewRoom(false) }}>
+        <Modal title={intl.get('CreateNewRoom')} visible={showCreateNewRoom} onClose={() => { setShowCreateNewRoom(false) }}>
           <CreateNewRoom createNewRoom={(address, name, currentGroupType) => createNewRoom(address, name, currentGroupType)} hiddenCreateInfo={() => { setShowCreateNewRoom(false) }} showGroupList={showGroupList}/>
         </Modal>
       }
@@ -1650,8 +1778,10 @@ export default function Chat() {
                     showMask={() => setShowMask(true)}
                     showChatList={(item) => showChatList(item)}
                     newGroupList={roomList}
+                    searchGroup={searchGroup}
                     currentRoomName={currentRoomName}
                     hasAccess={hasAccess}
+                    searchGrouName={searchGrouName}
                     currNetwork={currNetwork}
                     currentTabIndex={currentTabIndex}
                     currentAddress={currentAddress?.toLowerCase()}
@@ -1666,7 +1796,7 @@ export default function Chat() {
               <div className={`tab-content ${showChat ? 'translate-tab' : ''} ${ showAwardBonus ? 'display': ''} ${ showOpenSignIn ? 'display': ''} ${Number(getLocal('isConnect')) === 0 && detectMobile() ? 'tab-content-show' : ''}`}>
                 <div className='tab-pane'>
                   {
-                    ((groupLists.length > 0 && currentAddress) || showChat) &&
+                    ((groupLists.length > 0 && currentAddress) || showChat || ROOM_ADDRESS) &&
                     <div className={"d-flex flex-column h-100"}>
                       <RoomHeader
                         showChat={showChat}
@@ -1712,6 +1842,7 @@ export default function Chat() {
                           currentAddress={currentAddress}
                           startChat={(text) => startChat(text)}
                           clearChatInput={clearChatInput}
+                          hasOpenedSignIn={hasOpenedSignIn}
                           handleShowPlace={() => { setShowPlaceWrapper(true) }}
                           handleAwardBonus={handleAwardBonus}
                           handleOpenSign={(tokenAddress) => handleOpenSign(tokenAddress)}

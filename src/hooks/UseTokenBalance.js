@@ -5,7 +5,7 @@ import useGlobal from './useGlobal'
 import { ethers } from "ethers"
 import { getBalanceNumber, getLocal, getBalance, allowance, approve } from '../utils'
 export default function UseTokenBalance() {
-  const { accounts, giveAwayAddress, setButtonText, currentTokenBalance, nftAddress} = useGlobal()
+  const { accounts, giveAwayAddressV2, setButtonText, currentTokenBalance, nftAddress, setState} = useGlobal()
   const [authorization, setAuthorization] = useState(false)
   const [poolBalance,setPoolBalance] = useState(0)
   const [approveLoading, setApproveLoading] = useState(false)
@@ -33,8 +33,11 @@ export default function UseTokenBalance() {
     let account = accounts || localStorage.getItem('account')
     const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
     const { address: tokenAddress } = from
-    const spender = type === 'signIn' ?  nftAddress : giveAwayAddress
+    const spender = type === 'signIn' ?  nftAddress : giveAwayAddressV2
     const allowanceTotal = await allowance({provider, tokenAddress, spender, account})
+    setState({
+      allowanceTotal: ethers.utils.formatUnits(allowanceTotal)
+    })
     const tokenValue = from.address == 0 ? currentTokenBalance : from.balance
     const amountToken = ethers.utils.parseEther(tokenValue)
     const allonceNum = ethers.utils.parseEther(allowanceTotal)
@@ -54,7 +57,7 @@ export default function UseTokenBalance() {
       const res = await approve({
           provider: new Web3.providers.HttpProvider("https://rpc.etherfair.org"),
           tokenAddress: from.address,
-          spender: type === 'signIn' ?  nftAddress : giveAwayAddress,
+          spender: type === 'signIn' ?  nftAddress : giveAwayAddressV2,
           accounts
       })
       console.log('Approve result ======', res)

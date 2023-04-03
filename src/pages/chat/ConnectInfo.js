@@ -3,6 +3,7 @@ import { formatAddress } from '../../utils'
 import useWallet from '../../hooks/useWallet'
 import CopyButton from '../../component/Copy'
 import useDataBase from '../../hooks/useDataBase'
+import intl from "react-intl-universal"
 import styled from 'styled-components'
 export default function ConnectInfo(props) {
   const { setDataBase } = useDataBase()
@@ -28,15 +29,15 @@ export default function ConnectInfo(props) {
         <div className="f-c-sb">
           <h4>Connected with MetaMask</h4>
           <div className="f-c">
-            <div className="button-min" onClick={() => disConnect().then(() => handleDisconnect())}>Disconnect</div>
+            <div className="button-min" onClick={() => disConnect().then(() => handleDisconnect())}>{intl.get('Disconnect')}</div>
           </div>
         </div>
         <div className="f-c-sb">
           <div>
-            <h3>{formatAddress(account)}</h3>
+            <h3>{formatAddress(account, 6, 6)}</h3>
             <div className="f-c connect-bar">
-              <CopyButton toCopy={account}>copy Address</CopyButton>
-              <div onClick={handleClearCache} className="clear-btn">Clear Cache</div>
+              <CopyButton toCopy={account}>{intl.get('CopyAddress')}</CopyButton>
+              {/* <div onClick={handleClearCache} className="clear-btn">Clear Cache</div> */}
             </div>
           </div>
         </div>

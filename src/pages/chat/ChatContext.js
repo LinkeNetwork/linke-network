@@ -1,9 +1,10 @@
-import { detectMobile, formatAddress, getDaiWithSigner, getLocal, toThousands } from "../../utils"
+import { detectMobile, formatAddress, getDaiWithSigner, getLocal } from "../../utils"
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import BigNumber from 'bignumber.js'
 import networks from '../../context/networks'
 import { PROFILE_ABI } from '../../abi/index'
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import intl from "react-intl-universal"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { useHistory } from 'react-router-dom'
 import Image from "../../component/Image"
@@ -15,24 +16,21 @@ import { tokenListInfo } from '../../constant/tokenList'
 import { ethers } from "ethers"
 export default function ChatContext(props) {
   var numeral = require('numeral')
-  const { hasMore, unreadList, chatList, myAddress, currentAddress, shareInfo, loadingData, sendSuccess, currentTabIndex, handleDecryptedMessage, hasDecrypted, handleReceive} = props
-  const { setState, clientInfo } = useGlobal()
-  const [showViewBtn, setShowViewBtn] = useState(false)
+  const { hasMore, chatList, currentAddress, shareInfo, loadingData, currentTabIndex, handleDecryptedMessage, handleReceive} = props
+  const { setState, clientInfo, tokenAddress } = useGlobal()
   const [showOperate, setShowOperate] = useState(false)
   const [selectText, setSelectText] = useState('')
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
-  const [profileId, setProfileId] = useState()
-  const [copied, setCopied] = useState(false)
-  const [receiveSymbol, setReceiveSymbol] = useState()
   const [copyText, setCopyText] = useState('copy')
   const [optionsList, setOptionsList] = useState({})
   const [clickNumber, setClickNumber] = useState(0)
   const [twitterUrl, setTwitterUrl] = useState('')
   const history = useHistory()
-  const handleShowProfile = (e, v) => {
+  const handleShowProfile = async(e, v) => {
+    const hasCreate = await getProfileStatus(v?.user?.id)
+    if(+hasCreate <=0 ) return
     e.preventDefault()
-    getProfileStatus(v?.user?.id)
     v.showProfile = true
     setShowOperate(true)
     setTimeout(() => {
@@ -54,29 +52,20 @@ export default function ChatContext(props) {
     var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
     const amount = ethers.utils.formatUnits(res?.amount, newList?.decimals)
     const totalAmount = +amount > 1000 ? numeral(amount).format() : amount
-    setReceiveSymbol(newList?.symbol)
-    const tokenList = `${'\%23'}${'Airdrop'}${'\%20'}${'\%23'}${'ETHF'}${'\%20'}${'\%23'}${'linke'}${'\%20'}${'\%23'}${newList?.symbol}`
+    const tokenList = `#Airdrop #ETHF #linke #${newList?.symbol}`
     const wishes = v?.wishesText ? v?.wishesText : 'Best wishes 🎁 🎁 🎁'
-    const wishesText = encodeURIComponent(wishes)
     const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?id=${chatText}`
-    const url = `${envelopeUrl}${'\xa0'}to join ${'\%26'} get money${'\%0A'}${tokenList}`
-    const text = `${wishesText}${'\%0A'}💰${newList?.symbol}${'\xa0'}${totalAmount}${'\xa0'}💰${'\%0A'}${'\%23'}Giveaway${'\%0A'}📍Click${'\%0A'}`
-    const st = text + url 
+    const url = `${envelopeUrl} to join & get money \n ${tokenList}`
+    const text = `${wishes}\n💰 ${newList?.symbol} ${totalAmount} 💰 \n#Giveaway \n📍Click \n`
+    const st = encodeURIComponent(text + url)
     window.open(`https://twitter.com/intent/tweet?text=${st}`)
-  }
-  const handleEnterProfile = (e, v) => {
-    if (!detectMobile()) return
-    getProfileStatus(v?.user?.id)
-    e.preventDefault()
-    setShowOperate(true)
-    v.showProfile = true
   }
   const getProfileStatus = async (account) => {
     const currentNetwork = getLocal('network')
     const networkList = networks.filter(item => item.name === currentNetwork)
     const res = await getDaiWithSigner(networkList[0].ProfileAddress, PROFILE_ABI).defaultToken(account)
     const hasCreate = res && (new BigNumber(Number(res))).toNumber()
-    setProfileId(hasCreate)
+    return hasCreate
   }
   const getGiveawaysInfo = async(currentRedEnvelopId) => {
     const tokensQuery = `
@@ -97,13 +86,12 @@ export default function ChatContext(props) {
     var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
     const amount = ethers.utils.formatUnits(res?.amount, newList?.decimals)
     const totalAmount = +amount > 1000 ? numeral(amount).format() : amount
-    setReceiveSymbol(newList?.symbol)
-    const tokenList = `${'#Airdrop #ETHF #linke'}${'\xa0'}#${newList?.symbol}`
+    const tokenList = `${'#Airdrop #ETHF #linke'} #${newList?.symbol}`
     const wishesText = v?.wishesText ? v?.wishesText : 'Best wishes 🎁 🎁 🎁'
     const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?id=${chatText}`
-    const url = `${envelopeUrl}${'\xa0'}to join & get money${'\n'}${tokenList}`
+    const url = `${envelopeUrl} to join & get money${'\n'}${tokenList}`
     setTwitterUrl(url)
-    const text = `${wishesText}${'\n'}💰${newList?.symbol}${'\xa0'}${totalAmount}${'\xa0'}💰${'\n'}#Giveaway${'\n'}📍Click${'\n'}`
+    const text =`${wishesText}${'\n'}💰 ${newList?.symbol} ${totalAmount} 💰${'\n'}#Giveaway${'\n'}📍Click`
     const options = {
       buttonHashtag: undefined,
       screenName: undefined,
@@ -166,7 +154,7 @@ export default function ChatContext(props) {
     setTimeout(() => {
       v.showOperate = false
       setCopyText('copy')
-      setCopied(true)
+      // setCopied(true)
     }, 200)
   }
 
@@ -224,20 +212,19 @@ export default function ChatContext(props) {
               <div key={i} className="chat-item-wrap">
                 {
                   // !v.hasDelete &&
-                  <div className={`chat-item ${v.position ? 'chat-end' : 'chat-start'}`} id="chatItem">
+                  <div className={`chat-item ${v.position ? 'chat-end' : 'chat-start'} ${v._type === 'Register' ? 'chat-register': ''}`}>
                     {
                       <div
                         className="chat-avatar-wrap"
-                        onMouseEnter={(e) => { handleEnterProfile(e, v) }}
                         onMouseLeave={(e) => { handleLeaveProfile(e, v) }}
                         onClick={(e) => { handleShowProfile(e, v) }}
                       >
                         {
-                          v.avatar &&
+                          v.avatar && v._type !== "Register" &&
                           <Image size={25} src={v.avatar} className="address-icon" />
                         }
                         {
-                          !v.avatar && v?.user?.id &&
+                          !v.avatar && v?.user?.id && v._type !== "Register" &&
                           <Jazzicon address={v?.user?.id} className="address-icon" />
                         }
                         {
@@ -251,8 +238,8 @@ export default function ChatContext(props) {
                               !v.avatar && v?.user?.id && 
                               <Jazzicon address={v?.user?.id} className="icon" />
                             }
-                            <div className='name'>{formatAddress(v?.user?.id)}</div>
-                            <div className="view-btn" onClick={() => viewProfile(v)}>View</div>
+                            <div className='name'>{formatAddress(v?.user?.id, 6, 6)}</div>
+                            <div className="view-btn" onClick={() => viewProfile(v)}>{intl.get('View')}</div>
                             {showOperate && <span></span>}
                           </div>
                         }
@@ -260,7 +247,16 @@ export default function ChatContext(props) {
                       </div>
                     }
                     {
-                      (v.showOperate) && v._type === 'Giveaway' && 
+                      v._type === 'Register' &&
+                      <div className="check-in-text">
+                          <span className="check-in-address">{formatAddress(v.chatText.split("---")[1], 5, 4)}</span>
+                          <span className="text">{intl.get('CheckIn')}</span>
+                          <span className="check-in-amount">{ethers.utils.formatEther(v.chatText.split("---")[2])}</span>
+                          <span>{tokenAddress}</span>
+                      </div> 
+                    }
+                    {
+                      (v.showOperate && (v._type === 'Giveaway' || v._type === 'GiveawayV2')) && 
                       <div className='operate-btn operate-btn-share'>
                         {
                           optionsList?.text && !detectMobile() &&
@@ -280,7 +276,7 @@ export default function ChatContext(props) {
                       </div>
                     }
                     {
-                      v._type === 'Giveaway' &&
+                      (v._type === 'Giveaway' || v._type === 'GiveawayV2') &&
                       <div
                         className={`red-packet-wrap ${v.isOpen ? 'red-packet-wrap-opened' : ''}`}
                         onClick={() => handleReceive(v)}
@@ -325,10 +321,13 @@ export default function ChatContext(props) {
                               <span>You on&nbsp;</span>
                             }
                             {
-                              v?.user?.id?.toLowerCase() !== getLocal('account')?.toLowerCase() &&
-                              <span><span>{formatAddress(v?.user?.id)}</span>&nbsp;</span>
+                              v?.user?.id?.toLowerCase() !== getLocal('account')?.toLowerCase() && !v?.user?.profile?.name &&
+                              <span><span>{formatAddress(v?.user?.id, 6, 6)}</span>&nbsp;</span>
                             }
-                            
+                            {
+                              // v?.userName &&
+                              <span>{v?.user?.profile?.name}</span>
+                            }
                             {
                               v.block &&
                               <span>({v.block})</span>
@@ -395,7 +394,7 @@ export default function ChatContext(props) {
                                 onCopy={(e) => { onCopy(e, v) }}>
                                 <div>
                                   <span className='iconfont icon-fuzhiwenjian'></span>
-                                  <span>copy</span>
+                                  <span>{copyText}</span>
                                 </div>
                               </CopyToClipboard>
                             }

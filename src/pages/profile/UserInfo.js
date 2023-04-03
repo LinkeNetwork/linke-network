@@ -5,7 +5,7 @@ export default function UserInfo(props) {
   return(
     <UserInfoContanier>
       <h1 className="name"></h1>
-      <div className="address">{formatAddress(myAddress)}</div>
+      <div className="address">{formatAddress(myAddress, 6, 6)}</div>
     </UserInfoContanier>
   )
 }

@@ -1,6 +1,7 @@
 import Modal from  '../../component/Modal'
 import styled from "styled-components"
 import { useEffect, useState } from 'react'
+import intl from "react-intl-universal"
 import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI } from '../../abi'
 import { getDaiWithSigner } from '../../utils'
 import useGroupMember from '../../hooks/useGroupMember'
@@ -90,7 +91,7 @@ export default function JoinGroupButton(props) {
     <JoinGroupButtonContainer>
       {
         <Modal title="Tips" visible={showCanJoinTips} onClose={() => { setCanJoinTips(false) }}>
-          <div>You should create profile first</div>
+          <div>{intl.get('CreateProfileTips')}</div>
           <div className='btn-operate-award' style={{marginTop: '16px'}}>
             <div className='btn btn-primary' onClick={handleJumpProfile}>Confirm</div>
             <div className='btn btn-light' onClick={() => { setCanJoinTips(false) }}>Cancel</div>

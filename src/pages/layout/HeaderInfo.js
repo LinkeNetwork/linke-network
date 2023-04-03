@@ -1,6 +1,7 @@
 import styled from "styled-components"
 import { useLocation } from 'react-router-dom'
 import Modal from '../../component/Modal'
+import intl from "react-intl-universal"
 import ConnectionInfo from '../chat/ConnectInfo'
 import { Jazzicon } from '@ukstv/jazzicon-react';
 import { detectMobile, formatAddress, getLocal } from '../../utils'
@@ -25,6 +26,7 @@ export default function HeaderInfo() {
   const [showConnectWallet, setShowConnectWallet] = useState(false)
   const [showHomeHeader, setShowHomeHeader] = useState(true)
   const [showMenulist, setShowMenulist] = useState(false)
+  const isConnect = (+getLocal('isConnect'))
   const selectNetwrok = (item) => {
     switch(item.name) {
       case 'MetaX':
@@ -33,6 +35,8 @@ export default function HeaderInfo() {
       case 'MetaMask':
         changeNetwork(item.network)
         break;
+      default:
+        console.log('Unknown')
     }
     setShowConnectWallet(false)
   }
@@ -48,16 +52,16 @@ export default function HeaderInfo() {
       setShowConnectWallet(true)
     }
     setShowHomeHeader(locations.pathname !== '/')
-  }, [locations.pathname, showConnectNetwork, getLocal('isConnect')])
+  }, [locations, showConnectNetwork, isConnect])
   useEffect(() => {
-    const isShare = locations.search.split('share=')[1] || locations?.state?.share
+    const isShare = locations?.search.split('share=')[1] || locations?.state?.share
     if(Boolean(isShare)) {
       setState({
         showHeader: false
       })
       setShowHomeHeader(false)
     }
-  }, [locations?.search])
+  }, [locations])
   useEffect(() => {
     let data = locations?.state?.share
     if (data) {
@@ -69,7 +73,7 @@ export default function HeaderInfo() {
       {
         showMenu && <Menu showMenu={showMenu} closeMenu={() => setShowMenu(false)}></Menu>
       }
-      <Modal title="Account" visible={showAccount} onClose={() => setShowAccount(false)}>
+      <Modal title={intl.get('Account')} visible={showAccount} onClose={() => setShowAccount(false)}>
         <ConnectionInfo account={accounts} handleDisconnect={() => handleDisconnect()} />
       </Modal>
       <Modal title="Connect Wallet" visible={showConnectWallet} onClose={() => setShowConnectWallet(false)}>
@@ -113,7 +117,7 @@ export default function HeaderInfo() {
               (chainId === 513100) && accounts &&
               <span className='header-top' onClick={() => setShowAccount(true)}>
                 <Jazzicon address={accounts} className="account-icon" />
-                {formatAddress(accounts)}
+                {formatAddress(accounts, 6, 6)}
               </span>
             }
           </div>

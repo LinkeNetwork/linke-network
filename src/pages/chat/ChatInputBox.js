@@ -1,22 +1,24 @@
-import React, { Component, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Picker } from 'emoji-mart'
+import intl from "react-intl-universal"
 import { Modal, Loading } from '../../component/index'
 import { PUBLIC_GROUP_ABI, REGISTER_ABI } from '../../abi'
 import styled from "styled-components"
-import { ethers } from "ethers";
-import { detectMobile, getDaiWithSigner, getLocal } from '../../utils'
+import { detectMobile, getDaiWithSigner } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
+import useCheckIn from '../../hooks/useCheckIn'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, handleOpenSign } = props
-  const { setState, accounts, signInAddress, groupType, hasOpenedSignIn, currentAddress } = useGlobal()
+  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, handleOpenSign, hasOpenedSignIn } = props
+  const { setState, accounts, signInAddress, groupType, currentAddress } = useGlobal()
+  const { getCheckInToken } = useCheckIn()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
   const [emoji, setEmoji] = useState()
   const [showLoding, setShowLoding] = useState(false)
   const [editorBacker, setEditorBacker] = useState(null)
   const [textCounter, setTextCounter] = useState(null)
-  const [limitCnt, setLimitCnt] = useState(2048)
+  const limitCnt = 2048
   const [tokenAddress, setTokenAddress] = useState()
   const [isComposing, setIsComposing] = useState(false)
   const [chatText, setChatText] = useState()
@@ -27,7 +29,6 @@ export default function ChatInputBox(props) {
   const [showOpenSignIcon, setShowOpenSignIcon] = useState(false)
   const [showSignInIcon, setShowSignInIcon] = useState(false)
   const [showOpenSignIn, setShowOpenSignIn] = useState(false)
-  const [nftAddress, setNftAddress] = useState('')
   const initTextArea = () => {
     var editorArea = document.querySelector('.editor-area')
     var editorBacker = document.querySelector('.editor-backer')
@@ -47,7 +48,6 @@ export default function ChatInputBox(props) {
   }
   const isOpenSignIn = async() => {
     const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
-    setNftAddress(tx.nft)
     setState({
       nftAddress: tx.nft
     })
@@ -186,7 +186,11 @@ export default function ChatInputBox(props) {
   const addEmoji = (emoji) => {
     getTextRange(emoji)
     setEmoji(emoji.native)
-    setChatText(chatText + '' + emoji.native)
+    if(chatText) {
+      setChatText(chatText + '' + emoji.native)
+    } else {
+      setChatText(emoji.native)
+    }
   }
 
   const onKeyPress = (e) => {
@@ -196,7 +200,7 @@ export default function ChatInputBox(props) {
   }
   const sendText = () => {
     if (!canSendMessage) return
-    setChatText('')
+    // setChatText('')
     setIsClickSend(true)
     startChat(chatText)
   }
@@ -205,13 +209,12 @@ export default function ChatInputBox(props) {
   }
   const handleCheckIn = async() => {
     const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
-    setNftAddress(tx.nft)
     setState({
       nftAddress: tx.nft
     })
     handleSignIn(tx.nft)
   }
-  const clearInput = () => { 
+  const clearInput = () => {
     var editorArea = document.querySelector('.editor-area')
     var counter = document.querySelector('.counter')
     if (isClickSend) {
@@ -239,6 +242,12 @@ export default function ChatInputBox(props) {
     })
     handleShowPlace()
   }
+  const getSelectedToken = async() => {
+    const token =  await getCheckInToken()
+    setState({
+      tokenAddress: token
+    })
+  }
   useEffect(() => {
     clearInput()
   }, [clearChatInput])
@@ -248,9 +257,10 @@ export default function ChatInputBox(props) {
   useEffect(() => {
     if(hasOpenedSignIn) {
       setShowOpenSignIn(false)
-    } 
+    }
   }, [hasOpenedSignIn])
   useEffect(() => {
+    getSelectedToken()
     initClientHeight()
     initTextArea()
     return () => {
@@ -262,14 +272,14 @@ export default function ChatInputBox(props) {
       {
         showLoding && <Loading></Loading>
       }
-      
+
       {
-        <Modal title="Open sign in" visible={showOpenSignIn} onClose={handleClose}>
+        <Modal title={intl.get('OpenCheckIn')} visible={showOpenSignIn} onClose={handleClose}>
           <div className="sign-in-wrapper">
             <OpenSignIn handleSelectedToken={(item) => {handleSelectedToken(item)}} />
             <div className='btn-operate-sign'>
-              <div className={`btn btn-primary ${!tokenAddress ? 'btn-not-allowed' : ''}`} onClick={handleOpenSignIn}>Open</div>
-              <div className='btn btn-light' onClick={() => { setShowOpenSignIn(false) }}>Cancel</div>
+              <div className={`btn btn-primary ${!tokenAddress ? 'btn-not-allowed' : ''}`} onClick={handleOpenSignIn}>{ intl.get('Open') }</div>
+              <div className='btn btn-light' onClick={() => { setShowOpenSignIn(false) }}>{ intl.get('Cancel') }</div>
             </div>
           </div>
         </Modal>
@@ -336,7 +346,6 @@ position: relative;
 .rich-editor {
   text-align: left;
   display: block;
-  // width: 100%;
   padding: 0.375rem 0.75rem;
   font-size: 1rem;
   font-weight: 400;
@@ -352,14 +361,11 @@ position: relative;
   transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 }
 .chat-input {
-  // height: 36px;
   overflow-y: auto;
   resize: none;
   margin-left: 7.6rem;
-  // max-height: 12rem;
   padding: 0.375rem 2.5rem 0.375rem 1rem;
   border-radius: 1rem;
-  // height: auto;
   &-client, &-pc {
     min-height: 22px;
     max-height: 211px;
@@ -368,25 +374,11 @@ position: relative;
       max-height: 211px;
     }
   }
-  // &-pc {
-  //   min-height: 71px;
-  //   max-height: 211px;
-  //   .editor-area, .editor-backer {
-  //     min-height: 71px;
-  //     max-height: 211px;
-  //   }
-  // }
 }
 .wrapper {
   position: relative;
   width: 100%;
   z-index: 1;
-  // &-pc {
-  //   min-height: 80px;
-  //   .editor-area {
-  //     min-height: 80px;
-  //   }
-  // }
 }
 .editor-area, .editor-backer {
   width: 100%;
@@ -441,7 +433,6 @@ position: relative;
   background-color: #FAFAFA;
   padding: 0.5rem 1rem 0rem 1rem;
   border-top: 1px solid #dee2e6;
-  // position: relative;
   .chat-tips {
     font-size: 12px;
     color: #6c757d;

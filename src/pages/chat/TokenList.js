@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { detectMobile } from "../../utils"
 import UseTokenBalance from "../../hooks/UseTokenBalance"
 import {List} from 'react-virtualized'
+import intl from "react-intl-universal"
 import { tokenListInfo } from '../../constant/tokenList'
 import useGlobal from "../../hooks/useGlobal"
 export default function TokenList(props) {
@@ -67,12 +68,10 @@ export default function TokenList(props) {
     const tempList = [...tokenListInfo]
     tempList[0].balance = Number(currentTokenBalance).toFixed(4)
     setDefaultList(tempList[0])
-    console.log(tempList[0], currentTokenBalance, 'tempList[0]====')
   }
   const formatList = () => {
     const tempList = [...tokenListInfo]
     tempList.shift()
-    console.log(tempList, 'tempList=====')
     for(let i = 0; i < tempList.length; i++) {
       getTokenBalance(tempList[i], tempList, i)
     }
@@ -95,12 +94,12 @@ export default function TokenList(props) {
               className="search-input"
               onBlur={()=>setContentHeight(450)}
               onFocus={setHeight}
-              placeholder="Search Name or Paste Address"
+              placeholder={intl.get('SearchTokenPlaceholder')}
               onInput={handleSearch}
             />
             : <input
             className="search-input"
-            placeholder="Search Name or Paste Address"
+            placeholder={intl.get('SearchTokenPlaceholder')}
             onInput={handleSearch}
           />
           }

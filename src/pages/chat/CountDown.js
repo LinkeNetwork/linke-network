@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import useGlobal from '../../hooks/useGlobal';
+import intl from "react-intl-universal"
 
 function CountDown({ timestamp }) {
   const [count, setCount] = useState(0);
   const { setState } = useGlobal()
+  const days = Math.floor(count / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((count % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((count % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((count % (1000 * 60)) / 1000);
   useEffect(() => {
     const intervalId = setInterval(() => {
       const now = Date.now();
@@ -14,13 +19,11 @@ function CountDown({ timestamp }) {
         clearInterval(intervalId);
         setCount(0);
         setState({
-          canMint: true,
-          showTokenContent: true
+          canUnstake: true
         })
       } else {
         setState({
-          showTokenContent: false,
-          canMint: false
+          canUnstake: false
         })
         setCount(distance);
       }
@@ -28,23 +31,12 @@ function CountDown({ timestamp }) {
 
     return () => clearInterval(intervalId);
   }, [timestamp]);
-
-  const days = Math.floor(count / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((count % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((count % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((count % (1000 * 60)) / 1000);
   return (
-    
     <div>
-      {
-        seconds > 0 &&
-        <div>
-          <div className="count-down-tips">It's not time to mint yet</div>
-          <h1 className='count-down'>Last {hours}:{minutes < 10 ? `0${minutes}`:minutes }:{seconds < 10 ? `0${seconds}`:seconds }</h1>
-        </div>
-      }
+      <div className="count-down-tips">{intl.get('UnlockTime')}</div>
+      <h1 className='count-down'> {hours}:{minutes < 10 ? `0${minutes}`:minutes }:{seconds < 10 ? `0${seconds}`:seconds }</h1>
     </div>
-  );
+  )
 }
 
 export default CountDown

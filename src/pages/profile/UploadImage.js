@@ -2,19 +2,18 @@ import styled from "styled-components"
 import { create } from 'ipfs-http-client'
 import { useEffect, useRef, useState } from 'react'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
-const client = create('https://ipfs.infura.io:5001')
+const client = create('https://ipfs.linke.network')
 export default function UploadImage(props) {
   const { uploadBg, myAddress } = props
   const avatarRef = useRef()
   const [showLoading, setShowLoading] = useState(false)
   const [fileUrl, updateFileUrl] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState('')
   const onChange = async (e) => {
     const file = e.target.files[0]
     try {
       setShowLoading(true)
       const added = await client.add(file)
-      const url = `https://linke.infura-ipfs.io/ipfs/${added.path}`
+      const url = `https://ipfs.linke.network/ipfs/${added.path}`
       setShowLoading(false)
       updateFileUrl(url)
       uploadBg(url)
@@ -22,11 +21,6 @@ export default function UploadImage(props) {
       console.log('Error uploading file: ', error)
     }
   }
-  // useEffect(() => {
-  //   // const avatarInfo = await client.add(avatarRef.current.innerHTML)
-  //   // const avatarUrl = `https://classzz.infura-ipfs.io/ipfs/${avatarInfo.path}`
-  //   getSelfNFT(avatarRef.current.innerHTML)
-  // }, [])
   useEffect(() => {
     if(myAddress) {
       if(avatarRef && avatarRef?.current) {
@@ -44,8 +38,8 @@ export default function UploadImage(props) {
         {/* {
           !fileUrl && !showLoading &&
           <div className="iconfont icon-shangchuan"></div>
-        } */}
-        {/* <input
+        }
+        <input
           type="file"
           onChange={onChange}
         /> */}

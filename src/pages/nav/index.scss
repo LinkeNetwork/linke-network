@@ -26,6 +26,9 @@
         }
       }
     }
+    .language-switch {
+      display: none;
+    }
     div {
       color: rgba(0,0,0,.6);
       font-weight: 550;
@@ -49,6 +52,16 @@
     z-index: 8;
     .nav-item{
       padding-top: 4rem;
+      .language-switch {
+        display: flex;
+        justify-content: space-between;
+      }
+      .language-switch-client {
+        display: flex;
+        .active {
+          color: #FFCE00;
+        }
+      }
     }
   }
 }

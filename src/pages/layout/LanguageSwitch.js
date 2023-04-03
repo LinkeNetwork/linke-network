@@ -1,11 +1,12 @@
 import React from 'react'
 import styled from 'styled-components'
 import useIntl from '../../hooks/useIntl'
+import { detectMobile } from '../../utils'
 
 export default function LanguageSwitch() {
 const {localesList, lang, onChange } = useIntl()
 return (
-    <LanguageSwitchContainer>
+    <LanguageSwitchContainer className={`${detectMobile() ? 'language-switch-client': ''}`}>
       {
         localesList.map((item, index) => {
           return <div className={lang === item.value ? 'active' : ''} onClick={ ()=> onChange(item.value)} key={ index }>{ item.name }</div>

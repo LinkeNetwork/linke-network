@@ -10,24 +10,24 @@ import localForage from "localforage"
 import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 import useWallet from "../../hooks/useWallet"
+import intl from "react-intl-universal"
 export default function GroupList(props) {
   const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo, transactionRoomHash } = useGlobal()
-  const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, hasAccess, currentTabIndex, currentRoomName, currentAddress, hasChatCount, currNetwork, hasRead, privateChatMember } = props
+  const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, currentTabIndex, currentAddress, hasChatCount, currNetwork, searchGroup, searchGrouName } = props
   const [groupList, setGroupList] = useState([])
-  const { chainId, network } = useWallet()
+  const { chainId } = useWallet()
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
-  const [canCopy, setCanCopy] = useState(false)
   const [startX, setStartX] = useState()
   const [startY, setStartY] = useState()
   const [currentIndex, setCurrentIndex] = useState()
-  const [currentRoomIndex, setCurrentRoomIndex] = useState()
   const [currentX, setCurrentX] = useState(0)
   const [moveX, setMoveX] = useState(0)
   const [moveY, setMoveY] = useState(0)
   const [copied, setCopied] = useState(false)
+  const [deletePath, setDeletePath] = useState()
+  const [copyText, setCopyText] = useState(intl.get('Copy'))
   const [hasTransition, setHasTransition] = useState(false)
-  const [moveStyle, setMoveStyle] = useState({})
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const history = useHistory()
   const path = history.location.pathname
@@ -64,6 +64,7 @@ export default function GroupList(props) {
           name: name,
           _type: _type
         })
+        // console.log('setGroupList===>1')
         setGroupList(groupList)
         setState({
           groupLists: groupList
@@ -91,10 +92,13 @@ export default function GroupList(props) {
           account[roomType] = groupList?.length ? [...groupList] : []
         }
         localForage.setItem('chatListInfo', res)
-        setGroupList(groupList)
-        setState({
-          groupLists: groupList
-        })
+        // console.log('setGroupList===>2')
+        if(!searchGrouName) {
+          setGroupList(groupList)
+          setState({
+            groupLists: groupList
+          })
+        }
       }
     })
 
@@ -126,7 +130,6 @@ export default function GroupList(props) {
     let fetchData = await getCurrentGroupInfo(roomAddress)
     if (roomAddress) {
       const index = groupInfos?.findIndex((item) => item.id === roomAddress)
-      console.log(index, roomAddress, fetchData, '====>findIndex>>')
       if (index === -1 && !hasQuitRoom) {
         groupInfos.push({
           id: roomAddress,
@@ -136,19 +139,18 @@ export default function GroupList(props) {
         })
       }
     }
+    // console.log('setGroupList===>3')
     setGroupList([...groupInfos] || [])
     setState({
       groupLists: [...groupInfos]
     })
     setChatListInfo(groupInfos, 1)
-    getCurrentRoomIndex(groupInfos)
     hiddenMask()
   }
   const handleTouchStart = (e) => {
     e.stopPropagation();
     setTimeOutEvent(setTimeout(() => {
       setLongClick(1)
-      setCanCopy(true)
     }, 500))
     setStartX(e.touches[0].pageX)
     setStartY(e.touches[0].pageY)
@@ -181,37 +183,39 @@ export default function GroupList(props) {
     setHasTransition(true)
     return false
   }
-  const confirmDelete = (path) => {
+  const confirmDelete = () => {
+    const currentGroups = groupList.filter(item => item.id.toLowerCase() !== deletePath.toLowerCase()) 
+    setGroupList(currentGroups)
+    setCacheGroup(currentGroups)
+    setMoveX(0)
+    setMoveY(0)
+    history.push('/chat')
     setShowDeleteConfirm(false)
-    handleDeleteChatRoom(path)
+  }
+  const setCacheGroup = (currentGroups) => {
+    const currNetwork = currentNetworkInfo?.name || getLocal('network')
+    localForage.getItem('chatListInfo').then(res => {
+      let chatListInfo = res ? res : {}
+      chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...currentGroups]
+      localForage.setItem('chatListInfo', chatListInfo)
+    })
   }
   const deleteChatRoom = (e, path) => {
     e.stopPropagation()
-    if (!detectMobile()) {
-      setShowDeleteConfirm(true)
-    } else {
-      this.handleTouchEnd(e)
-      handleDeleteChatRoom(path)
-    }
-  }
-  const handleDeleteChatRoom = (path) => {
-    console.log(path)
+    setDeletePath(path)
+    setShowDeleteConfirm(true)
   }
   const onCopy = (e) => {
+    setCopyText(intl.get('Copied'))
     e.stopPropagation()
     setCopied(true)
     setTimeout(() => {
+      setCopyText(intl.get('Copy'))
       setCopied(false)
-    }, 1500)
+    }, 1000)
   }
   const showCurrentChatList = (e, item, index) => {
-    setCurrentRoomIndex(index)
     showChatList(item)
-  }
-  const getCurrentRoomIndex = (groupInfos) => {
-    const roomAddress = path.split('/chat/')[1]?.toLowerCase()
-    const index = groupInfos && groupInfos.findIndex((item) => item?.id?.toLowerCase() == roomAddress)
-    setCurrentRoomIndex(index)
   }
   const initPrivateMember = () => {
     const data = history.location?.state
@@ -274,6 +278,7 @@ export default function GroupList(props) {
         privateGroupList.push(list)
       }
     }
+    // console.log('setGroupList===>4')
     setGroupList(privateGroupList)
     setChatListInfo(privateGroupList, 2)
     setState({
@@ -286,10 +291,9 @@ export default function GroupList(props) {
     if (!currNetwork) return
     localForage.getItem('chatListInfo').then(res => {
       const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
-      const publicRooms = account ? account['publicRooms'] : []
-      const privateRooms = account ? account['privateRooms'] : []
       let chatListInfo = res ? res : {}
       if (!account && currNetwork) {
+        // console.log('publicRooms=====1')
         const list = Object.keys(chatListInfo)
         chatListInfo[currNetwork] = chatListInfo[currNetwork] && list.length ? chatListInfo[currNetwork] : {}
         chatListInfo[currNetwork][getLocal('account')] = {
@@ -298,9 +302,11 @@ export default function GroupList(props) {
         }
       }
       if (type === 1) {
+        // console.log('publicRooms=====2')
         chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...groupInfos]
         localForage.setItem('chatListInfo', chatListInfo)
       } else {
+        debugger
         chatListInfo[currNetwork][getLocal('account')]['privateRooms'] = [...groupInfos]
         localForage.setItem('chatListInfo', chatListInfo)
       }
@@ -322,6 +328,7 @@ export default function GroupList(props) {
             getGroupList()
           } else {
             const groupList = [...publicRooms]
+            // console.log('setGroupList===>5')
             setGroupList(groupList)
             setState({
               groupLists: groupList
@@ -341,6 +348,7 @@ export default function GroupList(props) {
             res[currNetwork][getLocal('account')]['privateRooms'] = [...groupList]
             localForage.setItem('chatListInfo', res)
             const currentChatInfo = groupList.filter((item) => item?.id?.toLowerCase() === currentAddress?.toLowerCase())
+            // console.log('setGroupList===>6')
             setGroupList(groupList)
             setState({
               groupLists: groupList,
@@ -354,24 +362,25 @@ export default function GroupList(props) {
     }
   }, [accounts, chainId, currentTabIndex, hasCreateRoom, transactionRoomHash])
   useEffect(() => {
-    if ((!getLocal('isConnect') || !chainId) && !clientInfo) {
-      setGroupList([])
-    }
-    if (!getLocal('isConnect') && clientInfo) {
-      setGroupList(newGroupList)
-    }
-  }, [getLocal('isConnect'), chainId, newGroupList])
+    const group = searchGroup.slice()
+    setGroupList(group)
+  }, [searchGroup])
   useEffect(() => {
     getCurrentGroup()
   }, [currentAddress])
   useEffect(() => {
     updateChatCount()
   }, [newGroupList, hasChatCount, hasCreateRoom])
-  useEffect(() => {
-    setGroupList([...newGroupList])
-  }, [newGroupList, hasChatCount])
   return (
     <ListGroupContainer>
+      <Modal title="Confirm" visible={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
+        <div className='dialog-title mb-3'>Do you want to delete this group?</div>
+        <div className='btn-wrapper'>
+          <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={() => confirmDelete()}>
+            Confirm
+          </button>
+        </div>
+      </Modal>
       {
         (groupList?.length === 0) && Boolean(Number(localStorage.getItem('isConnect'))) &&
         <EmptyInfo onClickDialog={onClickDialog}></EmptyInfo>
@@ -398,14 +407,6 @@ export default function GroupList(props) {
                 key={item.id}
               >
 
-                <Modal title="Confirm" visible={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
-                  <div className='dialog-title'>Do you want to delete this chat room?</div>
-                  <div className='btn-wrapper'>
-                    <button type="button" className="btn btn-lg btn-primary w-100 mb-3" onClick={() => confirmDelete(item.id)}>
-                      Confirm
-                    </button>
-                  </div>
-                </Modal>
                 <div className='user-image rounded-circle me-2'>
                   {
                     item && item.id && !item?.avatar &&
@@ -419,17 +420,20 @@ export default function GroupList(props) {
                 <div className='full-address'>{item.roomName}</div>
                 <div className='text-left'>
                   <div className='user-address fw-medium fs-6'>{item.name}</div>
-                  <div className='user-status fs-80x'>{formatAddress(item.id)}</div>
+                  <div className='user-status fs-80x'>{formatAddress(item.id, 6, 6)}</div>
                 </div>
                 {
                   !detectMobile() &&
                   <div className={`delete-btn-wrapper ${!detectMobile() ? 'delete-btn-web' : ''}`}>
-                    {/* <div className='iconfont icon-shanchu' onClick={(e) => { deleteChatRoom(e, item.id) }}></div> */}
-                    <CopyToClipboard text={item.id}>
-                      <div className='iconfont icon-fuzhiwenjian' onClick={onCopy}></div>
-                    </CopyToClipboard>
+                    <div className='iconfont icon-shanchu' onClick={(e) => { deleteChatRoom(e, item.id) }}></div>
                     {
-                      copied && <div className='message-tips message-tips-success'>{item.id}</div>
+                      !copied &&
+                      <CopyToClipboard text={`https://linke.network/chat/${item.id}/${getLocal('network')}`}>
+                        <div className='iconfont icon-fuzhiwenjian' onClick={onCopy}></div>
+                      </CopyToClipboard>
+                    }
+                    {
+                      copied && <div className="copied-text">{intl.get('Copied')}</div>
                     }
 
                   </div>
@@ -437,15 +441,15 @@ export default function GroupList(props) {
                 {
                   detectMobile() &&
                   <div className='operate-btn'>
-                    <CopyToClipboard text={item.id}>
-                      <div className='copy-btn' onClick={(e) => { onCopy(e) }}>copy</div>
+                    <CopyToClipboard text={`https://linke.network/chat/${item.id}/${getLocal('network')}`}>
+                      <div className='copy-btn' onClick={(e) => { onCopy(e) }}>{copyText}</div>
                     </CopyToClipboard>
                     <div onClick={(e) => { deleteChatRoom(e, item.id) }}>
                       <div className='del-btn'>delete</div>
                     </div>
-                    {
+                    {/* {
                       copied && <div className='message-tips message-tips-success'>{item.id}</div>
-                    }
+                    } */}
                   </div>
 
                 }
@@ -467,6 +471,9 @@ const ListGroupContainer = styled.div`
   overflow-y: auto;
   background-color: #fff;
   overflow-x: hidden;
+  .copied-text {
+    font-size: 12px;
+  }
 .chat-list {
   .operate-btn{
     // width: 120px;
@@ -499,10 +506,10 @@ const ListGroupContainer = styled.div`
     .copy-btn {
       background-color: rgba(128, 128, 128, 0.7);;
     }
-    .message-tips {
-      left: -270px;
-      bottom: 20px;
-    }
+    // .message-tips {
+    //   left: -270px;
+    //   bottom: 20px;
+    // }
   }
   .delete-btn-wrapper{
     position: absolute;

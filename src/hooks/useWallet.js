@@ -1,6 +1,6 @@
 import { token } from "../constant/token"
 import { ethers } from "ethers"
-import { getLocal, setLocal } from "../utils"
+import { detectMobile, getLocal, setLocal } from "../utils"
 import { useState, useLayoutEffect } from "react"
 import useProfile from "./useProfile"
 import MetaMaskOnboarding from '@metamask/onboarding'
@@ -60,17 +60,15 @@ export default function useWallet() {
         return accounts
       } else {
         window.location.href = 'https://chrome.google.com/webstore/detail/okx-wallet/mcohilncbfahbmgdjkbpemcciiolgcge/related'
-        // if(detectMobile()) {
-        //   // connectWallet()
-        // } else {
-         
-        // }
       }
     } catch (error) {
       throw error
     }
   }
   const changeNetwork = async (network) => {
+    if(detectMobile()) {
+      window.open('https://metamask.app.link/dapp/https://linke.network', '_blank');
+    }
     setState({
       showConnectNetwork: false
     })
@@ -132,13 +130,11 @@ export default function useWallet() {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const network = await provider.getNetwork()
       const item = networks.filter(i=> i.chainId === network.chainId)[0]
+      setChainId(network.chainId)
       setState({
         chainId: network.chainId
       })
-      if(!item) {
-        setChainId(network.chainId)
-        return
-      }
+      if(!item) return
       const currNetwork = networkList[network.chainId]
       const client = createClient({
         url: item?.APIURL
@@ -148,7 +144,6 @@ export default function useWallet() {
       })
       setLocal('network', currNetwork)
       setNetwork(currNetwork)
-      setChainId(network.chainId)
       setState({
         currentChain: currNetwork,
         currentNetworkInfo:item,
@@ -189,7 +184,6 @@ export default function useWallet() {
       const account = await window?.ethereum?.request({ method: 'eth_requestAccounts' })
       handleNewAccounts(account)
       getAccounInfo(account)
-      console.log(account, 'initWallet====')
       window.ethereum.on('chainChanged', chainId => {
         setState({
           chainId: parseInt(chainId, 16)

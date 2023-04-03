@@ -82,7 +82,7 @@ export default function ProfileInfo(props) {
     const tokenrul = {
       "name": profileInfo?.name,
       "description": profileInfo?.description,
-      "image": "https://linke.infura-ipfs.io/ipfs/"
+      "image": "https://ipfs.linke.network/ipfs/"
     }
     if (profileInfo?.selfNFT) {
       setShoMask(true)

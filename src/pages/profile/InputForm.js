@@ -15,14 +15,7 @@ const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
 const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
 const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
 
-const client = create({
-    host: 'ipfs.infura.io',
-    port: 5001,
-    protocol: 'https',
-    headers: {
-        authorization: auth,
-    },
-})
+const client = create('https://ipfs.linke.network')
 
 export default function InputForm(props) {
     const { myAddress, showNav, roomAddress } = props
@@ -34,7 +27,9 @@ export default function InputForm(props) {
     const handleSave = async() => {
     setShowLoading(true)
     const info = await client.add(multiavatar(myAddress))
-    const avatarUrl = `https://linke.infura-ipfs.io/ipfs/${info.path}`
+        debugger
+
+    const avatarUrl = `https://ipfs.linke.network/ipfs/${info.path}`
     const expandInfo = []
     try {
         const address = currentNetworkInfo?.ProfileAddress

@@ -3,12 +3,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "token_",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "group_",
+        "name": "feeAddress",
         "type": "address"
       },
       {
@@ -79,19 +74,19 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "cancelDate",
-        "type": "uint256"
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
       }
     ],
-    "name": "CancelUserLog",
+    "name": "OwnershipTransferred",
     "type": "event"
   },
   {
@@ -112,23 +107,17 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "score",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
         "name": "count",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "lastDate",
+        "name": "amount",
         "type": "uint256"
       }
     ],
-    "name": "CheckinLog",
+    "name": "ReceiveLog",
     "type": "event"
   },
   {
@@ -139,6 +128,18 @@
         "internalType": "uint256",
         "name": "id",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "group",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
       },
       {
         "indexed": false,
@@ -155,49 +156,41 @@
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "lastDate",
+        "name": "count",
         "type": "uint256"
-      }
-    ],
-    "name": "CheckinUserLog",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
+      },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "id",
+        "name": "type_",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "content",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "haveToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "haveAmount",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "address",
-        "name": "sender",
+        "name": "scoreToken",
         "type": "address"
       }
     ],
-    "name": "MintLog",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnershipTransferred",
+    "name": "SendLog",
     "type": "event"
   },
   {
@@ -227,7 +220,7 @@
   },
   {
     "inputs": [],
-    "name": "AUTOMATICADDRESS",
+    "name": "FEEADDRESS",
     "outputs": [
       {
         "internalType": "address",
@@ -239,14 +232,8 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "Automatic",
+    "inputs": [],
+    "name": "FEERATE",
     "outputs": [
       {
         "internalType": "uint256",
@@ -259,7 +246,7 @@
   },
   {
     "inputs": [],
-    "name": "PROFILEADDRESS",
+    "name": "PROFILE_ADDRESS",
     "outputs": [
       {
         "internalType": "address",
@@ -289,13 +276,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "automatic",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -312,31 +292,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "cancelCheckin",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "checkin",
-    "outputs": [],
-    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -359,115 +314,82 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getAutomatic",
-    "outputs": [
+    "inputs": [
       {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
-      }
-    ],
-    "name": "getRegisterInfo",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "score",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "count",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastDate",
-            "type": "uint256"
-          }
-        ],
-        "internalType": "struct IRegister.RegisterInfo",
-        "name": "",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
+      },
       {
         "internalType": "address",
-        "name": "account",
+        "name": "",
         "type": "address"
       }
     ],
-    "name": "getRegisterUserInfo",
+    "name": "giveawayInfo_exist",
     "outputs": [
       {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "amount",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "lastDate",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "cancelDate",
-            "type": "uint256"
-          }
-        ],
-        "internalType": "struct IRegister.RegisterUserInfo",
+        "internalType": "uint256",
         "name": "",
-        "type": "tuple"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getVersion",
-    "outputs": [
+    "inputs": [
       {
-        "internalType": "string",
+        "internalType": "uint256",
         "name": "",
-        "type": "string"
+        "type": "uint256"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "group",
+    "name": "giveawayInfos",
     "outputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "group",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "count",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "type_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "haveToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "haveAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "scoreToken",
         "type": "address"
       }
     ],
@@ -496,19 +418,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "mint",
-    "outputs": [],
-    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -591,87 +500,29 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "receives",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "receivesAuto",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "register",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "id",
         "type": "uint256"
       }
     ],
-    "name": "registerInfos",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "score",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "count",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "lastDate",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "receive",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "group",
         "type": "address"
       }
     ],
-    "name": "registerUserInfos",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "lastDate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "cancelDate",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "register",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -736,6 +587,107 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "group",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "count",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "type_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "content",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "haveToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "haveAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "scoreToken",
+        "type": "address"
+      }
+    ],
+    "name": "send",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "group",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "count",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "type_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "content",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "haveToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "haveAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "scoreToken",
+        "type": "address"
+      }
+    ],
+    "name": "sendETH",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "operator",
         "type": "address"
       },
@@ -746,6 +698,32 @@
       }
     ],
     "name": "setApprovalForAll",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "add",
+        "type": "address"
+      }
+    ],
+    "name": "setFeeAddress",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "feeRate",
+        "type": "uint256"
+      }
+    ],
+    "name": "setFeeRate",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -777,19 +755,6 @@
         "internalType": "string",
         "name": "",
         "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "token",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -848,19 +813,6 @@
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "version",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {

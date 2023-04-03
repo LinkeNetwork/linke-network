@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { Link } from 'react-router-dom'
 import logo from '../../assets/images/linke-logo.svg'
 import FindUs from './FindUs'
+import LanguageSwitch from "../layout/LanguageSwitch";
 export default function Menu(props) {
   const { closeMenu, showMenu } = props
   return (
@@ -20,9 +21,10 @@ export default function Menu(props) {
 
           <ul className="menu-item">
             <li><Link to="/chat" target="_blank">CHAT</Link></li>
-            <li onClick={() => alert('come soon')}>DEVELOPER GARDEN</li>
+            {/* <li onClick={() => alert('come soon')}>DEVELOPER GARDEN</li> */}
           </ul>
 
+          <div className="language-wrapper"><span>Language</span><LanguageSwitch /></div>
           <div className="menu-bottom">
             <div className="menu-bottom-left">
               <div>FIND US ON PREVIOUS</div>
@@ -76,6 +78,21 @@ const MenuContainer = styled.div`
       font-weight: bold;
       color: #666;
     }
+  }
+  .language-wrapper {
+    position: fixed;
+    bottom: 120px;
+    right: 20px;
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    span {
+      font-size: 16px;
+    }
+  }
+  .language-switch-client {
+    display: flex;
+    justify-content: end;
   }
   .menu-bottom {
     display: flex;

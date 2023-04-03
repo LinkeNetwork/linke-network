@@ -1,15 +1,16 @@
-const dropdownList = [
-  {
-    name: 'Start New chat',
-    id: 'new'
-  },
-  {
-    name: 'Creat Chatting Room',
-    id: 'creat'
-  }
-]
+import intl from "react-intl-universal"
 export default function AddChatRoom(props) {
   const {showSettingList, onClickSetting, onClickSelect} = props
+  const dropdownList = [
+    {
+      name: intl.get('JoinInNewRoom'),
+      id: 'new'
+    },
+    {
+      name: intl.get('CreateChattingRoom'),
+      id: 'creat'
+    }
+  ]
   return (
     <div className='add-icon-wrapper'>
       <div className="dropdown">

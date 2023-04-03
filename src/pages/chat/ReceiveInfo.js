@@ -38,8 +38,8 @@ export default function ReceiveInfo(props) {
                 }
                 {
                   item?.profile?.name
-                    ? <span className="name">{item?.profile?.name?.indexOf('0x') !== -1 ? formatAddress(item?.profile?.name) : item?.profile?.name}</span>
-                    : <span className="name">{formatAddress(item?.sender)}</span>
+                    ? <span className="name">{item?.profile?.name?.indexOf('0x') !== -1 ? formatAddress(item?.profile?.name, 6, 6) : item?.profile?.name}</span>
+                    : <span className="name">{formatAddress(item?.sender, 6, 6)}</span>
                 }
               </div>
               <div className="right">{(Math.floor(ethers.utils.formatUnits(item?.amount, receiveDecimals) * 10000) / 10000)}<span className="symbol">{receiveSymbol}</span></div>

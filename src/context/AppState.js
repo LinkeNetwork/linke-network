@@ -24,6 +24,7 @@ const state = {
   showHeader: true,
   currentTokenBalance: '',
   giveAwayAddress: '0x71d17da8b8a90F94528A7557E34b30Df041F278f',
+  giveAwayAddressV2: '0x1EC08c106c85CAA680a89F206501f227e2bDe5a2',
   signInAddress: '0xD6425022DC33C6b5bf339AC873430b442d50D63b',
   currentChain: '',
   showOpen: false,
@@ -32,10 +33,15 @@ const state = {
   transactionRoomHash: '',
   groupType: '',
   nftAddress: '',
-  hasOpenedSignIn: false,
   continueMint: false,
   canMint: false,
-  showTokenContent: false
+  hiddenCountDown: true,
+  isCancelCheckIn: false,
+  hasEndStack: false,
+  canUnstake: false,
+  stakedDays: 0,
+  tokenAddress: '',
+  allowanceTotal: ''
 }
 
 export default state

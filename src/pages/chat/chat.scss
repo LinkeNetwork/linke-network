@@ -9,6 +9,15 @@
   &-share {
     margin-left: 0;
   }
+  .check-in-text {
+    background: #dee2e6;
+    padding: 2px 6px;
+    color: #6c757d;
+    border-radius: 10px;
+    .text,  .check-in-amount {
+      margin: 0 4px;
+    }
+  }
   .bottom-envelope-list {
     cursor: pointer;
     background: #f6f6f6;
@@ -122,6 +131,10 @@
   .chat-start {
     position: relative;
     align-items: flex-start;
+    &.chat-register {
+      margin-bottom: 10px;
+      justify-content: center;
+    }
     div.operate-btn-share {
       left: 60px;
       cursor: pointer;
@@ -827,9 +840,35 @@ ul.dropdown-menu {
 }
 .count-down {
   text-align: center;
+  font-size: 34px;
 }
 .count-down-tips {
   margin-bottom: 10px;
+  font-size: 18px;
+}
+.staked-duration {
+  align-items: baseline;
+  display: flex;
+  margin-bottom: 10px;
+  .name {
+    width: 124px;
+  }
+  .cumulative-time {
+    margin-left: 10px;
+    font-weight: bold;
+    font-size: 20px;
+    p {
+      margin: 0;
+    }
+    .count {
+      font-size: 20px;
+    }
+    .tips {
+      margin: 10px 0 4px 0;
+      font-weight: normal;
+      font-size: 12px;
+    }
+  }
 }
 .red-packet-wrap {
   padding: 0.5rem 0.75rem;
