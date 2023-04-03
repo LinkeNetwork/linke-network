@@ -430,8 +430,6 @@ export default function Chat() {
           const { tokenBalance, mustHaveAmount } = receiveCondition
         if(+tokenBalance < +mustHaveAmount) {
           setShowTips(true)
-        } else {
-          setShowRedEnvelope(true)
         }
           
         } else {
@@ -1164,10 +1162,11 @@ export default function Chat() {
   }
   const getReceiveCondition = async(giveawayInfos) => {
     const { haveToken, haveAmount, scoreToken, lastCount} = giveawayInfos
+    console.log(scoreToken, 'scoreToken====')
     const tx = await getDaiWithSigner(giveAwayAddressV2, RED_PACKET_V2).balanceOf(getLocal('account'))
     const registerNftInfos = (new BigNumber(Number(tx))).toNumber()
     if(+scoreToken !== 0) {
-      if(registerNftInfos?.length < 1) {
+      if(+registerNftInfos < 1) {
         setShowTips(true)
         const text = `${intl.get('YouMust')} nft ${intl.get('ReceiveRedEnvelope')}` 
         setTipsText(text)
@@ -1211,7 +1210,7 @@ export default function Chat() {
     setCurrentGiveAwayVersion(v?._type)
     const giveawayInfos = await getReceiveInfo(chatText, giveawayVersion)
     const receiveCondition = await getReceiveCondition(giveawayInfos)
-    const { tokenBalance, mustHaveAmount } = receiveCondition
+    const { tokenBalance, mustHaveAmount, registerNftInfos, scoreToken } = receiveCondition
     if(giveawayInfos?.lastCount === 0) {
       setShowReceiveInfo(true)
     }
@@ -1233,7 +1232,7 @@ export default function Chat() {
     if(isReceived === 1) {
       setShowReceiveInfo(true)
     }
-    if(!hasAccess || isReceived === 1 || giveawayInfos?.lastCount === 0 || +tokenBalance < +mustHaveAmount) return
+    if(!hasAccess || isReceived === 1 || giveawayInfos?.lastCount === 0 || +tokenBalance < +mustHaveAmount || (+scoreToken !== 0 && +registerNftInfos < 1)) return
     setCurrentRedEnvelopTransaction(v?.transaction)
     setShowRedEnvelope(true)
   }
