@@ -256,7 +256,7 @@ export default function ChatContext(props) {
                       </div> 
                     }
                     {
-                      (v.showOperate) && v._type === 'Giveaway' && 
+                      (v.showOperate && (v._type === 'Giveaway' || v._type === 'GiveawayV2')) && 
                       <div className='operate-btn operate-btn-share'>
                         {
                           optionsList?.text && !detectMobile() &&
@@ -276,7 +276,7 @@ export default function ChatContext(props) {
                       </div>
                     }
                     {
-                      v._type === 'Giveaway' &&
+                      (v._type === 'Giveaway' || v._type === 'GiveawayV2') &&
                       <div
                         className={`red-packet-wrap ${v.isOpen ? 'red-packet-wrap-opened' : ''}`}
                         onClick={() => handleReceive(v)}

@@ -23,7 +23,7 @@ import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
 import { detectMobile, throttle, uniqueChatList } from '../../utils'
 import { setLocal, getLocal, getDaiWithSigner } from '../../utils/index'
-import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2 } from '../../abi/index'
+import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
 import SearchChat from './SearchChat'
@@ -831,9 +831,8 @@ export default function Chat() {
   const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress) => {
     
     const haveAmount = !minAmount ? 0 : ethers.utils.parseEther(minAmount)
-    const haveTokenAddress= !mustHaveTokenAddress ? 0 : mustHaveTokenAddress
-    const checkInAddress = !nftAddress ? 0 : nftAddress
-    const scoreToken = Boolean(+openStatus) ? checkInAddress : 0
+    const haveTokenAddress= !mustHaveTokenAddress ? '0x0000000000000000000000000000000000000000' : mustHaveTokenAddress
+    const scoreToken = Boolean(+openStatus) ? nftAddress : '0x0000000000000000000000000000000000000000'
     const type_ = currentBonusType === intl.get('RandomAmount') ? 2 : 1
     const address = giveAwayAddressV2
     const total = ethers.utils.parseUnits(String(totalAmount), tokenDecimals)
@@ -891,7 +890,7 @@ export default function Chat() {
         showProfile: false,
         showOperate: false,
         avatar: myAvatar,
-        _type: 'Giveaway',
+        _type: 'GiveawayV2',
         isOpen: false,
         wishesText: wishesText,
         user: {
@@ -1203,7 +1202,7 @@ export default function Chat() {
     let collectedRedEnvelope = []
     await Promise.all(
       result.map(async(item) => {
-        if(item?._type ==='Giveaway') {
+        if(item?._type ==='Giveaway' || item?._type === 'GiveawayV2') {
           const id = item?.chatText?.indexOf('---') ? item?.chatText.split('---')[0] : item?.chatText
           var res = await getGiveawaysInfo(id)
           if(+res?.lastCount > 0) {
@@ -1216,11 +1215,11 @@ export default function Chat() {
           }
         }
         let params = {
-            avatar: item?._type ==='Giveaway' ? res?.profile?.avatar : item?.user?.profile?.avatar,
+            avatar: (item?._type ==='Giveaway' || item?._type === 'GiveawayV2') ? res?.profile?.avatar : item?.user?.profile?.avatar,
             hasDelete: false,
             isSuccess: true,
             showProfile: false,
-            position: Boolean(+getLocal('isConnect')) ? (item?._type ==='Giveaway' ? (res?.sender)?.toLowerCase() === (getLocal('account'))?.toLowerCase() : (item?.user?.id).toLowerCase() === (getLocal('account'))?.toLowerCase()) : false,
+            position: Boolean(+getLocal('isConnect')) ? (item?._type ==='Giveaway' || item?._type === 'GiveawayV2' ? res?.sender?.toLowerCase() === getLocal('account')?.toLowerCase() : item?.user?.id.toLowerCase() === getLocal('account')?.toLowerCase()) : false,
             showOperate: false,
             isOpen: false,
             wishesText: item?.chatText?.split('---')[1]
@@ -1325,7 +1324,7 @@ export default function Chat() {
     }
   }, [currentChain])
   const handleAwardBonus = async() => {
-    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddress)
+    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddressV2)
     if(!Boolean(res?.state)) {
       setShowOpenAward(true)
     } else {
@@ -1380,7 +1379,7 @@ export default function Chat() {
   }
   const handleOpenAward = async() => {
     setShowOpenAward(false)
-    const tx = await getDaiWithSigner(giveAwayAddress, RED_PACKET).register(currentAddress)
+    const tx = await getDaiWithSigner(giveAwayAddressV2, RED_PACKET_V2).register(currentAddress)
     setShowMask(true)
     await tx.wait()
     setShowMask(false)
