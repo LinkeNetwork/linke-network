@@ -41,7 +41,7 @@ export default function UseTokenBalance() {
     const tokenValue = from.address == 0 ? currentTokenBalance : from.balance
     const amountToken = ethers.utils.parseEther(tokenValue)
     const allonceNum = ethers.utils.parseEther(allowanceTotal)
-    console.log("allowanceAction", allowanceTotal, amountToken, allonceNum, allonceNum.gte(amountToken))
+    console.log(ethers.utils.formatUnits(allowanceTotal), "allowanceAction")
     return allonceNum.gte(amountToken)
   }
   const getAuthorization = async(from, type) => {

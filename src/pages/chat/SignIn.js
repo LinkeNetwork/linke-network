@@ -275,7 +275,7 @@ export default function SignIn(props) {
     }
   }, [tokenBalance])
   useEffect(() => {
-    if(allowanceTotal && (+allowanceTotal < +quantity)) {
+    if(allowanceTotal && (+allowanceTotal < +quantity) && tokenBalance > +quantity) {
       setBtnText(intl.get('Approve'))
       setIsAuthorization(false)
     }
@@ -392,7 +392,7 @@ export default function SignIn(props) {
             </div>
           }
           {
-            nftImageList.length > 0 && !continueMint && canMint && !showNftList &&
+            nftImageList.length > 0 && !continueMint && canMint && !showNftList && btnText !== 'Approve' && btnText !== 'APPROVE_ING' &&
             <div className='btn btn-primary' onClick={buttonActions}>
               <span className={`btn-default ${canSend ? 'send-allowed' : ''}`}>{ intl.get('CheckIn') }</span>
             </div>
