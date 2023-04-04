@@ -10,6 +10,7 @@ export default function UseTokenBalance() {
   const [poolBalance,setPoolBalance] = useState(0)
   const [approveLoading, setApproveLoading] = useState(false)
   const [hasGetTokenList, setHasGetTokenList] = useState(false)
+  const [secondaryAuthorization, setSecondaryAuthorization] = useState(false)
   const [isApprove, setIsApprove] = useState(true)
   const [tokenList, setTokenList] = useState([])
   const getTokenBalance = async(item, arr, index) => {
@@ -62,6 +63,7 @@ export default function UseTokenBalance() {
       })
       console.log('Approve result ======', res)
       setAuthorization(true)
+      setSecondaryAuthorization(true)
       setApproveLoading(false)
       setIsApprove(res)
     } catch (error) {
@@ -73,5 +75,5 @@ export default function UseTokenBalance() {
     }
 }
 
-  return { poolBalance, tokenList, getTokenBalance, authorization, getAuthorization, approveActions, approveLoading }
+  return { poolBalance, tokenList, getTokenBalance, authorization, getAuthorization, approveActions, approveLoading, secondaryAuthorization }
 }

@@ -123,6 +123,8 @@
   "WelcomeTo": "Welcome to",
   "LinkeIntroduce": "Built for All chains users, Linke Network is a messaging platform for users to simply and instantly message each other, wallet-to-wallet.",
   "Important": "Important",
-  "SpecialReminder": "Never share your confidential information, passwords, private keys or seed phrases with ANYONE! Be extra careful when receiving any external links or online forms. "
+  "SpecialReminder": "Never share your confidential information, passwords, private keys or seed phrases with ANYONE! Be extra careful when receiving any external links or online forms. ",
+  "ApproveTips": "Your authorization balance is less than the input amount, and re-authorization is required",
+  "Tip": "Tip"
 }
 
