@@ -1200,7 +1200,12 @@ export default function Chat() {
     const giveawayInfos = await getReceiveInfo(chatText, giveawayVersion)
     const { haveToken, haveAmount, scoreToken } = giveawayInfos
 
-    if(giveawayInfos?.lastCount === 0) {
+    // 
+    if (!await verifyProfile()) return false
+
+    if(!verifyJoinRoom()) return false
+
+    if(+giveawayInfos?.lastCount === 0) {
       setShowReceiveInfo(true)
       return false
     }
@@ -1215,22 +1220,17 @@ export default function Chat() {
       const isHaveToken = await verifyHaveToken(haveToken, mustHaveAmount)
         if(!isHaveToken) return false
     }
-
-    if(!await verifyProfile()){
-      return false
-    }
-
-    return verifyJoinRoom();
+    return true
   }
   const handleReceive = async(v) => {
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText.split('---')[0] : v?.chatText
-    const receiveReject = await receiveRejectStatus(v?._type, chatText)
-    if(!receiveReject) return
     setCurrentRedEnvelopId(chatText)
     const isReceived = await getReceivedStatus(v?._type, chatText)
     if(isReceived === 1) {
       setShowReceiveInfo(true)
     } else {
+      const receiveReject = await receiveRejectStatus(v?._type, chatText)
+      if(!receiveReject) return
       setShowRedEnvelope(true)
     }
     v.isOpen = true
@@ -1244,7 +1244,6 @@ export default function Chat() {
       console.log(error)
     })
     setClickNumber(clickNumber+1)
-    // if(!hasAccess || isReceived === 1 || giveawayInfos?.lastCount === 0 || +tokenBalance < +mustHaveAmount || (+scoreToken !== 0 && +registerNftInfos < 1)) return
     setCurrentRedEnvelopTransaction(v?.transaction)
   }
   const getGiveawaysInfo = async(currentRedEnvelopId, version) => {

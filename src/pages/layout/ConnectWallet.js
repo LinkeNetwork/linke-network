@@ -1,5 +1,7 @@
 import styled from "styled-components"
 import useGlobal from "../../hooks/useGlobal"
+import intl from "react-intl-universal"
+
 export default function ConnectWallet(props) {
   const { setState } = useGlobal()
   const connectWallet = () => {
