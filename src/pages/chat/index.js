@@ -579,7 +579,7 @@ export default function Chat() {
       handleReadMessage(item.id)
       getJoinRoomAccess(item.id, item._type)
       // history.push(`/chat/${item.id}/${getLocal('network')}`)
-      const state = { 
+      const state = {
         address: item.id,
         network: getLocal('network'),
         currentIndex: 0,
@@ -1142,31 +1142,17 @@ export default function Chat() {
     const hasCreate = res && (new BigNumber(Number(res))).toNumber()
     return hasCreate
   }
-  const getReceiveCondition = async(giveawayInfos) => {
-    const { haveToken, haveAmount, scoreToken, lastCount} = giveawayInfos
-    const tx = await getDaiWithSigner(giveAwayAddressV2, RED_PACKET_V2).balanceOf(getLocal('account'))
-    const registerNftInfos = (new BigNumber(Number(tx))).toNumber()
-    const mustHaveAmount =  Number(ethers.utils.formatEther(haveAmount))
-    const tokenList = [...tokenListInfo]
-    const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == haveToken.toLocaleLowerCase())
-    const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
-    const res = await getBalance(provider, haveToken, getLocal('account'))
-    const balance = await getCurrentBalance(getLocal('account'))
-    const tokenBalance = +haveToken === 0 ? balance : getBalanceNumber(new BigNumber(Number(res)), selectedToken[0]?.decimals)
-    return {
-      tokenBalance, mustHaveAmount, scoreToken, haveToken, lastCount, registerNftInfos, selectedToken
-    }
-  }
-  const getHasProfile = async() => {
+
+  const verifyProfile = async() => {
     const hasCreateProfile = await getProfileStatus(accounts)
     if(!Boolean(hasCreateProfile)) {
       setCanReceiveTips(true)
       return false
-    } 
+    }
     return true
   }
-  
-  const getHasAccess = () => {
+
+  const verifyJoinRoom = () => {
     if(hasAccess !== undefined && !hasAccess) {
       setTipsText(intl.get('JoinRoomText'))
       setShowTips(true)
@@ -1174,31 +1160,67 @@ export default function Chat() {
     }
     return true
   }
+
+  const verifyRegister = async() => {
+    const registerNftInfos = await getDaiWithSigner(nftAddress, RED_PACKET_V2).balanceOf(getLocal('account'))
+    if(+registerNftInfos < 1) {
+      setShowTips(true)
+      const text = `${intl.get('YouMust')} ${intl.get('CheckIn')} ${intl.get('ReceiveRedEnvelope')}`
+      setTipsText(text)
+      return false
+    }
+    return true
+  }
+
+  const verifyHaveToken = async(haveToken, mustHaveAmount) => {
+    let tokenBalance = 0
+    const tokenList = [...tokenListInfo]
+    const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == haveToken.toLocaleLowerCase())
+    if(+haveToken === 0){
+      tokenBalance = await getCurrentBalance(getLocal('account'))
+    }else {
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      const res = await getBalance(provider, haveToken, getLocal('account'))
+      tokenBalance = getBalanceNumber(new BigNumber(Number(res)), selectedToken[0]?.decimals)
+    }
+    if ((tokenBalance < +mustHaveAmount)){
+      setShowTips(true)
+      const text = `${intl.get('YouMust')} ${mustHaveAmount} ${selectedToken[0].symbol} ${intl.get('ReceiveRedEnvelope')}`
+      setTipsText(text)
+      return false
+    }
+    return true
+  }
+
+
+
   const receiveRejectStatus = async(type, chatText) => {
     const giveawayVersion = type === 'GiveawayV2' ? 'giveawayV2S' : 'giveaways'
     setCurrentGiveAwayVersion(type)
     const giveawayInfos = await getReceiveInfo(chatText, giveawayVersion)
-    const receiveCondition = await getReceiveCondition(giveawayInfos)
-    const { tokenBalance, mustHaveAmount, registerNftInfos, scoreToken, selectedToken } = receiveCondition
-    if(+scoreToken !== 0) {
-      if(+registerNftInfos < 1) {
-        setShowTips(true)
-        const text = `${intl.get('YouMust')} ${intl.get('CheckIn')} ${intl.get('ReceiveRedEnvelope')}` 
-        setTipsText(text)
-      }
-      return false
-    }
-    if(+mustHaveAmount && (+tokenBalance < +mustHaveAmount)) {
-      setShowTips(true)
-      const text = `${intl.get('YouMust')} ${mustHaveAmount} ${selectedToken[0].symbol} ${intl.get('ReceiveRedEnvelope')}` 
-      setTipsText(text)
-      return false
-    }
+    const { haveToken, haveAmount, scoreToken } = giveawayInfos
+
     if(giveawayInfos?.lastCount === 0) {
       setShowReceiveInfo(true)
       return false
     }
-    return true
+
+    if(+scoreToken !== 0) {
+        const isRegister = await verifyRegister()
+        if(!isRegister) return false
+    }
+
+    const mustHaveAmount = ethers.utils.formatEther(haveAmount)
+    if(+mustHaveAmount !== 0) {
+      const isHaveToken = await verifyHaveToken(haveToken, mustHaveAmount)
+        if(!isHaveToken) return false
+    }
+
+    if(!await verifyProfile()){
+      return false
+    }
+
+    return verifyJoinRoom();
   }
   const handleReceive = async(v) => {
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText.split('---')[0] : v?.chatText
@@ -1499,7 +1521,7 @@ export default function Chat() {
       setShowMask(false)
     } catch (error) {
       history.push()
-      const state = { 
+      const state = {
         address: currentAddress,
         network: getLocal('network'),
         currentIndex: 0,
