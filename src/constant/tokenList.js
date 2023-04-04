@@ -81,6 +81,14 @@ export const tokenListInfo = [
   },
   {
     "chainId": 513100,
+    "address": "0x68fc76e3934a63c70ed87540714a1e08fc9e72d8",
+    "name": "SWFTC",
+    "symbol": "SWFTC",
+    "decimals": 18,
+    "logoURI": "https://ipfs.linke.network/ipfs/QmQgfxpxrci73jVY3MZNwMVaweQCXqmZ5bDdzJg4bsF4ks",
+  },
+  {
+    "chainId": 513100,
     "address": "0x961C2a34c5F13E6C78FBA29FB57221B394246D5E",
     "name": "HuobiToken",
     "symbol": "HT",

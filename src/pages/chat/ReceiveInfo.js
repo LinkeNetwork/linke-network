@@ -86,6 +86,7 @@ export default function ReceiveInfo(props) {
     return res
   }
   const handleReceiveInfo = async () => {
+    if(!currentGiveAwayVersion) return
     const res = await getReceiveInfo(skipNum)
     setSkipNum(skipNum + 50)
     const receivedInfo = currentGiveAwayVersion === 'GiveawayV2' ?  res?.data?.giveawayV2S[0] : res?.data?.giveaways[0]

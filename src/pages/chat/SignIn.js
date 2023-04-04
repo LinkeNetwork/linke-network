@@ -18,7 +18,7 @@ const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
   const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn, hasEndStack, canUnstake, stakedDays, allowanceTotal } = useGlobal()
-  const { getAuthorization, approveActions, authorization } = UseTokenBalance()
+  const { getAuthorization, approveActions, authorization, secondaryAuthorization } = UseTokenBalance()
   const { handleMint, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin, handleAutoCheckIn, showNftList, currentAddress } = props
   const [quantity, setQuantity] = useState('')
   const [isAuthorization, setIsAuthorization] = useState(false)
@@ -32,6 +32,7 @@ export default function SignIn(props) {
   const [selectToken, setSelectToken] = useState()
   const [tokenLogo, setTokenLogo] = useState('')
   const [canSend, setCanSend] = useState(false)
+  const [showTips, setShowTips] = useState(false)
   const [btnText, setBtnText] = useState(intl.get('Mint'))
   const [text, setText] = useState(intl.get('Quantity'))
   const [score, setScore] = useState()
@@ -43,17 +44,18 @@ export default function SignIn(props) {
   const [isCancel, setIsCancel] = useState(false)
   const [endStack, setEndStack] = useState(false)
   const [nftInfo, setNftInfo] = useState([])
+  const [needApprove, setNeedApprove] = useState(false)
   const [selectNftIndex, setSelectNftIndex] = useState()
   const buttonActions = (e) => {
     switch (e.target.innerText) {
       case intl.get('Mint'):
-        handleContinueMint(quantity)
+        handleBtnMint()
         break;
       case intl.get('Approve'):
         approveActions(selectedTokenInfo, 'signIn')
         break;
       case intl.get('CheckIn'):
-        handleCheckIn(selectToken, tokenId, quantity)
+        handleBtnCheckIn()
         break;
       case intl.get('EndStake'):
         handleEndStake(isOpenAutoCheckIn)
@@ -65,6 +67,21 @@ export default function SignIn(props) {
         handleAutoCheckIn()
       default:
         return null;
+    }
+  }
+  
+  const handleBtnMint = () => {
+    if(needApprove) {
+      setShowTips(true)
+    } else {
+      handleContinueMint(quantity)
+    }
+  }
+  const handleBtnCheckIn = () => {
+    if(needApprove) {
+      setShowTips(true)
+    } else {
+      handleCheckIn(selectToken, tokenId, quantity)
     }
   }
   const getNftInfo = async() => {
@@ -207,6 +224,11 @@ export default function SignIn(props) {
     const str = `${intl.get('CheckInShareToTwitter')}https://linke.network/chat/${currentAddress}/${getLocal('network')} \n #Linke #ETHF #Airdrop`
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(str)}`)
   }
+  const handleApprove = () => {
+    setBtnText(intl.get('Approve'))
+    setShowTips(false)
+    setIsAuthorization(false)
+  }
   useEffect(() => {
     if(!stakedNum && score === undefined) return
     const amount = new BigNumber(stakedNum)
@@ -239,7 +261,7 @@ export default function SignIn(props) {
     getSelectedToken()
   }, [])
   useEffect(() => {
-    if (authorization) {
+    if (authorization || secondaryAuthorization) {
       if(+tokenBalance > 0) {
         getSelectedToken()
         setCanSend(true)
@@ -248,7 +270,7 @@ export default function SignIn(props) {
       setBtnText(intl.get('Mint'))
     }
     setIsAuthorization(authorization)
-  }, [authorization])
+  }, [authorization, secondaryAuthorization])
   useEffect(() => {
     if(nftImageList.length > 0) {
       setCanSend(true)
@@ -276,12 +298,19 @@ export default function SignIn(props) {
   }, [tokenBalance])
   useEffect(() => {
     if(allowanceTotal && (+allowanceTotal < +quantity) && tokenBalance > +quantity) {
-      setBtnText(intl.get('Approve'))
-      setIsAuthorization(false)
+      setNeedApprove(true)
+    } else {
+      setNeedApprove(false)
     }
   }, [allowanceTotal, quantity])
   return (
     <SignInWrapper>
+      <Modal title={intl.get('Tip')} visible={showTips} onClose={() => { setShowTips(false) }}>
+        <div className="approve-tips">{intl.get('ApproveTips')}</div>
+        <div className="approve-btn-wrapper">
+          <div className="btn btn-primary" onClick={handleApprove}><span className="btn-default send-allowed">{intl.get('Confirm')}</span></div>
+        </div>
+      </Modal>
       {
         (isCancel || +stakedNum > 0) &&
         <div>

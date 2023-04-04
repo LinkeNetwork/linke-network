@@ -131,6 +131,10 @@
   "YouMust": "You must have",
   "ReceiveRedEnvelope": "to receive the red envelope",
   "TipsText": "Tip",
-  "Have": "Have"
+  "Have": "Have",
+  "ApproveTips": "Your authorization balance is less than the input amount, and re-authorization is required",
+  "Tip": "Tip",
+  "JoinRoomText": "Please Join the group first",
+  "ReceivedText": "You've already received it"
 }
 
