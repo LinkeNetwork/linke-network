@@ -63,13 +63,13 @@ export default function SignIn(props) {
       case intl.get('CancelCheckIN'):
         handleCancelCheckin()
         break;
-      case intl.get('AutoCheckIn'): 
+      case intl.get('AutoCheckIn'):
         handleAutoCheckIn()
       default:
         return null;
     }
   }
-  
+
   const handleBtnMint = () => {
     if(needApprove) {
       setShowTips(true)
@@ -156,7 +156,7 @@ export default function SignIn(props) {
     const isOpenAutoCheckIn = new BigNumber(Number(res)).toNumber()
     setIsOpenAutoCheckIn(Boolean(isOpenAutoCheckIn))
     console.log(isOpenAutoCheckIn, '====getAutomatic')
-    const tx = await getDaiWithSigner(nftAddress.toLocaleLowerCase(), SIGN_IN_ABI).token()
+    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).token()
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == tx.toLocaleLowerCase())
     const { symbol, logoURI, address } = selectedToken.length && selectedToken[0]
@@ -178,7 +178,7 @@ export default function SignIn(props) {
       setIsAuthorization(true)
       return
     }
-    
+
     const authorization = await getAuthorization(selectedToken[0], 'signIn')
     setIsAuthorization(authorization)
     if (!authorization) {
@@ -278,7 +278,7 @@ export default function SignIn(props) {
   }, [nftImageList])
   useEffect(() => {
     getStakedInfo()
-  }, [nftAddress]) 
+  }, [nftAddress])
   useEffect(() => {
     if (approveLoading) {
       setCanSend(false)
@@ -337,7 +337,7 @@ export default function SignIn(props) {
             ((cancelTime > 0 && !canUnstake) || !isOpenAutoCheckIn) && <CountDown timestamp={unstackTime}/>
           }
           {
-            
+
             <div className="end-stake-btn">
               {
                 !isOpenAutoCheckIn &&
