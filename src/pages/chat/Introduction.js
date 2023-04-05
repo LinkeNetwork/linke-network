@@ -46,6 +46,7 @@ const IntroductionWrapper = styled.div`
   overflow-y: auto;
   height: 100%;
   padding: 5.5rem 1.5rem 0;
+  justify-content: center;
 .no-chat-image {
   width: 120px;
   margin-bottom: 20px;

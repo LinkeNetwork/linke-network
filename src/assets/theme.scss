@@ -314,13 +314,17 @@ img, svg {
   }
 }
 @media (max-width: 991.98px){
-.conversation-tips {
-  visibility: hidden;
-  &-show {
-    visibility: visible;
-    padding: 1.5rem
+.profile-container {
+  div.conversation-tips {
+    visibility: hidden;
+    &-show {
+      margin-left: 0;
+      visibility: visible;
+      padding: 1.5rem
+    }
   }
 }
+
 .chat-ui {
   .tab-content {
     display: none;
