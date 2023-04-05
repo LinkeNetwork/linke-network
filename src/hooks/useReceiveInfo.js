@@ -1,7 +1,8 @@
 import useGlobal from "./useGlobal"
-
+import { getLocal } from "../utils"
+import { createClient } from 'urql'
 export default function useReceiveInfo() {
-  const { clientInfo } = useGlobal()
+  const { networks } = useGlobal()
   const getReceiveInfo = async(currentRedEnvelopId, giveawayVersion) => {
     const tokensQuery = `
     {
@@ -34,7 +35,12 @@ export default function useReceiveInfo() {
       }
     }
     `
-    const res = await clientInfo?.query(tokensQuery).toPromise()
+    const item = networks.filter(i=> i.symbol === getLocal('network'))[0]
+    if(!item) return
+    const client = createClient({
+      url: item?.APIURL
+    })
+    const res = await client.query(tokensQuery).toPromise()
     const giveawayInfos = giveawayVersion === 'giveawayV2S' ? (res?.data?.giveawayV2S[0]) : (res?.data?.giveaways[0])
     return giveawayInfos
   }
