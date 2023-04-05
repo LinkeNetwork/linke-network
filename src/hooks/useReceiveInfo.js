@@ -13,9 +13,9 @@ export default function useReceiveInfo() {
         amount,
         content,
         count,
-        haveToken,
-        haveAmount,
-        scoreToken,
+        ${giveawayVersion === "giveaways" ? "" : "haveToken,"}
+        ${giveawayVersion === "giveaways" ? "" : "haveAmount,"}
+        ${giveawayVersion === "giveaways" ? "" : "scoreToken,"}
         profile {
           name,
           avatar

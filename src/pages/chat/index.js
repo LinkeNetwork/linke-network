@@ -1198,9 +1198,7 @@ export default function Chat() {
     const giveawayVersion = type === 'GiveawayV2' ? 'giveawayV2S' : 'giveaways'
     setCurrentGiveAwayVersion(type)
     const giveawayInfos = await getReceiveInfo(chatText, giveawayVersion)
-    const { haveToken, haveAmount, scoreToken } = giveawayInfos
 
-    // 
     if (!await verifyProfile()) return false
 
     if(!verifyJoinRoom()) return false
@@ -1210,14 +1208,14 @@ export default function Chat() {
       return false
     }
 
-    if(+scoreToken !== 0) {
+    if(+giveawayInfos?.scoreToken !== 0) {
         const isRegister = await verifyRegister()
         if(!isRegister) return false
     }
 
-    const mustHaveAmount = ethers.utils.formatEther(haveAmount)
+    const mustHaveAmount = ethers.utils.formatEther(giveawayInfos?.haveAmount)
     if(+mustHaveAmount !== 0) {
-      const isHaveToken = await verifyHaveToken(haveToken, mustHaveAmount)
+      const isHaveToken = await verifyHaveToken(giveawayInfos?.haveToken, mustHaveAmount)
         if(!isHaveToken) return false
     }
     return true
