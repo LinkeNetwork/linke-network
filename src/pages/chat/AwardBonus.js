@@ -406,6 +406,7 @@ background: #fff;
     // flex: 1;
     display: flex;
     text-align: left;
+    width: 100%;
   }
 }
 .bonus-type-wrapper {

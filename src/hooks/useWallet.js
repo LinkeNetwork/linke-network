@@ -192,6 +192,12 @@ export default function useWallet() {
         handleChainChanged(chainId)
       })
       window.ethereum.on('accountsChanged', (account) => {
+        history.push({
+          pathname: `/chat`,
+          state: {
+            currentIndex: 0
+          }
+        })
         console.log('accountsChanged====>>>')
         updateAccounts(account[0])
         setLocal('account', account[0])

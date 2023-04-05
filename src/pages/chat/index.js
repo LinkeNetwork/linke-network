@@ -1607,6 +1607,8 @@ export default function Chat() {
   }, [hasCreateRoom])
   useEffect(() => {
     if(accounts) {
+      setCurrentAddress('')
+      setShowChat(false)
       setMyAddress(accounts)
     }
     // console.log('setRoomList====>>1')
