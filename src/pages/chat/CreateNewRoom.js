@@ -86,7 +86,6 @@ export default function CreateNewRoom(props) {
     }
   }
   const handleCreate = async () => {
-    console.log(currentGroup, currentGroup.value === 4, 'CurrentGroup==')
     if(!currentGroup) {
       setShowTypeError(true)
     }
