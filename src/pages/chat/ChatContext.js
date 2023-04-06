@@ -16,7 +16,7 @@ import { tokenListInfo } from '../../constant/tokenList'
 import { ethers } from "ethers"
 export default function ChatContext(props) {
   var numeral = require('numeral')
-  const { hasMore, chatList, currentAddress, shareInfo, loadingData, currentTabIndex, handleDecryptedMessage, handleReceive, currentGiveAwayVersion} = props
+  const { hasMore, chatList, currentAddress, shareInfo, loadingData, currentTabIndex, handleDecryptedMessage, handleReceive } = props
   const { setState, clientInfo, tokenAddress } = useGlobal()
   const [showOperate, setShowOperate] = useState(false)
   const [selectText, setSelectText] = useState('')
@@ -47,7 +47,7 @@ export default function ChatContext(props) {
   const shareToTwitter = async(e, v) => {
     e.stopPropagation()
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText?.split('---')[0] : v?.chatText
-    const res = await getGiveawaysInfo(chatText)
+    const res = await getGiveawaysInfo(chatText, v?._type)
     const list = [...tokenListInfo]
     var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
     const amount = ethers.utils.formatUnits(res?.amount, newList?.decimals)
@@ -67,8 +67,8 @@ export default function ChatContext(props) {
     const hasCreate = res && (new BigNumber(Number(res))).toNumber()
     return hasCreate
   }
-  const getGiveawaysInfo = async(currentRedEnvelopId) => {
-    const giveawayVersion = currentGiveAwayVersion === 'GiveawayV2' ? 'giveawayV2S' : 'giveaways'
+  const getGiveawaysInfo = async(currentRedEnvelopId, type) => {
+    const giveawayVersion = type === 'GiveawayV2' ? 'giveawayV2S' : 'giveaways'
     const tokensQuery = `
     {
       ${giveawayVersion}(where: {id: "`+  currentRedEnvelopId + `"}){
@@ -78,12 +78,12 @@ export default function ChatContext(props) {
     }
     `
     const res = await clientInfo?.query(tokensQuery).toPromise()
-    const giveaways = currentGiveAwayVersion === 'GiveawayV2' ? res?.data?.giveawayV2S[0] : res?.data?.giveaways[0]
+    const giveaways = type === 'GiveawayV2' ? res?.data?.giveawayV2S[0] : res?.data?.giveaways[0]
     return giveaways
   }
   const setTwitterInfo = async(v) => {
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText?.split('---')[0] : v?.chatText
-    const res = await getGiveawaysInfo(chatText)
+    const res = await getGiveawaysInfo(chatText, v?._type)
     const list = [...tokenListInfo]
     var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
     const amount = ethers.utils.formatUnits(res?.amount, newList?.decimals)
