@@ -147,7 +147,7 @@ export default function useWallet() {
       setNetwork(currNetwork)
       setState({
         currentChain: currNetwork,
-        currentNetworkInfo:item,
+        currentNetworkInfo: item,
         clientInfo: client,
         signInClientInfo: signInClient
       })
@@ -224,5 +224,5 @@ export default function useWallet() {
   useLayoutEffect(() => {
     initWallet()
   }, [getLocal('account')])
-  return { disConnect, chainId, balance ,network, changeNetwork, connectOkexchain, getCurrentBalance}
+  return { disConnect, chainId, balance ,network, changeNetwork, connectOkexchain, getCurrentBalance }
 }

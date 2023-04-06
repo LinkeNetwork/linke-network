@@ -168,7 +168,7 @@ export default function SignIn(props) {
       const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
       const res = await getBalance(provider, selectedToken[0].address, getLocal('account'))
       const tokenBalance = getBalanceNumber(new BigNumber(Number(res)), selectedToken[0]?.decimals)
-      setTokenBalance(Number(tokenBalance).toFixed(4))
+      setTokenBalance(Number(tokenBalance).toFixed(8))
       selectedToken[0].balance = String(tokenBalance)
     }
     setSelectedTokenInfo(selectedToken[0])

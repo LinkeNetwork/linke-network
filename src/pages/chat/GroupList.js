@@ -1,5 +1,5 @@
 import { detectMobile, getLocal, formatAddress, setLocal } from "../../utils"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Fragment } from "react"
 import Modal from '../../component/Modal'
 import { useHistory } from "react-router-dom"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -33,6 +33,7 @@ export default function GroupList(props) {
   const path = history.location.pathname
 
   const getCurrentGroupInfo = async (currentAddress) => {
+    if (!currentAddress) return
     const tokensQuery = `
       query{
         groupInfo(id: "`+ currentAddress?.toLowerCase() + `"){
@@ -92,8 +93,7 @@ export default function GroupList(props) {
           account[roomType] = groupList?.length ? [...groupList] : []
         }
         localForage.setItem('chatListInfo', res)
-        // console.log('setGroupList===>2')
-        if(!searchGrouName) {
+        if (!searchGrouName) {
           setGroupList(groupList)
           setState({
             groupLists: groupList
@@ -123,29 +123,30 @@ export default function GroupList(props) {
       }
     }
     `
-    // debugger
     const res = await clientInfo?.query(tokensQuery).toPromise()
     var groupInfos = res?.data?.groupUser?.groupInfos || []
-    const roomAddress = path.split('/chat/')[1]?.toLowerCase()?.split('/')[0]
-    let fetchData = await getCurrentGroupInfo(roomAddress)
-    if (roomAddress) {
-      const index = groupInfos?.findIndex((item) => item.id === roomAddress)
+    let fetchData = await getCurrentGroupInfo(currentAddress)
+    if (currentAddress) {
+      const index = groupInfos?.findIndex((item) => item.id === currentAddress)
       if (index === -1 && !hasQuitRoom) {
         groupInfos.push({
-          id: roomAddress,
+          id: currentAddress,
           name: fetchData?.name,
           chatCount: fetchData?.chatCount,
           _type: fetchData?._type
         })
       }
     }
-    // console.log('setGroupList===>3')
+    hiddenMask()
+    groupInfos.forEach((group) => {
+      group.hasDelete = false
+    })
     setGroupList([...groupInfos] || [])
     setState({
       groupLists: [...groupInfos]
     })
-    setChatListInfo(groupInfos, 1)
-    hiddenMask()
+    setCacheGroupInfo(groupInfos, 1)
+    return groupInfos
   }
   const handleTouchStart = (e) => {
     e.stopPropagation();
@@ -184,7 +185,12 @@ export default function GroupList(props) {
     return false
   }
   const confirmDelete = () => {
-    const currentGroups = groupList.filter(item => item.id.toLowerCase() !== deletePath.toLowerCase()) 
+    const currentGroups = groupList.map(item => {
+      if (item.id.toLowerCase() === deletePath.toLowerCase()) {
+        item.hasDelete = true
+      }
+      return item
+    })
     setGroupList(currentGroups)
     setCacheGroup(currentGroups)
     setMoveX(0)
@@ -278,22 +284,23 @@ export default function GroupList(props) {
         privateGroupList.push(list)
       }
     }
-    // console.log('setGroupList===>4')
+    // console.log('setGroupList===>5')
     setGroupList(privateGroupList)
-    setChatListInfo(privateGroupList, 2)
+    setCacheGroupInfo(privateGroupList, 2)
     setState({
       groupLists: privateGroupList
     })
     hiddenMask()
+    return privateGroupList
   }
-  const setChatListInfo = (groupInfos, type) => {
+
+  const setCacheGroupInfo = (groupInfos, type) => {
     const currNetwork = getLocal('network')
     if (!currNetwork) return
     localForage.getItem('chatListInfo').then(res => {
       const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
       let chatListInfo = res ? res : {}
       if (!account && currNetwork) {
-        // console.log('publicRooms=====1')
         const list = Object.keys(chatListInfo)
         chatListInfo[currNetwork] = chatListInfo[currNetwork] && list.length ? chatListInfo[currNetwork] : {}
         chatListInfo[currNetwork][getLocal('account')] = {
@@ -302,11 +309,11 @@ export default function GroupList(props) {
         }
       }
       if (type === 1) {
-        // console.log('publicRooms=====2')
-        chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...groupInfos]
+        const cachePublicGroup = chatListInfo[currNetwork][getLocal('account')]['publicRooms']
+        const result = formatGroup(groupInfos, cachePublicGroup)
+        chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...result]
         localForage.setItem('chatListInfo', chatListInfo)
       } else {
-        debugger
         chatListInfo[currNetwork][getLocal('account')]['privateRooms'] = [...groupInfos]
         localForage.setItem('chatListInfo', chatListInfo)
       }
@@ -314,51 +321,65 @@ export default function GroupList(props) {
       console.log(error, '=====error')
     })
   }
+  const formatGroup = (publicGroup, cachePublicGroup) => {
+    const result = publicGroup.map(group => {
+      const cachedGroup = cachePublicGroup.find(cached => cached.id === group.id)
+      if (cachedGroup) {
+        return {...group, hasDelete: cachedGroup.hasDelete}
+      }
+      return group
+    })
+    return result
+  }
+  const processingGroup = async () => {
+    const currNetwork = currentNetworkInfo?.name || getLocal('network')
+    let publicGroup = []
+    let privateGroup = []
+    if (currentTabIndex === 0) {
+      publicGroup = await getGroupList()
+    } else {
+      privateGroup = await getPrivateGroupList()
+    }
+    localForage.getItem('chatListInfo').then(res => {
+      const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
+      const cachePublicGroup = account ? account['publicRooms'] : []
+      const cachePrivateGroup = account ? account['privateRooms'] : []
+      if (currentTabIndex === 0) {
+        const result = formatGroup(publicGroup, cachePublicGroup)
+        // console.log(result, publicGroup, 'setGroupList===>6')
+        setGroupList(result)
+        setState({
+          groupLists: result
+        })
+      }
+      if (currentTabIndex === 1) {
+        if (!cachePrivateGroup?.length) {
+          getPrivateGroupList()
+        } else {
+          const list = initPrivateMember()
+          const groupList = [...cachePrivateGroup]
+          const index = groupList?.findIndex((item) => item?.id?.toLowerCase() === list?.id?.toLowerCase())
+          if (Object.keys(list).length !== 0 && index === -1) {
+            groupList.push(list)
+          }
+          res[currNetwork][getLocal('account')]['privateRooms'] = [...groupList]
+          localForage.setItem('chatListInfo', res)
+          const currentChatInfo = groupList.filter((item) => item?.id?.toLowerCase() === currentAddress?.toLowerCase())
+          // console.log('setGroupList===>7')
+          setGroupList(groupList)
+          setState({
+            groupLists: groupList,
+            currentChatInfo: currentChatInfo[0]
+          })
+        }
+      }
+    }).catch(error => {
+      console.log(error, 'error===')
+    })
+  }
   useEffect(() => {
     if (accounts && chainId) {
-      // debugger
-      const currNetwork = currentNetworkInfo?.name || getLocal('network')
-      localForage.getItem('chatListInfo').then(res => {
-        // debugger
-        const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
-        const publicRooms = account ? account['publicRooms'] : []
-        const privateRooms = account ? account['privateRooms'] : []
-        if (currentTabIndex === 0) {
-          if (!publicRooms?.length || hasCreateRoom || hasQuitRoom) {
-            getGroupList()
-          } else {
-            const groupList = [...publicRooms]
-            // console.log('setGroupList===>5')
-            setGroupList(groupList)
-            setState({
-              groupLists: groupList
-            })
-          }
-        }
-        if (currentTabIndex === 1) {
-          if (!privateRooms?.length) {
-            getPrivateGroupList()
-          } else {
-            const list = initPrivateMember()
-            const groupList = [...privateRooms]
-            const index = groupList?.findIndex((item) => item?.id?.toLowerCase() === list?.id?.toLowerCase())
-            if (Object.keys(list).length !== 0 && index === -1) {
-              groupList.push(list)
-            }
-            res[currNetwork][getLocal('account')]['privateRooms'] = [...groupList]
-            localForage.setItem('chatListInfo', res)
-            const currentChatInfo = groupList.filter((item) => item?.id?.toLowerCase() === currentAddress?.toLowerCase())
-            // console.log('setGroupList===>6')
-            setGroupList(groupList)
-            setState({
-              groupLists: groupList,
-              currentChatInfo: currentChatInfo[0]
-            })
-          }
-        }
-      }).catch(error => {
-        console.log(error, 'error===')
-      })
+      processingGroup()
     }
   }, [accounts, chainId, currentTabIndex, hasCreateRoom, transactionRoomHash])
   useEffect(() => {
@@ -397,68 +418,73 @@ export default function GroupList(props) {
               moveStyle.WebkitTransition = 'transform 0.3s ease'
             }
             return (
-              <div
-                className={`chat-list ${item?.id?.toLowerCase() === currentAddress?.toLowerCase() ? 'active' : ''}`}
-                onClick={(e) => { showCurrentChatList(e, item, index) }}
-                onTouchStart={handleTouchStart}
-                onTouchMove={(e) => handleTouchMove(e, index)}
-                onTouchEnd={handleTouchEnd}
-                style={moveStyle}
-                key={item.id}
-              >
-
-                <div className='user-image rounded-circle me-2'>
-                  {
-                    item && item.id && !item?.avatar &&
-                    <Jazzicon address={item.id} className="chat-image" />
-                  }
-                  {
-                    item?.avatar &&
-                    <Image src={item.avatar} size={35} />
-                  }
-                </div>
-                <div className='full-address'>{item.roomName}</div>
-                <div className='text-left'>
-                  <div className='user-address fw-medium fs-6'>{item.name}</div>
-                  <div className='user-status fs-80x'>{formatAddress(item.id, 6, 6)}</div>
-                </div>
+              <Fragment key={item.id}>
                 {
-                  !detectMobile() &&
-                  <div className={`delete-btn-wrapper ${!detectMobile() ? 'delete-btn-web' : ''}`}>
-                    <div className='iconfont icon-shanchu' onClick={(e) => { deleteChatRoom(e, item.id) }}></div>
-                    {
-                      !copied &&
-                      <CopyToClipboard text={`https://linke.network/chat/${item.id}/${getLocal('network')}`}>
-                        <div className='iconfont icon-fuzhiwenjian' onClick={onCopy}></div>
-                      </CopyToClipboard>
-                    }
-                    {
-                      copied && <div className="copied-text">{intl.get('Copied')}</div>
-                    }
+                  !item.hasDelete &&
+                  <div
+                    className={`chat-list ${item?.id?.toLowerCase() === currentAddress?.toLowerCase() ? 'active' : ''}`}
+                    onClick={(e) => { showCurrentChatList(e, item, index) }}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={(e) => handleTouchMove(e, index)}
+                    onTouchEnd={handleTouchEnd}
+                    style={moveStyle}
+                    key={item.id}
+                  >
 
-                  </div>
-                }
-                {
-                  detectMobile() &&
-                  <div className='operate-btn'>
-                    <CopyToClipboard text={`https://linke.network/chat/${item.id}/${getLocal('network')}`}>
-                      <div className='copy-btn' onClick={(e) => { onCopy(e) }}>{copyText}</div>
-                    </CopyToClipboard>
-                    <div onClick={(e) => { deleteChatRoom(e, item.id) }}>
-                      <div className='del-btn'>delete</div>
+                    <div className='user-image rounded-circle me-2'>
+                      {
+                        item && item.id && !item?.avatar &&
+                        <Jazzicon address={item.id} className="chat-image" />
+                      }
+                      {
+                        item?.avatar &&
+                        <Image src={item.avatar} size={35} />
+                      }
                     </div>
-                    {/* {
-                      copied && <div className='message-tips message-tips-success'>{item.id}</div>
-                    } */}
+                    <div className='full-address'>{item.roomName}</div>
+                    <div className='text-left'>
+                      <div className='user-address fw-medium fs-6'>{item.name}</div>
+                      <div className='user-status fs-80x'>{formatAddress(item.id, 6, 6)}</div>
+                    </div>
+                    {
+                      !detectMobile() &&
+                      <div className={`delete-btn-wrapper ${!detectMobile() ? 'delete-btn-web' : ''}`}>
+                        <div className='iconfont icon-shanchu' onClick={(e) => { deleteChatRoom(e, item.id) }}></div>
+                        {
+                          !copied &&
+                          <CopyToClipboard text={`${item.id}`}>
+                            <div className='iconfont icon-fuzhiwenjian' onClick={onCopy}></div>
+                          </CopyToClipboard>
+                        }
+                        {
+                          copied && <div className="copied-text">{intl.get('Copied')}</div>
+                        }
+
+                      </div>
+                    }
+                    {
+                      detectMobile() &&
+                      <div className='operate-btn'>
+                        <CopyToClipboard text={`${item.id}`}>
+                          <div className='copy-btn' onClick={(e) => { onCopy(e) }}>{copyText}</div>
+                        </CopyToClipboard>
+                        <div onClick={(e) => { deleteChatRoom(e, item.id) }}>
+                          <div className='del-btn'>delete</div>
+                        </div>
+                        {/* {
+                          copied && <div className='message-tips message-tips-success'>{item.id}</div>
+                        } */}
+                      </div>
+
+                    }
+                    {
+                      item.newChatCount > 0 && item.id !== currentAddress &&
+                      <div className={`unread-num ${!detectMobile() ? 'unread-num-web' : 'unread-num-client'}`}>{item.newChatCount}</div>
+                    }
+
                   </div>
-
                 }
-                {
-                  item.newChatCount > 0 && item.id !== currentAddress &&
-                  <div className={`unread-num ${!detectMobile() ? 'unread-num-web' : 'unread-num-client'}`}>{item.newChatCount}</div>
-                }
-
-              </div>
+              </Fragment>
             )
           })
         }

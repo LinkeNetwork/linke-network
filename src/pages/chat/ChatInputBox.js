@@ -9,7 +9,7 @@ import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
 import useCheckIn from '../../hooks/useCheckIn'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, handleOpenSign, hasOpenedSignIn } = props
+  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, handleOpenSign, hasOpenedSignIn, currentTabIndex } = props
   const { setState, accounts, signInAddress, groupType, currentAddress } = useGlobal()
   const { getCheckInToken } = useCheckIn()
   const [clientHeight, setClientHeight] = useState()
@@ -47,6 +47,7 @@ export default function ChatInputBox(props) {
     setTextCounter(counter)
   }
   const isOpenSignIn = async() => {
+    if(currentTabIndex === 1) return
     const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
     setState({
       nftAddress: tx.nft
@@ -256,6 +257,7 @@ export default function ChatInputBox(props) {
     handleAwardBonus()
   }
   const getSelectedToken = async() => {
+    if(currentTabIndex === 1) return
     const token =  await getCheckInToken()
     setState({
       tokenAddress: token
