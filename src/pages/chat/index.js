@@ -1371,7 +1371,6 @@ export default function Chat() {
   const getNftAddress = async() => {
     const currentAddress = ROOM_ADDRESS || GROUP_ADDRESS
     const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
-    console.log(tx, '====>>>2')
     globalNftAddress = tx.nft
   }
   useEffect(() => {

@@ -79,7 +79,7 @@ export default function AwardBonus(props) {
       if(item.symbol === 'ETHF') return
       const authorization = await getAuthorization(item, 'envelope')
       if(!authorization) {
-        setBtnText('Approve')
+        setBtnText(intl.get('Approve'))
       }
     } else {
       setShowTokenList(false)
@@ -406,7 +406,7 @@ background: #fff;
     // flex: 1;
     display: flex;
     text-align: left;
-    width: 100%;
+    width: 62%;
   }
 }
 .bonus-type-wrapper {
