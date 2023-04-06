@@ -6,11 +6,9 @@ import BigNumber from 'bignumber.js'
 import Loading from '../../component/Loading'
 import ListGroup from './GroupList'
 import { createClient } from 'urql'
-import Web3 from 'web3'
 import ChatInputBox from './ChatInputBox'
 import Introduction from './Introduction'
 import ChatTab from './ChatTab'
-import Trade from '../trade/index'
 import { tokenListInfo } from '../../constant/tokenList'
 import ShareInfo from './ShareInfo'
 import RedEnvelopeCover from './RedEnvelopeCover'
@@ -25,7 +23,7 @@ import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
 import { detectMobile, throttle, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner } from '../../utils'
-import { PROFILE_ABI, PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
+import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
 import SearchChat from './SearchChat'
@@ -38,12 +36,15 @@ import { useHistory, useLocation } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
 import SignIn from './SignIn'
 import useWallet from '../../hooks/useWallet'
+import useProfile from '../../hooks/useProfile'
 const PAGE_PATH = window.location.pathname.split('/chat/')[1]
 const GROUP_ADDRESS = PAGE_PATH?.split('/')[0]
 const NETWORK = PAGE_PATH?.split('/')[1] || getLocal('network')
+let globalNftAddress = null
 export default function Chat() {
   const { setDataBase } = useDataBase()
-  const { balance, getCurrentBalance } = useWallet()
+  const { getProfileStatus } = useProfile()
+  const { getCurrentBalance, currentNetworkInfo } = useWallet()
   const [collectedRedEnvelope, setCollectedRedEnvelope] = useState([])
   const history = useHistory()
   const redEnvelopId = history.location.search.split('?id=')[1]
@@ -54,7 +55,6 @@ export default function Chat() {
   const { getReceiveInfo } = useReceiveInfo()
   const { getGroupMember } = useGroupMember()
   const [showNftList, setShowNftList] = useState(false)
-  const [showReceiveTips, setShowReceiveTips] = useState(false)
   const [showHandlingFee, setShowHandlingFee] = useState(false)
   const [showGroupList, setShowGroupList] = useState(true)
   const skip = 0
@@ -64,10 +64,9 @@ export default function Chat() {
   const messagesEnd = useRef(null)
   const [showOpenSignIn, setShowOpenSignIn] = useState(false)
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
-  const [showJoinModal, setShowJoinModal] = useState(false)
   const { getclientInfo } = useUnConnect()
   const [showTips, setShowTips] = useState()
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, currentNetworkInfo, clientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, nftAddress, signInAddress, giveAwayAddressV2} = useGlobal()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, clientInfo, currentChain, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, signInAddress, giveAwayAddressV2} = useGlobal()
   const [currentAddress, setCurrentAddress] = useState()
   const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
   const currentAddressRef = useRef(null)
@@ -832,7 +831,7 @@ export default function Chat() {
   const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress) => {
     const haveAmount = !minAmount ? 0 : ethers.utils.parseEther(minAmount)
     const haveTokenAddress= !mustHaveTokenAddress ? '0x0000000000000000000000000000000000000000' : mustHaveTokenAddress
-    const scoreToken = Boolean(+openStatus) ? nftAddress : '0x0000000000000000000000000000000000000000'
+    const scoreToken = Boolean(+openStatus) ? globalNftAddress : '0x0000000000000000000000000000000000000000'
     const type_ = currentBonusType === intl.get('RandomAmount') ? 2 : 1
     const address = giveAwayAddressV2
     const total = ethers.utils.parseUnits(String(totalAmount), tokenDecimals)
@@ -1137,11 +1136,6 @@ export default function Chat() {
     }
     // insertData(currentList)
   }
-  const getProfileStatus = async(account) => {
-    const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
-    const hasCreate = res && (new BigNumber(Number(res))).toNumber()
-    return hasCreate
-  }
 
   const verifyProfile = async() => {
     const hasCreateProfile = await getProfileStatus(accounts)
@@ -1162,14 +1156,16 @@ export default function Chat() {
   }
 
   const verifyRegister = async() => {
-    const registerNftInfos = await getDaiWithSigner(nftAddress, RED_PACKET_V2).balanceOf(getLocal('account'))
-    if(+registerNftInfos < 1) {
-      setShowTips(true)
-      const text = `${intl.get('YouMust')} ${intl.get('CheckIn')} ${intl.get('ReceiveRedEnvelope')}`
-      setTipsText(text)
-      return false
+    if(globalNftAddress) {
+      const registerNftInfos = await getDaiWithSigner(globalNftAddress, RED_PACKET_V2).balanceOf(getLocal('account'))
+      if(+registerNftInfos < 1) {
+        setShowTips(true)
+        const text = `${intl.get('YouMust')} ${intl.get('CheckIn')} ${intl.get('ReceiveRedEnvelope')}`
+        setTipsText(text)
+        return false
+      }
+      return true
     }
-    return true
   }
 
   const verifyHaveToken = async(haveToken, mustHaveAmount) => {
@@ -1351,7 +1347,7 @@ export default function Chat() {
   }
   const handleConfirmAutoCheckIn = async() => {
     const fee = ethers.utils.parseEther('1')
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).automatic({value: fee})
+    const tx = await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).automatic({value: fee})
     setShowHandlingFee(false)
     setShowSignIn(false)
     setShowMask(true)
@@ -1371,6 +1367,12 @@ export default function Chat() {
         }
       })
     }
+  }
+  const getNftAddress = async() => {
+    const currentAddress = ROOM_ADDRESS || GROUP_ADDRESS
+    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
+    console.log(tx, '====>>>2')
+    globalNftAddress = tx.nft
   }
   useEffect(() => {
     // console.log(history.location, 'history.location===5')
@@ -1437,7 +1439,7 @@ export default function Chat() {
     })
   }
   const handleCancelCheckin = async() => {
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).cancelCheckin()
+    const tx = await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).cancelCheckin()
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
@@ -1463,7 +1465,7 @@ export default function Chat() {
     const tokensQuery = `
     {
       registerInfos(
-        where: {manager: "`+ getLocal('account')?.toLowerCase() + `", register: "`+nftAddress?.toLowerCase()+`"}
+        where: {manager: "`+ getLocal('account')?.toLowerCase() + `", register: "`+globalNftAddress?.toLowerCase()+`"}
       ) {
         id
         lastDate
@@ -1529,10 +1531,11 @@ export default function Chat() {
     }
   }
   const handleEndStake = async(isOpenAutoCheckIn) => {
-    const tx = isOpenAutoCheckIn ? await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receivesAuto() : await getDaiWithSigner(nftAddress, SIGN_IN_ABI).receives()
+    const tx = isOpenAutoCheckIn ? await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).receivesAuto() : await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).receives()
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
+    getCurrentBalance(getLocal('account'))
     setState({
       canMint: true,
       hasEndStack: true
@@ -1551,7 +1554,7 @@ export default function Chat() {
     setShowMask(true)
     try {
       const valueE = +token === 0 ? ethers.utils.parseEther(quantity) : 0
-      const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity), {value: valueE})
+      const tx = await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).checkin(tokenId, ethers.utils.parseEther(quantity), {value: valueE})
       await tx.wait()
       setShowMask(false)
     } catch(err) {
@@ -1581,7 +1584,7 @@ export default function Chat() {
     }
 
     const valueE = token === 'ETHF' ? ethers.utils.parseEther(quantity) : 0
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity),{value: valueE})
+    const tx = await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).mint(ethers.utils.parseEther(quantity),{value: valueE})
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
@@ -1652,6 +1655,7 @@ export default function Chat() {
   }, [getLocal('isConnect'), groupLists])
   useEffect(() => {
     const address = ROOM_ADDRESS || GROUP_ADDRESS
+    getNftAddress()
     if(address) {
       if(detectMobile()) {
         setShowChat(true)

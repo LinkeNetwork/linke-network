@@ -21,8 +21,9 @@ export default function HeaderInfo() {
   const { balance, chainId, network, changeNetwork, disConnect, connectOkexchain } = useWallet()
   const locations = useLocation()
   const [showMenu, setShowMenu] = useState(false)
-  const { setState, showConnectNetwork, accounts, showHeader } = useGlobal()
+  const { setState, showConnectNetwork, accounts, showHeader, currentTokenBalance } = useGlobal()
   const [showAccount, setShowAccount] = useState(false)
+  const [currentBalance, setCurrentBalance] = useState()
   const [showConnectWallet, setShowConnectWallet] = useState(false)
   const [showHomeHeader, setShowHomeHeader] = useState(true)
   const [showMenulist, setShowMenulist] = useState(false)
@@ -68,6 +69,11 @@ export default function HeaderInfo() {
       setShowHomeHeader(false)
     }
   }, [locations])
+  useEffect(() => {
+    if(currentTokenBalance) {
+      setCurrentBalance(currentTokenBalance)
+    }
+  }, [currentTokenBalance])
   return (
     <HeaderInfoContanier>
       {
@@ -111,7 +117,7 @@ export default function HeaderInfo() {
             }
             <CurrentNetwork currNetwork={network} handleChangeNetwork={() => setShowConnectWallet(true)} />
             <div className="balance-wrap">
-              <span style={{ marginRight: '4px' }}>{Number(balance).toFixed(4)}</span><span>{network}</span>
+              <span style={{ marginRight: '4px' }}>{Number(currentBalance).toFixed(4)}</span><span>{network}</span>
             </div>
             {
               (chainId === 513100) && accounts &&
