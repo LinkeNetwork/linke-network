@@ -458,20 +458,16 @@ export default function Chat() {
       }
     }
     `
-    if (!clientInfo) {
-      const state = history?.location?.state
-      const address = state?.address || GROUP_ADDRESS || ROOM_ADDRESS
-      const network = state?.network || NETWORK || CURRENT_NETWORK
-      if(!address) return
-      // console.log(address, history.location, GROUP_ADDRESS, ROOM_ADDRESS, 'history.location===4')
-      const item = networks.filter(i => i.name === network?.toUpperCase())[0]
-      setLocal('network', network?.toUpperCase())
-      setShowMask(false)
-      setCurrNetwork(network)
-      var clientInfo = createClient({
-        url: item?.APIURL
-      })
-    }
+    
+    
+    const state = history?.location?.state
+    const address = currentAddressRef?.current || GROUP_ADDRESS || ROOM_ADDRESS || state?.address
+    const network = state?.network || NETWORK || CURRENT_NETWORK
+    if(!address) return
+    setLocal('network', network?.toUpperCase())
+    setCurrNetwork(network)
+
+    const clientInfo = getClient()
     const data = await clientInfo?.query(tokensQuery).toPromise()
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
@@ -480,7 +476,7 @@ export default function Chat() {
     // const result = formateData(chatList, roomAddress)
     const result = await getMemberList(chatList) || []
     await insertData(result)
-    if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
+    if (roomAddress?.toLowerCase() === address?.toLowerCase()) {
       if (res?.length > 0) {
         // console.log('setChatList===1',res)
         setChatList(res)
@@ -623,7 +619,6 @@ export default function Chat() {
     setHasScroll(false)
   }
   const loadingGroupData = async () => {
-    debugger
     const firstBlock = chatList && chatList[chatList.length - 1]?.block
     if (!firstBlock) return
     const tokensQuery = `
