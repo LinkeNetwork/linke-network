@@ -184,13 +184,15 @@ export default function Chat() {
     }
   }
   useEffect(() => {
-    if(GROUP_ADDRESS && NETWORK && detectMobile()) {
+    const address = GROUP_ADDRESS || ROOM_ADDRESS || currentAddress
+    const network = NETWORK || CURRENT_NETWORK
+    if(address && network && detectMobile()) {
       setShowChat(true)
       setState({
         showHeader: false
       })
     }
-  }, [groupLists])
+  }, [GROUP_ADDRESS,ROOM_ADDRESS, currentAddress, CURRENT_NETWORK, NETWORK])
   useEffect(() => {
     if (currentTabIndex === 1) {
       getMyAvatar()
@@ -461,8 +463,8 @@ export default function Chat() {
       const network = state?.network || NETWORK || CURRENT_NETWORK
       if(!address) return
       // console.log(address, history.location, GROUP_ADDRESS, ROOM_ADDRESS, 'history.location===4')
-      const item = networks.filter(i => i.name === network.toUpperCase())[0]
-      setLocal('network', network.toUpperCase())
+      const item = networks.filter(i => i.name === network?.toUpperCase())[0]
+      setLocal('network', network?.toUpperCase())
       setShowMask(false)
       setCurrNetwork(network)
       var clientInfo = createClient({
@@ -1336,7 +1338,7 @@ export default function Chat() {
     globalNftAddress = tx.nft
   }
   useEffect(() => {
-    // console.log(history.location, 'history.location===5')
+    console.log(history.location, 'history.location===5')
     const currentRedEnvelopId = history.location.search.split("?id=")[1]
     setCurrentRedEnvelopId(currentRedEnvelopId)
     const address = GROUP_ADDRESS || ROOM_ADDRESS
@@ -1612,7 +1614,7 @@ export default function Chat() {
         showHeader: true
       })
     }
-  }, [getLocal('isConnect'), groupLists])
+  }, [getLocal('isConnect')])
   useEffect(() => {
     const address = ROOM_ADDRESS || GROUP_ADDRESS
     getNftAddress()

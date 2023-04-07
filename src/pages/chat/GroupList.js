@@ -65,7 +65,7 @@ export default function GroupList(props) {
           name: name,
           _type: _type
         })
-        // console.log('setGroupList===>1')
+        // console.log('setGroupList===>1', groupList)
         setGroupList(groupList)
         setState({
           groupLists: groupList
@@ -93,12 +93,6 @@ export default function GroupList(props) {
           account[roomType] = groupList?.length ? [...groupList] : []
         }
         localForage.setItem('chatListInfo', res)
-        if (!searchGrouName) {
-          setGroupList(groupList)
-          setState({
-            groupLists: groupList
-          })
-        }
       }
     })
 
@@ -141,6 +135,7 @@ export default function GroupList(props) {
     groupInfos.forEach((group) => {
       group.hasDelete = false
     })
+    // console.log('setGroupList=====2', groupInfos)
     setGroupList([...groupInfos] || [])
     setState({
       groupLists: [...groupInfos]
@@ -284,7 +279,7 @@ export default function GroupList(props) {
         privateGroupList.push(list)
       }
     }
-    // console.log('setGroupList===>5')
+    // console.log('setGroupList===>5', privateGroupList)
     setGroupList(privateGroupList)
     setCacheGroupInfo(privateGroupList, 2)
     setState({
@@ -365,7 +360,7 @@ export default function GroupList(props) {
           res[currNetwork][getLocal('account')]['privateRooms'] = [...groupList]
           localForage.setItem('chatListInfo', res)
           const currentChatInfo = groupList.filter((item) => item?.id?.toLowerCase() === currentAddress?.toLowerCase())
-          // console.log('setGroupList===>7')
+          // console.log('setGroupList===>7', groupList)
           setGroupList(groupList)
           setState({
             groupLists: groupList,
@@ -384,6 +379,7 @@ export default function GroupList(props) {
   }, [accounts, chainId, currentTabIndex, hasCreateRoom, transactionRoomHash])
   useEffect(() => {
     const group = searchGroup.slice()
+    // console.log(group, 'setGroupList====88')
     setGroupList(group)
   }, [searchGroup])
   useEffect(() => {
