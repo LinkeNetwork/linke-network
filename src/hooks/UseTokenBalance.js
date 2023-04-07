@@ -40,7 +40,7 @@ export default function UseTokenBalance() {
       allowanceTotal: allowanceTotal
     })
     console.log(allowanceTotal, "allowanceAction")
-    return allowanceTotal > from.balance
+    return allowanceTotal >= from.balance
   }
   const getAuthorization = async(from, type) => {
     const allowanceResult = from.address ? await allowanceAction(from, type) : true

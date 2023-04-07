@@ -6,7 +6,8 @@ export default function useCheckIn() {
   const { signInAddress, currentAddress } = useGlobal()
   const getCheckInToken = async() => {
     const res = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
-    const tx = await getDaiWithSigner(res.nft.toLocaleLowerCase(), SIGN_IN_ABI).token()
+    if(+res?.nft === 0) return
+    const tx = await getDaiWithSigner(res?.nft, SIGN_IN_ABI).token()
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == tx.toLocaleLowerCase())
     const { symbol } = selectedToken.length && selectedToken[0]
