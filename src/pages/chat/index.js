@@ -1172,8 +1172,7 @@ export default function Chat() {
         const isRegister = await verifyRegister()
         if(!isRegister) return false
     }
-
-    const mustHaveAmount = ethers.utils.formatEther(giveawayInfos?.haveAmount)
+    const mustHaveAmount = type === 'GiveawayV2' && ethers.utils.formatEther(giveawayInfos?.haveAmount)
     if(+mustHaveAmount !== 0) {
       const isHaveToken = await verifyHaveToken(giveawayInfos?.haveToken, mustHaveAmount)
         if(!isHaveToken) return false
@@ -1183,6 +1182,7 @@ export default function Chat() {
   const handleReceive = async(v) => {
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText.split('---')[0] : v?.chatText
     setCurrentRedEnvelopId(chatText)
+    setCurrentGiveAwayVersion(v?._type)
     const isReceived = await getReceivedStatus(v?._type, chatText)
     if(isReceived === 1) {
       setShowReceiveInfo(true)
@@ -1338,8 +1338,8 @@ export default function Chat() {
     globalNftAddress = tx.nft
   }
   useEffect(() => {
-    console.log(history.location, 'history.location===5')
     const currentRedEnvelopId = history.location.search.split("?id=")[1]
+    // console.log(history.location, 'history.location===5')
     setCurrentRedEnvelopId(currentRedEnvelopId)
     const address = GROUP_ADDRESS || ROOM_ADDRESS
     const network = NETWORK || CURRENT_NETWORK

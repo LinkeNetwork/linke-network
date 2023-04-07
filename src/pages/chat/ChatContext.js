@@ -146,10 +146,10 @@ export default function ChatContext(props) {
 
   const gtouchmove = (e, v) => {
     // v.showOperate = false
-    console.log("----move----", timeOutEvent, longClick)
+    // console.log("----move----", timeOutEvent, longClick)
     clearTimeout(timeOutEvent)
     setLongClick(0)
-    e.preventDefault()
+    // e.preventDefault()
   }
   const onCopy = (e, v) => {
     setCopyText('copied')
