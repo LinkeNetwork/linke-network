@@ -22,7 +22,7 @@ import AwardBonus from './AwardBonus'
 import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
-import { detectMobile, throttle, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner } from '../../utils'
+import { detectMobile, throttle, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient } from '../../utils'
 import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
@@ -213,6 +213,7 @@ export default function Chat() {
       }
     }
     `
+    const clientInfo =  getClient()
     const res = await clientInfo?.query(tokensQuery).toPromise()
     setMyAvatar(res.data?.profile?.avatar)
     return res.data?.profile?.avatar
@@ -481,8 +482,10 @@ export default function Chat() {
     await insertData(result)
     if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
       if (res?.length > 0) {
+        // console.log('setChatList===1',res)
         setChatList(res)
       } else {
+        // console.log('setChatList===2',result)
         setChatList(result)
       }
       setShowMask(false)
@@ -518,6 +521,7 @@ export default function Chat() {
   const getCurrentRoomInfo = (roomAddress) => {
     setShowJoinRoom(false)
     setHasScroll(false)
+    // console.log('setChatList===3')
     setChatList([])
     setShowMask(true)
     isRoom(roomAddress)
@@ -534,6 +538,7 @@ export default function Chat() {
         showHeader: false
       })
     }
+    // console.log('setChatList===4')
     setChatList([])
     setShowMask(false)
     setCurrentRoomName(name)
@@ -559,6 +564,7 @@ export default function Chat() {
     setShowSettingList(false)
   }
   const showChatList = (item) => {
+    // console.log('setChatList===5')
     setChatList([])
     setHasOpenedSignIn(false)
     setState({
@@ -617,6 +623,7 @@ export default function Chat() {
     setHasScroll(false)
   }
   const loadingGroupData = async () => {
+    debugger
     const firstBlock = chatList && chatList[chatList.length - 1]?.block
     if (!firstBlock) return
     const tokensQuery = `
@@ -640,6 +647,7 @@ export default function Chat() {
       }
     }
     `
+    const clientInfo =  getClient()
     const data = await clientInfo?.query(tokensQuery).toPromise()
     const loadingList = data?.data?.chatInfos || []
     if (loadingList.length < 20) {
@@ -660,10 +668,12 @@ export default function Chat() {
     if(chatListRef.current.length && newfetchData?.length > 0) {
       const list = [...chatListRef.current]
       const result = list.concat(newfetchData)
+      // console.log('setChatList===6')
       setChatList(result)
     }
   }
   const loadingData = async () => {
+    console.log('loadingData===', currentTabIndex)
     if(currentTabIndex === 0) {
       loadingGroupData()
     }
@@ -706,6 +716,7 @@ export default function Chat() {
       setHasMore(false)
     }
     const list = [...chatListRef.current]
+    // console.log('setChatList===7', currentList.concat(list))
     setChatList(currentList.concat(list))
     // insertData(currentList)
   }
@@ -771,6 +782,7 @@ export default function Chat() {
       setState({
         privateChatList: [...currentList]
       })
+      // console.log('setChatList===8', currentList)
       setChatList(currentList)
       // insertData(currentList)
       setShowMask(false)
@@ -802,6 +814,7 @@ export default function Chat() {
     } else {
       if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
         const list = uniqueChatList(res, 'block')
+        // console.log('setChatList===9', list)
         setChatList(list)
       }
       setShowMask(false)
@@ -857,11 +870,13 @@ export default function Chat() {
       collection.insert(chatList[index])
       setClickNumber(clickNumber+1)
     } else {
+      // console.log('setChatList===10')
       setChatList([])
       chatList[0].isSuccess = true
       chatList[0].block = callback?.blockNumber
       chatList[0].chatText = String((new BigNumber(Number(id))).toNumber())
       chatList[0].wishesText = wishesText
+      // console.log('setChatList===11', chatList)
       setChatList(chatList)
       collection.insert(chatList)
       setClickNumber(clickNumber+1)
@@ -1041,6 +1056,7 @@ export default function Chat() {
     if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
       const index = list?.findIndex(item => item.id == newList[0]?.id)
       if(index === -1) {
+        // console.log('setChatList===12', chatList)
         setChatList(newList.concat(list))
       }
     }
@@ -1096,6 +1112,7 @@ export default function Chat() {
     const currentList = await formateCurrentPrivateList(tokensSenderQuery, tokensReceivedrQuery, roomAddress)
     const list = [...chatListRef.current]
     if(roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && currentList.length) {
+      // console.log('setChatList===13', currentList.concat(list))
       setChatList(currentList.concat(list))
     }
     // insertData(currentList)
@@ -1294,6 +1311,7 @@ export default function Chat() {
         chatList[index].chatText = decryptedMessage
         setHasDecrypted(true)
         // insertData()
+        // console.log('setChatList===14', chatList)
         setChatList(chatList)
       }
       )
@@ -1354,7 +1372,7 @@ export default function Chat() {
     if(address && !(+getLocal('isConnect')) && !network) {
       // alert('Please connect wallet first')
     }
-  }, [currentChain])
+  }, [])
   const handleAwardBonus = async() => {
     const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddressV2)
     if(!Boolean(res?.state)) {
@@ -1617,7 +1635,11 @@ export default function Chat() {
   }, [getLocal('isConnect')])
   useEffect(() => {
     const address = ROOM_ADDRESS || GROUP_ADDRESS
-    getNftAddress()
+    if(window?.ethereum) {
+      getNftAddress()
+    } else {
+      fetchPublicChatList(address)
+    }
     if(location.hash === '#p') {
       setCurrentTabIndex(1)
     }

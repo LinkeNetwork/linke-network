@@ -1,7 +1,9 @@
 import { ethers } from "ethers"
 import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
+import networks from '../context/networks'
 import { TOKEN_ABI } from '../abi/index'
+import { createClient } from 'urql'
 
 const { utils } = Web3
 const { numberToHex } = utils
@@ -169,4 +171,15 @@ export const formatTimestamp = (date) => {
   const decimalString = bigNumber.toString(10)
   const timestamp = Number(decimalString)
   return timestamp
+}
+
+export const getClient = () => {
+  const PAGE_PATH = window.location.pathname.split('/chat/')[1]
+  const network = PAGE_PATH?.split('/')[1] || getLocal('network')
+  const item = networks.filter(i=> i.symbol === network?.toUpperCase())[0]
+  if(!item) return
+  const client = createClient({
+    url: item?.APIURL
+  })
+  return client
 }
