@@ -183,3 +183,8 @@ export const getClient = () => {
   })
   return client
 }
+
+export const handleDecimals = (num, decimalPlaces) => {
+  let roundedNum = Math.ceil(num * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces)
+  return roundedNum.toFixed(6)
+}

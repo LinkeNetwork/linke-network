@@ -114,7 +114,9 @@ export default function CreateNewRoom(props) {
     const styleList = JSON.stringify(style)
     debugger
     try {
-      const params = +currentGroup.value === 4 ? ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, name_, symbol_]) : ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, styleList, name_, symbol_])
+      const params = +currentGroup.value === 4 
+        ? ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string"], [name, describe, avatarUrl, name_, symbol_])
+        : ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, styleList, name_, symbol_])
       const tx = await getDaiWithSigner(currentNetworkInfo?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
       setTransactionHash(tx.hash)
       let callback = await tx.wait()

@@ -39,8 +39,8 @@ export default function UseTokenBalance() {
     setState({
       allowanceTotal: allowanceTotal
     })
-    console.log(allowanceTotal, "allowanceAction")
-    return allowanceTotal >= from.balance
+    console.log(allowanceTotal, "allowanceAction", from.balance)
+    return allowanceTotal >= +from.balance
   }
   const getAuthorization = async(from, type) => {
     const allowanceResult = from.address ? await allowanceAction(from, type) : true

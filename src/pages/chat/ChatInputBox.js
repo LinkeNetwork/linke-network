@@ -88,7 +88,9 @@ export default function ChatInputBox(props) {
   }
 
   const setCounter = (cnt) => {
-    textCounter.innerHTML = 'Characters left:' + cnt
+    if(textCounter) {
+      textCounter.innerHTML = 'Characters left:' + cnt
+    }
     if (cnt < 0) {
       textCounter.classList.add('max-reached')
     } else {
