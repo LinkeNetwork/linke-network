@@ -10,8 +10,8 @@ import UseTokenBalance from "../../hooks/UseTokenBalance"
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function AwardBonus(props) {
-  const { swapButtonText, approveLoading, setButtonText, showOpenSignIcon, hasOpenedSignIn } = useGlobal()
-  const { getAuthorization, approveActions, authorization } = UseTokenBalance()
+  const { swapButtonText, approveLoading, setButtonText, showOpenSignIcon, giveAwayAddressV2 } = useGlobal()
+  const { approveActions, authorization, getAllowanceTotal } = UseTokenBalance()
   const { handleCloseAward, handleSend } = props
   const [showBonusType, setShowBonusType] = useState(false)
   const [totalAmount, setTotalAmount] = useState()
@@ -46,7 +46,7 @@ export default function AwardBonus(props) {
         handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress)
         break;
       case intl.get('Approve'):
-        approveActions(selectedTokenInfo, 'envelope')
+        approveActions(selectedTokenInfo, giveAwayAddressV2)
         break;
       default:
         return null;
@@ -77,10 +77,6 @@ export default function AwardBonus(props) {
       setTokenDecimals(item.decimals)
       setSelectTokenAddress(item.address)
       if(item.symbol === 'ETHF') return
-      const authorization = await getAuthorization(item, 'envelope')
-      if(!authorization) {
-        setBtnText(intl.get('Approve'))
-      }
     } else {
       setShowTokenList(false)
       setHaveTokenLogo(item.logoURI)
@@ -106,6 +102,23 @@ export default function AwardBonus(props) {
     setTokenStatus(status)
     setShowTokenList(true)
   }
+  const getAuthorization = async() => {
+    const allowanceTotal = await getAllowanceTotal(selectedTokenInfo, giveAwayAddressV2)
+    if(+amount > +allowanceTotal) {
+      setBtnText(intl.get('Approve'))
+    } else {
+      setBtnText(intl.get('Send'))
+    }
+  }
+  const handleBtnStatus = async() => {
+    const allowanceTotal = await getAllowanceTotal(selectedTokenInfo, giveAwayAddressV2)
+    setCanSend(true)
+    if(+amount > +allowanceTotal) {
+      setBtnText(intl.get('Approve'))
+    } else {
+      setBtnText(intl.get('Send'))
+    }
+  }
   useEffect(() => {
     currentBonusType === intl.get('RandomAmount') ? setAmountText(intl.get('Total')) : setAmountText(intl.get('AmountEach')) 
     if(currentBonusType === intl.get('IdenticalAmount')) {
@@ -121,6 +134,11 @@ export default function AwardBonus(props) {
       }
     }
   }, [currentBonusType])
+  useEffect(() => {
+    if(+amount > 0) {
+      getAuthorization()
+    }
+  }, [amount])
   useEffect(() => {
     if(currentBonusType === intl.get('RandomAmount') && quantity && amount) {
       setTotalAmount(amount)
@@ -138,9 +156,7 @@ export default function AwardBonus(props) {
   }, [totalAmount, quantity, amount])
   useEffect(() => {
     if(authorization) {
-      setCanSend(true)
-      setButtonText(intl.get('Send'))
-      setBtnText(intl.get('Send'))
+      handleBtnStatus()
     }
   }, [authorization])
   useEffect(() => {

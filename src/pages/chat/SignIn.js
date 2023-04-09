@@ -18,7 +18,7 @@ const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
   const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn, hasEndStack, canUnstake, stakedDays, allowanceTotal } = useGlobal()
-  const { getAuthorization, approveActions, authorization, secondaryAuthorization } = UseTokenBalance()
+  const { getAuthorization, approveActions, authorization, secondaryAuthorization, getAllowanceTotal } = UseTokenBalance()
   const { handleMint, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin, handleAutoCheckIn, showNftList, currentAddress } = props
   const [quantity, setQuantity] = useState('')
   const [isAuthorization, setIsAuthorization] = useState(false)
@@ -52,7 +52,7 @@ export default function SignIn(props) {
         handleBtnMint()
         break;
       case intl.get('Approve'):
-        approveActions(selectedTokenInfo, 'signIn')
+        approveActions(selectedTokenInfo, nftAddress)
         break;
       case intl.get('CheckIn'):
         handleBtnCheckIn()
@@ -179,7 +179,7 @@ export default function SignIn(props) {
       return
     }
 
-    const authorization = await getAuthorization(selectedToken[0], 'signIn')
+    const authorization = await getAuthorization(selectedToken[0], nftAddress)
     setIsAuthorization(authorization)
     if (!authorization) {
       setCanSend(true)
@@ -229,6 +229,15 @@ export default function SignIn(props) {
     setShowTips(false)
     setIsAuthorization(false)
   }
+  const setBtnStatus = async() => {
+    if(+selectedTokenInfo?.address === 0 || !selectedTokenInfo?.address) return
+    const allowanceTotal = await getAllowanceTotal(selectedTokenInfo, nftAddress)
+    if(allowanceTotal && (+allowanceTotal < +quantity) && tokenBalance > +quantity) {
+      setNeedApprove(true)
+    } else {
+      setNeedApprove(false)
+    }
+  }
   useEffect(() => {
     if(!stakedNum && score === undefined) return
     const amount = new BigNumber(stakedNum)
@@ -266,6 +275,11 @@ export default function SignIn(props) {
         getSelectedToken()
         setCanSend(true)
       }
+      if(+allowanceTotal >= +quantity) {
+        setNeedApprove(false)
+      } else {
+        setNeedApprove(true)
+      }
       setButtonText(intl.get('Mint'))
       setBtnText(intl.get('Mint'))
     }
@@ -297,12 +311,8 @@ export default function SignIn(props) {
     }
   }, [tokenBalance])
   useEffect(() => {
-    if(allowanceTotal && (+allowanceTotal < +quantity) && tokenBalance > +quantity) {
-      setNeedApprove(true)
-    } else {
-      setNeedApprove(false)
-    }
-  }, [allowanceTotal, quantity])
+    setBtnStatus()
+  }, [quantity])
   return (
     <SignInWrapper>
       <Modal title={intl.get('Tip')} visible={showTips} onClose={() => { setShowTips(false) }}>
@@ -409,7 +419,7 @@ export default function SignIn(props) {
       {
         <div className="btn-wrapper">
           {
-            (continueMint || !nftImageList.length) && !isCancel && !endStack && +stakedNum === 0 &&
+            (!nftImageList.length) && !isCancel && !endStack && +stakedNum === 0 &&
             <div className='btn btn-primary' onClick={buttonActions}>
               <span className={`${canSend ? 'send-allowed' : 'btn-default'}`}>{btnText}</span>
             </div>

@@ -30,17 +30,20 @@ export default function UseTokenBalance() {
       }
     }
   }
-  const allowanceAction = async (from, type) => {
+  const allowanceAction = async (from, spender) => {
     let account = accounts || localStorage.getItem('account')
     const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
     const { address: tokenAddress } = from
-    const spender = type === 'signIn' ?  nftAddress : giveAwayAddressV2
     const allowanceTotal = ethers.utils.formatUnits(await allowance({provider, tokenAddress, spender, account}), from.decimals)
     setState({
       allowanceTotal: allowanceTotal
     })
-    console.log(allowanceTotal, "allowanceAction", from.balance)
-    return allowanceTotal >= +from.balance
+    console.log(spender, allowanceTotal, "allowanceAction")
+    return allowanceTotal
+  }
+  const getAllowanceTotal = async(from, type) => {
+    const allowanceResult = from.address ? await allowanceAction(from, type) : true
+    return allowanceResult
   }
   const getAuthorization = async(from, type) => {
     const allowanceResult = from.address ? await allowanceAction(from, type) : true
@@ -50,12 +53,13 @@ export default function UseTokenBalance() {
 
   const approveActions = async (from, type) => {
     try {
+      setAuthorization(false)
       setApproveLoading(true)
       setButtonText('APPROVE_ING')
       const res = await approve({
           provider: new Web3.providers.HttpProvider("https://rpc.etherfair.org"),
           tokenAddress: from.address,
-          spender: type === 'signIn' ?  nftAddress : giveAwayAddressV2,
+          spender: type,
           accounts
       })
       console.log('Approve result ======', res)
@@ -72,5 +76,5 @@ export default function UseTokenBalance() {
     }
 }
 
-  return { poolBalance, tokenList, getTokenBalance, authorization, getAuthorization, approveActions, approveLoading, secondaryAuthorization }
+  return { poolBalance, tokenList, getTokenBalance, authorization, getAuthorization, approveActions, approveLoading, secondaryAuthorization, getAllowanceTotal }
 }
