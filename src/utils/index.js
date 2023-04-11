@@ -173,9 +173,13 @@ export const formatTimestamp = (date) => {
   return timestamp
 }
 
-export const getClient = () => {
+export const getClient = async() => {
   const PAGE_PATH = window.location.pathname.split('/chat/')[1]
-  const network = PAGE_PATH?.split('/')[1] || getLocal('network')
+  let network = PAGE_PATH?.split('/')[1] || getLocal('network')
+  if(!network) {
+    const networkInfo = await getCurrentNetworkInfo()
+    network = networkInfo?.symbol
+  } 
   const item = networks.filter(i=> i.symbol === network?.toUpperCase())[0]
   if(!item) return
   const client = createClient({
@@ -187,4 +191,11 @@ export const getClient = () => {
 export const handleDecimals = (num, decimalPlaces) => {
   let roundedNum = Math.ceil(num * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces)
   return roundedNum.toFixed(6)
+}
+
+export const getCurrentNetworkInfo = async() => {
+  const provider = new ethers.providers.Web3Provider(window.ethereum)
+  const network = await provider.getNetwork()
+  const item = networks.filter(i=> i.chainId === network.chainId)[0]
+  return item
 }

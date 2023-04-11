@@ -1,6 +1,6 @@
 import { token } from "../constant/token"
 import { ethers } from "ethers"
-import { detectMobile, getLocal, setLocal } from "../utils"
+import { detectMobile, getLocal, setLocal, getCurrentNetworkInfo } from "../utils"
 import { useState, useLayoutEffect } from "react"
 import useProfile from "./useProfile"
 import MetaMaskOnboarding from '@metamask/onboarding'
@@ -128,22 +128,21 @@ export default function useWallet() {
   }
   const getNetworkInfo = async() => {
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum)
-      const network = await provider.getNetwork()
-      const item = networks.filter(i=> i.chainId === network.chainId)[0]
-      setChainId(network.chainId)
+      const item = await getCurrentNetworkInfo()
+      setChainId(item.chainId)
       setState({
-        chainId: network.chainId
+        chainId: item.chainId
       })
       if(!item) return
-      const currNetwork = networkList[network.chainId]
+      const currNetwork = networkList[item.chainId]
+      setLocal('network', currNetwork)
       const client = createClient({
         url: item?.APIURL
       })
       const signInClient = createClient({
         url: item?.signInGraphUrl
       })
-      setLocal('network', currNetwork)
+      
       setNetwork(currNetwork)
       setState({
         currentChain: currNetwork,

@@ -42,7 +42,8 @@ const state = {
   stakedDays: 0,
   tokenAddress: '',
   allowanceTotal: '',
-  showOpenSignIcon: false
+  showOpenSignIcon: false,
+  isGetGroupList: false
 }
 
 export default state
