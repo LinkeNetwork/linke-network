@@ -269,7 +269,7 @@ export default function GroupMember(props) {
               return (
                 <div className="item" key={index}>
                   {
-                    item.showProfile &&
+                    item?.showProfile &&
                     <div className='user-profile-wrap'>
                       {
                         item.profile.avatar

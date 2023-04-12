@@ -19,7 +19,7 @@ export default function GroupList(props) {
   const { getPublicGroupList } = useGroupList()
   const { chainId } = useWallet()
   const timer = useRef()
-  const { formatGroup } = useGroupList()
+  const { formatGroup, formatPrivateGroup } = useGroupList()
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
   const [startX, setStartX] = useState()
@@ -106,6 +106,22 @@ export default function GroupList(props) {
     return result
   }
  
+  const comparePrivateGroup = async(currentPrivateGroupList, cachePrivateGroupList) => {
+    const result = currentPrivateGroupList.map(group => {
+      const cachedGroup = cachePrivateGroupList.find(cached => cached.id === group.id)
+      if (cachedGroup) {
+        const cachedGroup = cachePrivateGroupList.find(cached => cached.id === group.id)
+        const hasDelete = cachedGroup ? cachedGroup.hasDelete : group.hasDelete
+        return {...group, hasDelete}
+      } else {
+        return group
+      }
+    }).concat(cachePrivateGroupList.filter(group => !currentPrivateGroupList.find(current => current.id === group.id)))
+    if(currentTabIndex === 1) {
+      setGroupList(result)
+    }
+    return result
+  }
   
   const updateChatCount = async () => {
     const currentGroupList = [...groupLists]
@@ -129,7 +145,7 @@ export default function GroupList(props) {
       }
       if (type === 1) {
         const cachePublicGroup = chatListInfo[currNetwork][getLocal('account')]['publicRooms']
-        const result = await compareGroup(groupInfos, cachePublicGroup, 0)
+        const result = await compareGroup(groupInfos, cachePublicGroup)
         const index = result.findIndex((item) => item.id === currentAddress?.toLowerCase())
         if (index >= 0) {
           result[index].newChatCount = 0
@@ -137,7 +153,9 @@ export default function GroupList(props) {
         chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...result]
         localForage.setItem('chatListInfo', chatListInfo)
       } else {
-        chatListInfo[currNetwork][getLocal('account')]['privateRooms'] = [...groupInfos]
+        const cachePublicGroup = chatListInfo[currNetwork][getLocal('account')]['privateRooms']
+        const result = await comparePrivateGroup(groupInfos, cachePublicGroup)
+        chatListInfo[currNetwork][getLocal('account')]['privateRooms'] = [...result]
         localForage.setItem('chatListInfo', chatListInfo)
       }
     }).catch(error => {
@@ -240,7 +258,11 @@ export default function GroupList(props) {
     const currNetwork = currentNetworkInfo?.name || getLocal('network')
     localForage.getItem('chatListInfo').then(res => {
       let chatListInfo = res ? res : {}
-      chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...currentGroups]
+      if(currentTabIndex === 0) {
+        chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...currentGroups]
+      } else {
+        chatListInfo[currNetwork][getLocal('account')]['privateRooms'] = [...currentGroups]
+      }
       // console.log('chatListInfo====1')
       localForage.setItem('chatListInfo', chatListInfo)
     })
@@ -295,18 +317,14 @@ export default function GroupList(props) {
     const list1 = await clientInfo?.query(senderQuery).toPromise()
     const list2 = await clientInfo?.query(tokensQuery).toPromise()
     const groupList = []
-    list1?.data?.encryptedInfos.map(item => {
-      if (!groupList.includes(item.to)) {
-        groupList.push(item.to)
-      }
+    list1?.data?.encryptedInfos.forEach(item => {
+      groupList.push(item.to)
     })
-    list2?.data?.encryptedInfos.map(item => {
-      if (!groupList.includes(item.sender)) {
-        groupList.push(item.sender)
-      }
+    list2?.data?.encryptedInfos.forEach(item => {
+      groupList.push(item.sender)
     })
-    const idList = groupList.filter(Boolean)
-    const idsList = '"' + idList.join('","') + '"'
+    const result = Array.from(new Set(groupList))
+    const idsList = '"' + result.join('","') + '"'
     const groupListQuery = `
     query{
       profiles(where:{id_in: [`+ idsList + `]}){
@@ -317,14 +335,18 @@ export default function GroupList(props) {
     }`
     const res = await clientInfo.query(groupListQuery).toPromise()
     const privateGroupList = [...res?.data?.profiles] || []
-    if (list.id) {
-      const index = privateGroupList?.findIndex((item) => item.id === list.id)
+    const userId = list.id
+    if (userId) {
+      const index = privateGroupList?.findIndex((item) => item.id === userId?.toLowerCase())
       if (index === -1) {
         privateGroupList.push(list)
       }
     }
-    // console.log('setGroupList===>5', privateGroupList)
+    
     setGroupList(privateGroupList)
+    privateGroupList?.forEach((group) => {
+      group.hasDelete = false
+    })
     setCacheGroupInfo(privateGroupList, 2)
     setState({
       groupLists: privateGroupList
@@ -361,11 +383,8 @@ export default function GroupList(props) {
         })
       }
       if (currentTabIndex === 1) {
-        if (!cachePrivateGroup?.length) {
-          getPrivateGroupList()
-        } else {
           const list = initPrivateMember()
-          const groupList = [...cachePrivateGroup]
+          const groupList = formatPrivateGroup(privateGroup, cachePrivateGroup)
           const index = groupList?.findIndex((item) => item?.id?.toLowerCase() === list?.id?.toLowerCase())
           if (Object.keys(list).length !== 0 && index === -1) {
             groupList.push(list)
@@ -381,7 +400,6 @@ export default function GroupList(props) {
             groupLists: groupList,
             currentChatInfo: currentChatInfo[0]
           })
-        }
       }
     }).catch(error => {
       console.log(error, 'error===')

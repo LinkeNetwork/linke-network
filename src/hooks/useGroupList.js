@@ -44,5 +44,17 @@ export default function useGroupList() {
     return result
   }
 
-  return { getPublicGroupList, formatGroup }
+  const formatPrivateGroup = (privateGroup, cachePrivateGroup) => {
+    const result = privateGroup?.map(group => {
+      const cachedGroup = cachePrivateGroup.find(cached => cached.id === group.id)
+      const hasDelete = cachedGroup ? cachedGroup.hasDelete : group.hasDelete
+      return {
+        ...group,
+        hasDelete
+      }
+    })
+    return result
+  }
+
+  return { getPublicGroupList, formatGroup, formatPrivateGroup }
 }
