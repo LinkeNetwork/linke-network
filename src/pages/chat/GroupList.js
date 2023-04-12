@@ -100,7 +100,9 @@ export default function GroupList(props) {
         return group
       }
     }).concat(cacheGroupList.filter(group => !currentGroupList.find(current => current.id === group.id)))
-    setGroupList(result)
+    if(currentTabIndex === 0) {
+      setGroupList(result)
+    }
     return result
   }
  

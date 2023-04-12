@@ -154,7 +154,9 @@ export default function Chat() {
     if(!(+getLocal('isConnect')) && groupLists?.length) {
       setCurrentRoomName(groupLists[0].name)
     }
-    setRoomList([...groupLists])
+    if(currentTabIndex === 0) {
+      setRoomList([...groupLists])
+    }
     groupListRef.current = groupLists
   }, [groupLists])
   useEffect(() => {
