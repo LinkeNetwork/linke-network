@@ -199,3 +199,10 @@ export const getCurrentNetworkInfo = async() => {
   const item = networks.filter(i=> i.chainId === network.chainId)[0]
   return item
 }
+
+export const getTimestamp = (day) => {
+  const now = new Date()
+  const oneWeekLater = new Date(now.getTime() + day * 24 * 60 * 60 * 1000)
+  const oneWeekLaterTimestamp = Math.floor(oneWeekLater.getTime() / 1000)
+  return oneWeekLaterTimestamp
+}

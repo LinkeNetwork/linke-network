@@ -124,7 +124,7 @@ export default function GroupList(props) {
   }
   
   const updateChatCount = async () => {
-    const currentGroupList = [...groupLists]
+    const currentGroupList = groupLists?.length > 0 ? [...groupLists] : []
     const cacheGroupList = await getCachePublicGroup()
     if(!cacheGroupList.length || !currentGroupList.length) return
     await compareGroup(currentGroupList, cacheGroupList)

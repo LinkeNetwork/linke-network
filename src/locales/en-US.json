@@ -135,6 +135,7 @@
   "ApproveTips": "Your authorization balance is less than the input amount, and re-authorization is required",
   "Tip": "Tip",
   "JoinRoomText": "Please Join the group first",
-  "ReceivedText": "You've already received it"
+  "ReceivedText": "You've already received it",
+  "StackedAmount": "Stacked Amount"
 }
 

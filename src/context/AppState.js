@@ -24,7 +24,7 @@ const state = {
   showHeader: true,
   currentTokenBalance: '',
   giveAwayAddress: '0x71d17da8b8a90F94528A7557E34b30Df041F278f',
-  giveAwayAddressV2: '0x1EC08c106c85CAA680a89F206501f227e2bDe5a2',
+  giveAwayAddressV2: '0x4C5DA4D8A00289A2B8336926752F4C07721620Ba',
   signInAddress: '0xD6425022DC33C6b5bf339AC873430b442d50D63b',
   currentChain: '',
   showOpen: false,

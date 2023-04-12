@@ -128,6 +128,62 @@
         "internalType": "uint256",
         "name": "id",
         "type": "uint256"
+      }
+    ],
+    "name": "RetrieveLog",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "haveToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "haveAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "scoreToken",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "scoreAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "lastDate",
+        "type": "uint256"
+      }
+    ],
+    "name": "Send2Log",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
       },
       {
         "indexed": false,
@@ -170,24 +226,6 @@
         "internalType": "string",
         "name": "content",
         "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "haveToken",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "haveAmount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "scoreToken",
-        "type": "address"
       }
     ],
     "name": "SendLog",
@@ -217,6 +255,19 @@
     ],
     "name": "Transfer",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "EXPIREDRATE",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [],
@@ -391,6 +442,16 @@
         "internalType": "address",
         "name": "scoreToken",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "scoreAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lastDate",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -507,7 +568,7 @@
         "type": "uint256"
       }
     ],
-    "name": "receive",
+    "name": "receives",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -528,6 +589,19 @@
   {
     "inputs": [],
     "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "name": "retrieve",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -587,48 +661,65 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "group",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
         "name": "token",
         "type": "address"
       },
       {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "count",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "type_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "content",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "haveToken",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "haveAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "scoreToken",
-        "type": "address"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "group",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "count",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "type_",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "content",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "haveToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "haveAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "scoreToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "scoreAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastDate",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GiveawayV2.sendParams",
+        "name": "params",
+        "type": "tuple"
       }
     ],
     "name": "send",
@@ -639,44 +730,61 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "group",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "count",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "type_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "content",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "haveToken",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "haveAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "scoreToken",
-        "type": "address"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "group",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "count",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "type_",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "content",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "haveToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "haveAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "scoreToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "scoreAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastDate",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GiveawayV2.sendParams",
+        "name": "params",
+        "type": "tuple"
       }
     ],
     "name": "sendETH",
@@ -698,6 +806,19 @@
       }
     ],
     "name": "setApprovalForAll",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "expiredRate",
+        "type": "uint256"
+      }
+    ],
+    "name": "setExpiredRate",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

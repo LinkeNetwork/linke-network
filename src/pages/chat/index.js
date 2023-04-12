@@ -22,7 +22,7 @@ import AwardBonus from './AwardBonus'
 import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
-import { detectMobile, throttle, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient } from '../../utils'
+import { detectMobile, throttle, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient, getTimestamp } from '../../utils'
 import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
@@ -829,8 +829,10 @@ export default function Chat() {
     )
     return encryptedMessage
   }
-  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress) => {
+  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount) => {
     const haveAmount = !minAmount ? 0 : ethers.utils.parseEther(minAmount)
+    const lastDate = getTimestamp(7)
+    const stackedAmount = !minStackedAmount ? 0 : ethers.utils.parseEther(minStackedAmount)
     const haveTokenAddress= !mustHaveTokenAddress ? '0x0000000000000000000000000000000000000000' : mustHaveTokenAddress
     const scoreToken = Boolean(+openStatus) ? globalNftAddress : '0x0000000000000000000000000000000000000000'
     const type_ = currentBonusType === intl.get('RandomAmount') ? 2 : 1
@@ -839,9 +841,22 @@ export default function Chat() {
     if(!wishesText) {
       wishesText = 'Best Wishes'
     }
+    const params = {
+      group: currentAddress,
+      amount: total,
+      count: ethers.utils.parseEther(quantity),
+      type_: type_,
+      content: wishesText,
+      haveToken: haveTokenAddress,
+      haveAmount: haveAmount,
+      scoreToken: scoreToken,
+      scoreAmount: stackedAmount,
+      lastDate: ethers.BigNumber.from(lastDate)
+    }
+    debugger
     const tx = selectTokenAddress == 0
-                ? await getDaiWithSigner(address, RED_PACKET_V2).sendETH(currentAddress, total, quantity, type_, wishesText, haveTokenAddress, haveAmount, scoreToken, {value:total})
-                : await getDaiWithSigner(address, RED_PACKET_V2).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText, haveTokenAddress, haveAmount, scoreToken)
+                ? await getDaiWithSigner(address, RED_PACKET_V2).sendETH(params, {value:total})
+                : await getDaiWithSigner(address, RED_PACKET_V2).send(selectTokenAddress, params)
     setShowMask(true)
     setShowAwardBonus(false)
     const db = await setDataBase()
@@ -1690,7 +1705,7 @@ export default function Chat() {
         <AwardBonus
           handleCloseAward={() => { setShowAwardBonus(false) }}
           currentAddress={currentAddress}
-          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress)}}
+          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount)}}
           handleGiveAway={(tx) => {handleGiveAway(tx)}}
         ></AwardBonus>
       }
@@ -1717,7 +1732,7 @@ export default function Chat() {
           <AwardBonus
             handleCloseAward={() => { setShowAwardBonus(false) }}
             currentAddress={currentAddress}
-            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress)}}
+            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount)}}
             handleGiveAway={(tx) => {handleGiveAway(tx)}}
           ></AwardBonus>
         </Modal>

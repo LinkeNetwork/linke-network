@@ -16,6 +16,7 @@ export default function AwardBonus(props) {
   const [showBonusType, setShowBonusType] = useState(false)
   const [totalAmount, setTotalAmount] = useState()
   const [amount, setAmount] = useState()
+  const [minStackedAmount, setMinStackedAmount] = useState()
   const [quantity, setQuantity] = useState('')
   const [amountText, setAmountText] = useState(intl.get('Total'))
   const [clickNumber, setClickNumber] = useState(0)
@@ -43,7 +44,7 @@ export default function AwardBonus(props) {
   const buttonActions = () => {
     switch (btnText) {
       case intl.get('Send'):
-        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress)
+        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount)
         break;
       case intl.get('Approve'):
         approveActions(selectedTokenInfo, giveAwayAddressV2)
@@ -94,7 +95,10 @@ export default function AwardBonus(props) {
   const valChange = (tokenValue, type) => {
     if(type === 2) {
       setMinAmount(tokenValue)
-    } else {
+    } else if(type === 3) {
+      setMinStackedAmount(tokenValue)
+    }
+     else {
       type === 0 ? setQuantity(tokenValue) : setAmount(tokenValue)
     }
   }
@@ -234,6 +238,10 @@ export default function AwardBonus(props) {
         <div className="amount-wrapper">
           <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 2)} defaultValue={minAmount}/>
           <div>{intl.get('HaveTokenText')}</div>
+        </div>
+        <div className="amount-wrapper">
+          <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 3)} defaultValue={minStackedAmount}/>
+          <div>{intl.get('StackedAmount')}</div>
         </div>
         {
           showOpenSignIcon &&
