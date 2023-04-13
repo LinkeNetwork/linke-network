@@ -2,7 +2,7 @@ import { ethers } from "ethers"
 import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
 import networks from '../context/networks'
-import { TOKEN_ABI } from '../abi/index'
+import { TOKEN_ABI, SIGN_IN_ABI } from '../abi/index'
 import { createClient } from 'urql'
 
 const { utils } = Web3
@@ -204,4 +204,11 @@ export const getTimestamp = (day) => {
   const oneWeekLater = new Date(now.getTime() + day * 24 * 60 * 60 * 1000)
   const oneWeekLaterTimestamp = Math.floor(oneWeekLater.getTime() / 1000)
   return oneWeekLaterTimestamp
+}
+
+export const getStackedAmount = async(nftAddress) => {
+  const account = getLocal('account').toLowerCase()
+  const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
+  const userAmount = ethers.utils.formatEther(registerUserInfos?.amount)
+  return userAmount
 }

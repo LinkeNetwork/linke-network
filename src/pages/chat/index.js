@@ -22,7 +22,7 @@ import AwardBonus from './AwardBonus'
 import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
-import { detectMobile, throttle, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient, getTimestamp, getCurrentNetworkInfo } from '../../utils'
+import { detectMobile, throttle, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient, getTimestamp, getCurrentNetworkInfo, getStackedAmount } from '../../utils'
 import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
@@ -880,7 +880,7 @@ export default function Chat() {
     let callback = await tx.wait()
     setShowAwardBonus(false)
     const id = callback?.events[4]?.args?.tokenId
-    console.log(callback, 'callback?=====')
+    console.log(callback, 'callback?=====', id)
     const index = chatList?.findIndex((item) => item?.id?.toLowerCase() == callback?.transactionHash?.toLowerCase())
     if(chatList?.length > 0) {
       chatList[index].isSuccess = true
@@ -1164,8 +1164,19 @@ export default function Chat() {
     return true
   }
 
-  const verifyStackedAmount = () => {
-
+  const verifyStackedAmount = async(scoreAmount, haveToken) => {
+    const stackedAmount = await getStackedAmount(globalNftAddress)
+    const tokenList = [...tokenListInfo]
+    const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == haveToken.toLocaleLowerCase())
+    const needStackedAmount = ethers.utils.formatEther(scoreAmount)
+    console.log(needStackedAmount, 'verifyStackedAmount')
+    if(+needStackedAmount > +stackedAmount) {
+      setShowTips(true)
+      const text = `${intl.get('YouMust')} ${intl.get('Stacked')} ${needStackedAmount} ${selectedToken[0].symbol} ${intl.get('ReceiveRedEnvelope')}`
+      setTipsText(text)
+      return false
+    }
+    return true
   }
 
   const receiveRejectStatus = async(versionInfo, chatText) => {
@@ -1189,9 +1200,6 @@ export default function Chat() {
           if(!isRegister) return false
       }
       console.log(giveawayInfos?.scoreAmount, 'scoreAmount==')
-      if(giveawayInfos?.scoreAmount) {
-
-      }
       const mustHaveAmount = giveaway === 'giveawayV2S' && ethers.utils.formatEther(giveawayInfos?.haveAmount)
       if(+mustHaveAmount !== 0) {
         const isHaveToken = await verifyHaveToken(giveawayInfos?.haveToken, mustHaveAmount)
@@ -1200,7 +1208,8 @@ export default function Chat() {
     }
 
     if(version === 'v3') {
-      verifyStackedAmount()
+      const isStacked = await verifyStackedAmount(giveawayInfos?.scoreAmount, giveawayInfos?.haveToken)
+      if(!isStacked) return false
     }
 
     return true

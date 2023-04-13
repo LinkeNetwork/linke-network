@@ -133,5 +133,6 @@
   "Tip": "提示",
   "JoinRoomText": "請先加入群組",
   "ReceivedText": "你已經領取過了",
-  "StackedAmount": "質押數量"
+  "StackedAmount": "質押數量",
+  "Stacked": "質押"
 }

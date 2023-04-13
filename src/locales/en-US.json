@@ -136,6 +136,7 @@
   "Tip": "Tip",
   "JoinRoomText": "Please Join the group first",
   "ReceivedText": "You've already received it",
-  "StackedAmount": "Stacked Amount"
+  "StackedAmount": "Stacked Amount",
+  "Stacked": "Stack"
 }
 
