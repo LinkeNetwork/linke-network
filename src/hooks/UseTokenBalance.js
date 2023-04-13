@@ -5,7 +5,7 @@ import useGlobal from './useGlobal'
 import { ethers } from "ethers"
 import { getBalanceNumber, getLocal, getBalance, allowance, approve } from '../utils'
 export default function UseTokenBalance() {
-  const { accounts, giveAwayAddressV2, setButtonText, currentTokenBalance, nftAddress, setState} = useGlobal()
+  const { accounts, setButtonText, setState} = useGlobal()
   const [authorization, setAuthorization] = useState(false)
   const [poolBalance,setPoolBalance] = useState(0)
   const [approveLoading, setApproveLoading] = useState(false)

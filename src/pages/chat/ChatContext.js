@@ -1,9 +1,10 @@
-import { detectMobile, formatAddress, getDaiWithSigner, getLocal } from "../../utils"
+import { detectMobile, formatAddress, getDaiWithSigner, getLocal, getCurrentNetworkInfo } from "../../utils"
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import BigNumber from 'bignumber.js'
 import networks from '../../context/networks'
 import { PROFILE_ABI } from '../../abi/index'
 import { useState } from "react"
+import { createClient } from 'urql'
 import intl from "react-intl-universal"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { useHistory } from 'react-router-dom'
@@ -45,16 +46,19 @@ export default function ChatContext(props) {
     v.showProfile = false
   }
   const shareToTwitter = async(e, v) => {
+    const item = await getCurrentNetworkInfo()
+    const info = item?.addressList[v.user.id]
+    const { version, graphUrl, giveaway } = info
     e.stopPropagation()
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText?.split('---')[0] : v?.chatText
-    const res = await getGiveawaysInfo(chatText, v?._type)
+    const res = await getGiveawaysInfo(chatText, graphUrl, giveaway)
     const list = [...tokenListInfo]
     var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
     const amount = ethers.utils.formatUnits(res?.amount, newList?.decimals)
     const totalAmount = +amount > 1000 ? numeral(amount).format() : amount
     const tokenList = `#Airdrop #ETHF #linke #${newList?.symbol}`
     const wishes = v?.wishesText ? v?.wishesText : 'Best wishes 🎁 🎁 🎁'
-    const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?id=${chatText}`
+    const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?id=${chatText}&version=${version}`
     const url = `${envelopeUrl} to join & get money \n ${tokenList}`
     const text = `${wishes}\n💰 ${newList?.symbol} ${totalAmount} 💰 \n#Giveaway \n📍Click \n`
     const st = encodeURIComponent(text + url)
@@ -67,30 +71,35 @@ export default function ChatContext(props) {
     const hasCreate = res && (new BigNumber(Number(res))).toNumber()
     return hasCreate
   }
-  const getGiveawaysInfo = async(currentRedEnvelopId, type) => {
-    const giveawayVersion = type === 'GiveawayV2' ? 'giveawayV2S' : 'giveaways'
+  const getGiveawaysInfo = async(currentRedEnvelopId, graphUrl, giveaway) => {
     const tokensQuery = `
     {
-      ${giveawayVersion}(where: {id: "`+  currentRedEnvelopId + `"}){
+      ${giveaway}(where: {id: "`+  currentRedEnvelopId + `"}){
         token,
         amount
       }
     }
     `
-    const res = await clientInfo?.query(tokensQuery).toPromise()
-    const giveaways = type === 'GiveawayV2' ? res?.data?.giveawayV2S[0] : res?.data?.giveaways[0]
+    const client = createClient({
+      url: graphUrl
+    })
+    const res = await client?.query(tokensQuery).toPromise()
+    const giveaways = giveaway === 'giveawayV2S' ? res?.data?.giveawayV2S[0] : res?.data?.giveaways[0]
     return giveaways
   }
   const setTwitterInfo = async(v) => {
+    const item = await getCurrentNetworkInfo()
+    const info = item?.addressList[v.user.id]
+    const { version, graphUrl, giveaway } = info
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText?.split('---')[0] : v?.chatText
-    const res = await getGiveawaysInfo(chatText, v?._type)
+    const res = await getGiveawaysInfo(chatText, graphUrl, giveaway)
     const list = [...tokenListInfo]
     var newList = list.filter(item => item.address.toUpperCase().includes(res?.token?.toUpperCase()))[0]
     const amount = ethers.utils.formatUnits(res?.amount, newList?.decimals)
     const totalAmount = +amount > 1000 ? numeral(amount).format() : amount
     const tokenList = `${'#Airdrop #ETHF #linke'} #${newList?.symbol}`
     const wishesText = v?.wishesText ? v?.wishesText : 'Best wishes 🎁 🎁 🎁'
-    const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?id=${chatText}`
+    const envelopeUrl = `https://linke.network/chat/${currentAddress}/${getLocal('network')}/?id=${chatText}&version=${version}`
     const url = `${envelopeUrl} to join & get money${'\n'}${tokenList}`
     setTwitterUrl(url)
     const text =`${wishesText}${'\n'}💰 ${newList?.symbol} ${totalAmount} 💰${'\n'}#Giveaway${'\n'}📍Click`

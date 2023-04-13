@@ -27,7 +27,7 @@ export default function useGroupList() {
     setState({
       groupLists: groupInfos
     })
-    return res?.data?.groupUser
+    return res?.data?.groupUser || []
   }
 
   const formatGroup = (publicGroup, cachePublicGroup) => {

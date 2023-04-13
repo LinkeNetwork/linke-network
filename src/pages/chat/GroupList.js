@@ -69,6 +69,7 @@ export default function GroupList(props) {
         })
         // console.log('setGroupList===>1', groupList)
         setGroupList(groupList)
+        // console.log(groupList, 'groupInfos====1')
         setState({
           groupLists: groupList
         })
@@ -348,6 +349,7 @@ export default function GroupList(props) {
       group.hasDelete = false
     })
     setCacheGroupInfo(privateGroupList, 2)
+    // console.log(privateGroupList, 'groupInfos====3')
     setState({
       groupLists: privateGroupList
     })
@@ -377,6 +379,7 @@ export default function GroupList(props) {
         const result = formatGroup(publicGroup, cachePublicGroup)
         // console.log(result, publicGroup, 'setGroupList===>6')
         setGroupList(result)
+        // console.log(result, 'groupLists====4')
         setState({
           isGetGroupList: true,
           groupLists: result
@@ -395,6 +398,7 @@ export default function GroupList(props) {
           const currentChatInfo = groupList.filter((item) => item?.id?.toLowerCase() === currentAddress?.toLowerCase())
           // console.log('setGroupList===>7', groupList)
           setGroupList(groupList)
+          // console.log(groupList, 'groupLists====4')
           setState({
             isGetGroupList: true,
             groupLists: groupList,

@@ -10,7 +10,7 @@ import UseTokenBalance from "../../hooks/UseTokenBalance"
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function AwardBonus(props) {
-  const { swapButtonText, approveLoading, setButtonText, showOpenSignIcon, giveAwayAddressV2 } = useGlobal()
+  const { swapButtonText, approveLoading, showOpenSignIcon, giveAwayAddressV3 } = useGlobal()
   const { approveActions, authorization, getAllowanceTotal } = UseTokenBalance()
   const { handleCloseAward, handleSend } = props
   const [showBonusType, setShowBonusType] = useState(false)
@@ -47,7 +47,7 @@ export default function AwardBonus(props) {
         handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount)
         break;
       case intl.get('Approve'):
-        approveActions(selectedTokenInfo, giveAwayAddressV2)
+        approveActions(selectedTokenInfo, giveAwayAddressV3)
         break;
       default:
         return null;
@@ -107,7 +107,7 @@ export default function AwardBonus(props) {
     setShowTokenList(true)
   }
   const getAuthorization = async() => {
-    const allowanceTotal = await getAllowanceTotal(selectedTokenInfo, giveAwayAddressV2)
+    const allowanceTotal = await getAllowanceTotal(selectedTokenInfo, giveAwayAddressV3)
     if(+amount > +allowanceTotal) {
       setBtnText(intl.get('Approve'))
     } else {
@@ -115,7 +115,7 @@ export default function AwardBonus(props) {
     }
   }
   const handleBtnStatus = async() => {
-    const allowanceTotal = await getAllowanceTotal(selectedTokenInfo, giveAwayAddressV2)
+    const allowanceTotal = await getAllowanceTotal(selectedTokenInfo, giveAwayAddressV3)
     setCanSend(true)
     if(+amount > +allowanceTotal) {
       setBtnText(intl.get('Approve'))
@@ -139,7 +139,7 @@ export default function AwardBonus(props) {
     }
   }, [currentBonusType])
   useEffect(() => {
-    if(+amount > 0) {
+    if(+amount > 0 && selectedToken !== 'ETHF') {
       getAuthorization()
     }
   }, [amount])
@@ -221,50 +221,53 @@ export default function AwardBonus(props) {
             <i className="iconfont icon-expand"></i>
           </div>
         </div>
-        <div className="token-wrapper">
-          <div className="token-detail have-token">
-            <div>Must-Have Tokens</div>
-          </div>
-          <div onClick={() => {handleShowToken(0)}} className="token-info">
-            {
-              haveTokenLogo && <Image size={24} src={haveTokenLogo} style={{ 'borderRadius': '50%'}} />
-            }
-            {
-              !mustHaveToken ?  <span>{ intl.get('SelectToken') }</span> : <div className="name">{mustHaveToken}</div>
-            }
-            <i className="iconfont icon-expand"></i>
-          </div>
-        </div>
-        <div className="amount-wrapper">
-          <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 2)} defaultValue={minAmount}/>
-          <div>{intl.get('HaveTokenText')}</div>
-        </div>
-        <div className="amount-wrapper">
-          <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 3)} defaultValue={minStackedAmount}/>
-          <div>{intl.get('StackedAmount')}</div>
-        </div>
         {
-          showOpenSignIcon &&
-          <div className="check-in-radio">
-            <span className="label">{intl.get('IsOpenCheckInText')}:</span>
-            <label>
-              <input
-                type="radio"
-                value="1"
-                checked={openStatus === '1'}
-                onChange={handleOptionChange}
-              />
-              {intl.get('Yes')}
-            </label>
-            <label>
-              <input
-                type="radio"
-                value="0"
-                checked={openStatus === '0'}
-                onChange={handleOptionChange}
-              />
-              {intl.get('No')}
-            </label>
+          showOpenSignIcon && 
+          <div>
+            <div className="token-wrapper">
+              <div className="token-detail have-token">
+                <div>Must-Have Tokens</div>
+              </div>
+              <div onClick={() => { handleShowToken(0) }} className="token-info">
+                {
+                  haveTokenLogo && <Image size={24} src={haveTokenLogo} style={{ 'borderRadius': '50%' }} />
+                }
+                {
+                  !mustHaveToken ? <span>{intl.get('SelectToken')}</span> : <div className="name">{mustHaveToken}</div>
+                }
+                <i className="iconfont icon-expand"></i>
+              </div>
+            </div>
+            <div className="amount-wrapper">
+              <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 2)} defaultValue={minAmount} />
+              <div>{intl.get('HaveTokenText')}</div>
+            </div>
+
+            <div className="amount-wrapper">
+              <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 3)} defaultValue={minStackedAmount} />
+              <div>{intl.get('StackedAmount')}</div>
+            </div>
+            <div className="check-in-radio">
+              <span className="label">{intl.get('IsOpenCheckInText')}:</span>
+              <label>
+                <input
+                  type="radio"
+                  value="1"
+                  checked={openStatus === '1'}
+                  onChange={handleOptionChange}
+                />
+                {intl.get('Yes')}
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="0"
+                  checked={openStatus === '0'}
+                  onChange={handleOptionChange}
+                />
+                {intl.get('No')}
+              </label>
+            </div>
           </div>
         }
         <div className="bonus-type-wrapper" onClick={() => { setShowBonusType(true) }}>

@@ -1,3 +1,4 @@
+import { RED_PACKET, RED_PACKET_V2 } from '../abi'
 const networks =  [
   {
     name: "ETHF",
@@ -11,7 +12,50 @@ const networks =  [
     GroupProfileAddress: "0x07B588De7Ba7415b033bdD2Ab6Bb286Aed016F7e",
     APIURL: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
     signInGraphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
-    PrivateChatAddress: '0x55Ccf906741dF31a8663B8a5a2bA65FA9756468f'
+    PrivateChatAddress: '0x55Ccf906741dF31a8663B8a5a2bA65FA9756468f',
+    addressList: {
+      '0x71d17da8b8a90f94528a7557e34b30df041f278f': {
+        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
+        reaPacket: RED_PACKET,
+        giveaway: 'giveaways',
+        version: "v1",
+        address: "0x71d17da8b8a90f94528a7557e34b30df041f278f"
+      },
+      '0x1ec08c106c85caa680a89f206501f227e2bde5a2': {
+        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
+        reaPacket: RED_PACKET,
+        giveaway: 'giveawayV2S',
+        version: "v2",
+        address: "0x1ec08c106c85caa680a89f206501f227e2bde5a2"
+      },
+      '0x4c5da4d8a00289a2b8336926752f4c07721620ba': {
+        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
+        reaPacket: RED_PACKET_V2,
+        giveaway: 'giveawayV2S',
+        version: "v3",
+        address: "0x4c5da4d8a00289a2b8336926752f4c07721620ba"
+      }
+    },
+    versionList: {
+      v1: {
+        address: '0x71d17da8b8a90f94528a7557e34b30df041f278f',
+        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
+        reaPacket: RED_PACKET,
+        giveaway: 'giveaways'
+      },
+      v2: {
+        address: '0x1ec08c106c85caa680a89f206501f227e2bde5a2',
+        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
+        reaPacket: RED_PACKET_V2,
+        giveaway: 'giveawayV2S'
+      },
+      v3: {
+        address: '0x4c5da4d8a00289a2b8336926752f4c07721620ba',
+        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
+        reaPacket: RED_PACKET_V2,
+        giveaway: 'giveawayV2S'
+      }
+    }
   }
   // {
   //   name: "CZZ",

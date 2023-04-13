@@ -3,7 +3,7 @@ import { getLocal } from "../utils"
 import { createClient } from 'urql'
 export default function useReceiveInfo() {
   const { networks } = useGlobal()
-  const getReceiveInfo = async(currentRedEnvelopId, giveawayVersion) => {
+  const getReceiveInfo = async(currentRedEnvelopId, giveawayVersion, graphUrl, version) => {
     const tokensQuery = `
     {
       ${giveawayVersion}(where: {id: "`+  currentRedEnvelopId + `"}){
@@ -16,6 +16,7 @@ export default function useReceiveInfo() {
         ${giveawayVersion === "giveaways" ? "" : "haveToken,"}
         ${giveawayVersion === "giveaways" ? "" : "haveAmount,"}
         ${giveawayVersion === "giveaways" ? "" : "scoreToken,"}
+        ${version === "v3" ? "scoreAmount," : ""}
         profile {
           name,
           avatar
@@ -35,10 +36,8 @@ export default function useReceiveInfo() {
       }
     }
     `
-    const item = networks.filter(i=> i.symbol === getLocal('network'))[0]
-    if(!item) return
     const client = createClient({
-      url: item?.APIURL
+      url: graphUrl
     })
     const res = await client.query(tokensQuery).toPromise()
     const giveawayInfos = giveawayVersion === 'giveawayV2S' ? (res?.data?.giveawayV2S[0]) : (res?.data?.giveaways[0])

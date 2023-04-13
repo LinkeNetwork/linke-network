@@ -7,7 +7,7 @@ import { createClient } from 'urql'
 
 const { utils } = Web3
 const { numberToHex } = utils
-
+const PAGE_PATH = window.location.pathname.split('/chat/')[1]
 export const formatAddress = (address, start, end) => {
   if (address) {
     return address.slice(0, start) + '...' + address.slice(-end)
@@ -174,7 +174,6 @@ export const formatTimestamp = (date) => {
 }
 
 export const getClient = async() => {
-  const PAGE_PATH = window.location.pathname.split('/chat/')[1]
   let network = PAGE_PATH?.split('/')[1] || getLocal('network')
   if(!network) {
     const networkInfo = await getCurrentNetworkInfo()

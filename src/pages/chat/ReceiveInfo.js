@@ -53,10 +53,10 @@ export default function ReceiveInfo(props) {
   }
 
   const getReceiveInfo = async (skip = 0) => {
-    const giveawayVersion = currentGiveAwayVersion === 'GiveawayV2' ? 'giveawayV2S' : 'giveaways'
+    const { giveaway } = currentGiveAwayVersion
     const tokensQuery = `
     {
-      ${giveawayVersion}(where: {id: "`+ currentRedEnvelopId + `"}){
+      ${giveaway}(where: {id: "`+ currentRedEnvelopId + `"}){
         sender,
         token,
         lastCount,
@@ -89,7 +89,8 @@ export default function ReceiveInfo(props) {
     if(!currentGiveAwayVersion) return
     const res = await getReceiveInfo(skipNum)
     setSkipNum(skipNum + 50)
-    const receivedInfo = currentGiveAwayVersion === 'GiveawayV2' ?  res?.data?.giveawayV2S[0] : res?.data?.giveaways[0]
+    debugger
+    const receivedInfo = currentGiveAwayVersion.giveaway === 'giveaways' ? res?.data?.giveaways[0] : res?.data?.giveawayV2S[0]
     const currentReceiveList = receivedInfo?.receiveProfile || []
     const receiveLists = receiveList.concat([...currentReceiveList])
     setReceiveList(receiveLists)
