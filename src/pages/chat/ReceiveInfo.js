@@ -7,6 +7,7 @@ import { detectMobile, getLocal, formatAddress } from '../../utils'
 import { tokenListInfo } from '../../constant/tokenList'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Image from "../../component/Image"
+import { createClient } from 'urql'
 import { List } from 'react-virtualized'
 export default function ReceiveInfo(props) {
   const { currentRedEnvelopId, handleCloseReceiveInfo, currentGiveAwayVersion } = props
@@ -42,7 +43,7 @@ export default function ReceiveInfo(props) {
                     : <span className="name">{formatAddress(item?.sender, 6, 6)}</span>
                 }
               </div>
-              <div className="right">{(Math.floor(ethers.utils.formatUnits(item?.amount, receiveDecimals) * 10000) / 10000)}<span className="symbol">{receiveSymbol}</span></div>
+              <div className="right">{(Math.floor(ethers.utils.formatUnits(item?.amount, receiveDecimals) * 1000000) / 1000000)}<span className="symbol">{receiveSymbol}</span></div>
             </div>
           </div>
         )
@@ -51,9 +52,27 @@ export default function ReceiveInfo(props) {
     )
 
   }
-
+  const getReceiveAmount = async() => {
+    const { graphUrl } = currentGiveAwayVersion
+    const tokensQuery = `
+    query{
+      giveaway(id: "`+ currentRedEnvelopId +`"){
+        receiveProfile(where: {sender: "`+  getLocal('account')?.toLowerCase() +`"}){
+          sender,
+          amount,
+        }
+      }
+    }
+    `
+    const client = createClient({
+      url: graphUrl
+    })
+    const res = await client?.query(tokensQuery).toPromise()
+    const amount = ethers.utils.formatEther(res?.data?.giveaway?.receiveProfile[0]?.amount)
+    setReceivedAmount(Number(amount).toFixed(6))
+  }
   const getReceiveInfo = async (skip = 0) => {
-    const { giveaway } = currentGiveAwayVersion
+    const { giveaway, graphUrl } = currentGiveAwayVersion
     const tokensQuery = `
     {
       ${giveaway}(where: {id: "`+ currentRedEnvelopId + `"}){
@@ -82,14 +101,16 @@ export default function ReceiveInfo(props) {
       }
     }
     `
-    const res = await clientInfo?.query(tokensQuery).toPromise()
+    const client = createClient({
+      url: graphUrl
+    })
+    const res = await client?.query(tokensQuery).toPromise()
     return res
   }
   const handleReceiveInfo = async () => {
     if(!currentGiveAwayVersion) return
     const res = await getReceiveInfo(skipNum)
     setSkipNum(skipNum + 50)
-    debugger
     const receivedInfo = currentGiveAwayVersion.giveaway === 'giveaways' ? res?.data?.giveaways[0] : res?.data?.giveawayV2S[0]
     const currentReceiveList = receivedInfo?.receiveProfile || []
     const receiveLists = receiveList.concat([...currentReceiveList])
@@ -102,10 +123,6 @@ export default function ReceiveInfo(props) {
     var newList = list.filter(item => item.address.toUpperCase().includes(receivedInfo?.token.toUpperCase()))[0]
     setReceiveSymbol(newList?.symbol)
     setReceiveDecimals(newList?.decimals)
-    if (item) {
-      const amount = ethers.utils.formatUnits(item?.amount, newList?.decimals)
-      setReceivedAmount((Math.floor(amount * 10000) / 10000))
-    }
     if(receivedInfo?.lastCount > 0 || item?.sender?.toLowerCase() === getLocal('account')?.toLowerCase()) {
       setHasRedPacket(true)
     }
@@ -116,6 +133,7 @@ export default function ReceiveInfo(props) {
     }, 10)
   }
   useEffect(() => {
+    getReceiveAmount()
     handleReceiveInfo()
   }, [currentRedEnvelopId])
   return (

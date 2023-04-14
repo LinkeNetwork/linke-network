@@ -221,28 +221,27 @@ export default function AwardBonus(props) {
             <i className="iconfont icon-expand"></i>
           </div>
         </div>
+        <div className="token-wrapper">
+          <div className="token-detail have-token">
+            <div>Must-Have Tokens</div>
+          </div>
+          <div onClick={() => { handleShowToken(0) }} className="token-info">
+            {
+              haveTokenLogo && <Image size={24} src={haveTokenLogo} style={{ 'borderRadius': '50%' }} />
+            }
+            {
+              !mustHaveToken ? <span>{intl.get('SelectToken')}</span> : <div className="name">{mustHaveToken}</div>
+            }
+            <i className="iconfont icon-expand"></i>
+          </div>
+        </div>
+        <div className="amount-wrapper">
+          <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 2)} defaultValue={minAmount} />
+          <div>{intl.get('HaveTokenText')}</div>
+        </div>
         {
           showOpenSignIcon && 
           <div>
-            <div className="token-wrapper">
-              <div className="token-detail have-token">
-                <div>Must-Have Tokens</div>
-              </div>
-              <div onClick={() => { handleShowToken(0) }} className="token-info">
-                {
-                  haveTokenLogo && <Image size={24} src={haveTokenLogo} style={{ 'borderRadius': '50%' }} />
-                }
-                {
-                  !mustHaveToken ? <span>{intl.get('SelectToken')}</span> : <div className="name">{mustHaveToken}</div>
-                }
-                <i className="iconfont icon-expand"></i>
-              </div>
-            </div>
-            <div className="amount-wrapper">
-              <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 2)} defaultValue={minAmount} />
-              <div>{intl.get('HaveTokenText')}</div>
-            </div>
-
             <div className="amount-wrapper">
               <input placeholder="0.00" type="text" pattern="^[0-9]*[.,]?[0-9]*$" inputMode="decimal" autoComplete="off" autoCorrect="off" onChange={e => enforcer(e.target.value.replace(/,/g, '.'), 3)} defaultValue={minStackedAmount} />
               <div>{intl.get('StackedAmount')}</div>

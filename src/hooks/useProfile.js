@@ -1,4 +1,4 @@
-import { getDaiWithSigner, setLocal } from '../utils'
+import { getDaiWithSigner, setLocal, getCurrentNetworkInfo } from '../utils'
 import {PROFILE_ABI} from '../abi'
 import BigNumber from 'bignumber.js'
 import useGlobal from './useGlobal'
@@ -12,10 +12,11 @@ export default function useProfile() {
   const [ProfileDescription, setProfileDescription] = useState()
   const [profileId, setProfileId] = useState()
   const getProfileStatus = async(account) => {
+    const networkInfo = await getCurrentNetworkInfo()
     if(account) {
       try{
-        if(currentNetworkInfo && currentNetworkInfo?.ProfileAddress) {
-          const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
+        if(currentNetworkInfo && networkInfo?.ProfileAddress) {
+          const res = await getDaiWithSigner(networkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
           var hasCreate = res && (new BigNumber(Number(res))).toNumber()
           setLocal('hasCreate', Boolean(hasCreate))
           setState({
@@ -32,11 +33,12 @@ export default function useProfile() {
     }
   }
   const getMyprofileInfo = async(profileId) => {
+    const networkInfo = await getCurrentNetworkInfo()
     if(hasCreate) {
       // debugger
       try {
-        if(currentNetworkInfo && currentNetworkInfo?.ProfileAddress) {
-          const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)
+        if(networkInfo && networkInfo?.ProfileAddress) {
+          const res = await getDaiWithSigner(networkInfo?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)
           console.log(res)
           const {name, description, selfNFT}= JSON.parse(res)
           setProfileName(name)

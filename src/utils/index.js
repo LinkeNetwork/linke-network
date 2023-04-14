@@ -8,6 +8,7 @@ import { createClient } from 'urql'
 const { utils } = Web3
 const { numberToHex } = utils
 const PAGE_PATH = window.location.pathname.split('/chat/')[1]
+
 export const formatAddress = (address, start, end) => {
   if (address) {
     return address.slice(0, start) + '...' + address.slice(-end)
@@ -207,7 +208,7 @@ export const getTimestamp = (day) => {
 }
 
 export const getStackedAmount = async(nftAddress) => {
-  const account = getLocal('account').toLowerCase()
+  const account = getLocal('account')
   const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
   const userAmount = ethers.utils.formatEther(registerUserInfos?.amount)
   return userAmount

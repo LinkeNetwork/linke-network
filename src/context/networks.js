@@ -41,19 +41,22 @@ const networks =  [
         address: '0x71d17da8b8a90f94528a7557e34b30df041f278f',
         graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
         reaPacket: RED_PACKET,
-        giveaway: 'giveaways'
+        giveaway: 'giveaways',
+        version: "v1",
       },
       v2: {
         address: '0x1ec08c106c85caa680a89f206501f227e2bde5a2',
         graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
         reaPacket: RED_PACKET_V2,
-        giveaway: 'giveawayV2S'
+        giveaway: 'giveawayV2S',
+        version: "v2",
       },
       v3: {
         address: '0x4c5da4d8a00289a2b8336926752f4c07721620ba',
         graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
         reaPacket: RED_PACKET_V2,
-        giveaway: 'giveawayV2S'
+        giveaway: 'giveawayV2S',
+        version: "v3"
       }
     }
   }

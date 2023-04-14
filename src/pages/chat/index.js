@@ -332,15 +332,15 @@ export default function Chat() {
       })
     }
   }
-  const getGroupName = async(roomAddress, groupInfo) => {
+  const getGroupName = async(roomAddress, groupType, groupInfo) => {
     if(Boolean(+getLocal('isConnect')) || accounts || chainId) {
       getJoinRoomAccess(roomAddress, groupType)
     }
-    if (groupType == 3 && chainId === 513100 && roomAddress) {
+    if (groupType == 3 && roomAddress) {
       var  { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
       updateGroupList(name, roomAddress, groupType)
     } else {
-      if(chainId !== 513100 || !roomAddress) return
+      if(!roomAddress) return
       var  { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
     }
     setCurrentRoomName(name || groupInfo?.name)
@@ -404,14 +404,13 @@ export default function Chat() {
   }
   const getHasAccessStatus = async(roomAddress, groupType) => {
     if (groupType == 3) {
-      if(chainId !== 513100) return
       var res = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
     } else {
-      if(getLocal('account') && chainId === 513100 && roomAddress) {
+      if(getLocal('account') && roomAddress) {
         var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
       }
     }
-    if(!res && chainId !== 513100) {
+    if(!res) {
       setHasAccess(false)
     }
     if(!res) return
@@ -847,7 +846,6 @@ export default function Chat() {
     if(!wishesText) {
       wishesText = 'Best Wishes'
     }
-    debugger
     const params = {
       group: currentAddress,
       amount: total,
@@ -860,18 +858,15 @@ export default function Chat() {
       scoreAmount: stackedAmount,
       lastDate: ethers.BigNumber.from(lastDate)
     }
-    const isOldAddress = +globalNftAddress === 0
-    const address = isOldAddress ? giveAwayAddress : giveAwayAddressV3
-    const redPacket = isOldAddress ? RED_PACKET : RED_PACKET_V2
-    if(isOldAddress) {
-      var tx = selectTokenAddress == 0
-      ? await getDaiWithSigner(address, redPacket).sendETH(currentAddress, total, quantity, type_, wishesText, {value:total})
-      : await getDaiWithSigner(address, redPacket).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText)
-    } else {
-      var tx = selectTokenAddress == 0
-      ? await getDaiWithSigner(address, redPacket).sendETH(params, {value:total})
-      : await getDaiWithSigner(address, redPacket).send(selectTokenAddress, params)
-    }
+    const address = giveAwayAddressV3
+    const redPacket = RED_PACKET_V2
+      // var tx = selectTokenAddress == 0
+      // ? await getDaiWithSigner(address, redPacket).sendETH(currentAddress, total, quantity, type_, wishesText, {value:total})
+      // : await getDaiWithSigner(address, redPacket).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText)
+
+    const tx = selectTokenAddress == 0
+    ? await getDaiWithSigner(address, redPacket).sendETH(params, {value:total})
+    : await getDaiWithSigner(address, redPacket).send(selectTokenAddress, params)
     setShowMask(true)
     setShowAwardBonus(false)
     const db = await setDataBase()
@@ -906,8 +901,6 @@ export default function Chat() {
   }
   const handleGiveAway = async(tx, wishesText) => {
     const myAvatar = await getMyAvatar()
-    const isOldAddress = +globalNftAddress === 0
-    const userId = isOldAddress ? giveAwayAddress : giveAwayAddressV3
     if(currentTabIndex === 0 ) {
       var newChat = {
         id: tx.hash,
@@ -926,7 +919,7 @@ export default function Chat() {
         isOpen: false,
         wishesText: wishesText,
         user: {
-          id: userId
+          id: giveAwayAddressV3
         }
       }
       if(chatList?.length > 0) {
@@ -1123,7 +1116,7 @@ export default function Chat() {
   }
 
   const verifyJoinRoom = () => {
-    if(hasAccess !== undefined && !hasAccess) {
+    if(hasAccessRef.current !== undefined && !hasAccessRef.current) {
       setTipsText(intl.get('JoinRoomText'))
       setShowTips(true)
       return false
@@ -1207,21 +1200,24 @@ export default function Chat() {
       }
     }
 
-    if(version === 'v3') {
+    if(version === 'v3' && +giveawayInfos?.scoreAmount !== 0) {
       const isStacked = await verifyStackedAmount(giveawayInfos?.scoreAmount, giveawayInfos?.haveToken)
       if(!isStacked) return false
     }
 
     return true
   }
-  const handleReceive = async(v) => {
+  const getRedPacketVersion = async(v) => {
     const item = await getCurrentNetworkInfo()
+    const version = item.addressList[v.user.id]
+    return version
+  }
+  const handleReceive = async(v) => {
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText.split('---')[0] : v?.chatText
     setCurrentRedEnvelopId(chatText)
-    const version = item.addressList[v.user.id]
+    const version = await getRedPacketVersion(v)
     setCurrentRedPackeVersion(version)
     setCurrentGiveAwayVersion(v.user.id)
-    debugger
     const isReceived = await getReceivedStatus(version, chatText)
     if(isReceived === 1) {
       setShowReceiveInfo(true)
@@ -1401,8 +1397,7 @@ export default function Chat() {
     }
   }, [])
   const handleAwardBonus = async() => {
-    const giveawayAddress = +globalNftAddress === 0 ? giveAwayAddress : giveAwayAddressV3
-    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveawayAddress)
+    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddressV3)
     if(!Boolean(res?.state)) {
       setShowOpenAward(true)
     } else {
@@ -1423,8 +1418,13 @@ export default function Chat() {
     setState({
       showOpen: false
     })
-    debugger
-    const { giveaway, graphUrl,version, reaPacket } = currentRedPackeVersion
+    if(currentRedPackeVersion) {
+      var { giveaway, graphUrl,version, reaPacket } = currentRedPackeVersion
+    } else {
+      const item = await getCurrentNetworkInfo()
+      var currentRedPackeVersion = item.versionList[RED_PACKET_VERSION]
+      var { giveaway, graphUrl,version, reaPacket } = currentRedPackeVersion
+    }
     const giveawayInfos = await getReceiveInfo(currentRedEnvelopId, giveaway, graphUrl, version)
     if(giveawayInfos?.lastCount === 0) {
       setShowRedEnvelope(false)
@@ -1463,9 +1463,7 @@ export default function Chat() {
   }
   const handleOpenAward = async() => {
     setShowOpenAward(false)
-    const giveAwayAddress = +globalNftAddress === 0 ? giveAwayAddress : giveAwayAddressV3
-    const redPacket = +globalNftAddress === 0 ? RED_PACKET : RED_PACKET_V2
-    const tx = await getDaiWithSigner(giveAwayAddress, redPacket).register(currentAddress)
+    const tx = await getDaiWithSigner(giveAwayAddressV3, RED_PACKET_V2).register(currentAddress)
     setShowMask(true)
     await tx.wait()
     setShowMask(false)
@@ -1608,6 +1606,7 @@ export default function Chat() {
     const item = await getCurrentNetworkInfo()
     const version = item.versionList[RED_PACKET_VERSION]
     const hasReceived = await getReceivedStatus(version,id)
+    setCurrentGiveAwayVersion(version)
     if(hasReceived) {
       setShowTips(true)
       setTipsText(intl.get('ReceivedText'))
@@ -1617,9 +1616,6 @@ export default function Chat() {
       setShowRedEnvelope(true)
     }
   }
-  useEffect(() => {
-    isRoom(ROOM_ADDRESS)
-  }, [chainId])
   useEffect(() => {
     // console.log(history.location, 'history.location===6')
     if(hasCreateRoom && redEnvelopId) {
@@ -1684,6 +1680,7 @@ export default function Chat() {
       setCurrentTabIndex(1)
     }
     if(address) {
+      isRoom(ROOM_ADDRESS)
       if(detectMobile()) {
         setShowChat(true)
         setState({
