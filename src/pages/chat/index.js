@@ -16,14 +16,13 @@ import CreateNewRoom from './CreateNewRoom'
 import JoinRooom from './JoinRoom'
 import useGroupMember from '../../hooks/useGroupMember'
 import useDataBase from '../../hooks/useDataBase'
-import useUnConnect from '../../hooks/useUnConnect'
 import ShareGroupCode from './ShareGroupCode'
 import AwardBonus from './AwardBonus'
 import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
 import { detectMobile, throttle, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient, getTimestamp, getCurrentNetworkInfo, getStackedAmount } from '../../utils'
-import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, RED_PACKET, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
+import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
 import SearchChat from './SearchChat'
@@ -67,9 +66,8 @@ export default function Chat() {
   const messagesEnd = useRef(null)
   const [showOpenSignIn, setShowOpenSignIn] = useState(false)
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
-  const { getclientInfo } = useUnConnect()
   const [showTips, setShowTips] = useState()
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, clientInfo, currentChatInfo, giveAwayAddress, hasCreateRoom, chainId, signInAddress, giveAwayAddressV2, giveAwayAddressV3, currentNetworkInfo } = useGlobal()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, clientInfo, currentChatInfo, hasCreateRoom, chainId, signInAddress, giveAwayAddressV3, currentNetworkInfo } = useGlobal()
   const [currentAddress, setCurrentAddress] = useState()
   const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
   const currentAddressRef = useRef(null)
@@ -111,16 +109,13 @@ export default function Chat() {
   const [clearChatInput, setClearChatInput] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [sendSuccess, setSendSuccess] = useState(false)
-  const [dialogType, setDialogType] = useState()
   const [currentTabIndex, setCurrentTabIndex] = useState(0)
   const [roomAvatar, setRoomAvatar] = useState()
   const [privateKey, setPrivateKey] = useState()
   const [myAvatar, setMyAvatar] = useState()
   const [nftImageList, setNftImageList] = useState([])
   const [hasDecrypted, setHasDecrypted] = useState(false)
-  const [hasChatCount, setHasChatCount] = useState(false)
   const [currentGroupType, setCurrentGroupType] = useState()
-  const [groupList, setGroupLists] = useState()
   const [showShareGroup, setShowShareGroup] = useState(false)
   const groupListRef = useRef()
   const [canSendText, setCanSendText] = useState()
@@ -139,11 +134,6 @@ export default function Chat() {
     }
   }, [hasQuitRoom])
   useEffect(() => {
-    if (!clientInfo) {
-      getclientInfo()
-    }
-  }, [clientInfo])
-  useEffect(() => {
     myAvatarRef.current = myAvatar
     currentAddressRef.current = currentAddress || ROOM_ADDRESS
     hasScrollRef.current = hasScroll
@@ -152,7 +142,7 @@ export default function Chat() {
     currentGroupTypeRef.current = currentGroupType
     hasAccessRef.current = hasAccess
     showJoinGroupButtonRef.current = showJoinGroupButton
-  }, [currentAddress, hasScroll, roomList, chatList, currentGroupType, hasAccess, showJoinGroupButton, myAvatar])
+  }, [currentAddress, hasScroll, roomList, chatList, currentGroupType, hasAccess, showJoinGroupButton, myAvatar, ROOM_ADDRESS])
   useEffect(() => {
  
     if(!(+getLocal('isConnect')) && groupLists?.length) {
@@ -1410,28 +1400,29 @@ export default function Chat() {
   const handleSearch = (event) => {
     const value = event.target.value
     setSearchGrouName(value)
-    const list = [...groupList]
+    const list = [...groupLists]
     var newList = list.filter(item => item.name.includes(value) || item.id.toUpperCase().includes(value.toUpperCase()))
     setSearchGroup(newList)
   }
-  const handleReceiveConfirm = async(e, id) => {
+  const handleReceiveConfirm = async() => {
     setState({
       showOpen: false
     })
-    if(currentRedPackeVersion) {
-      var { giveaway, graphUrl,version, reaPacket } = currentRedPackeVersion
-    } else {
+    let redPackeVersionInfo = {}
+    if(!currentRedPackeVersion) {
       const item = await getCurrentNetworkInfo()
-      var currentRedPackeVersion = item.versionList[RED_PACKET_VERSION]
-      var { giveaway, graphUrl,version, reaPacket } = currentRedPackeVersion
+      redPackeVersionInfo = item.versionList[RED_PACKET_VERSION]
+    } else {
+      redPackeVersionInfo = currentRedPackeVersion
     }
+    const { giveaway, graphUrl, version, reaPacket } = redPackeVersionInfo
     const giveawayInfos = await getReceiveInfo(currentRedEnvelopId, giveaway, graphUrl, version)
     if(giveawayInfos?.lastCount === 0) {
       setShowRedEnvelope(false)
       setShowReceiveInfo(true)
       return
     }
-    const tx = currentRedPackeVersion.version !== 'v3'
+    const tx = version !== 'v3'
           ? await getDaiWithSigner(currentGiveAwayVersion, reaPacket).receive(currentRedEnvelopId)
           : await getDaiWithSigner(currentGiveAwayVersion, reaPacket).receives(currentRedEnvelopId)
     setState({
@@ -1440,8 +1431,6 @@ export default function Chat() {
     const callback = await tx.wait()
     setShowRedEnvelope(false)
     setShowReceiveInfo(true)
-    const amount = callback?.events[1]?.args?.id
-    const receiveAmount = (new BigNumber(Number(amount))).toNumber()
     const index = chatList?.findIndex(item => item.transaction == currentRedEnvelopTransaction)
     if(index > -1) {
       chatList[index].isOpen = true
@@ -1658,9 +1647,6 @@ export default function Chat() {
     }
   }, [showPlaceWrapper])
   useEffect(() => {
-    if(!(+getLocal('isConnect'))) {
-      getclientInfo()
-    }
     if(!groupLists?.length && !(+getLocal('isConnect'))) {
       setRoomList([])
       setShowChat(false)
@@ -1895,9 +1881,8 @@ export default function Chat() {
                     currNetwork={currNetwork}
                     currentTabIndex={currentTabIndex}
                     currentAddress={currentAddress?.toLowerCase()}
-                    hasChatCount={hasChatCount}
                     onClickDialog={() => { setShowJoinRoom(true) }}
-                    confirmDelete={() => { setDialogType('delete') }}>
+                    >
                   </ListGroup>
                 </div>
               </div>
@@ -1948,7 +1933,7 @@ export default function Chat() {
                         </div>
                       </div>
                       {
-                        ((hasAccess || currentTabIndex == 1) || (canSendText && currentGroupTypeRef.current == 3)) &&
+                        ((hasAccess || +currentTabIndex === 1) || (canSendText && +currentGroupTypeRef.current === 3)) &&
                         <ChatInputBox
                           currentAddress={currentAddress}
                           startChat={(text) => startChat(text)}
@@ -1963,7 +1948,7 @@ export default function Chat() {
                         ></ChatInputBox>
                       }
                       {
-                        !hasAccess && currentGroupTypeRef.current != 3 && currentTabIndex != 1 &&
+                        !hasAccess && +currentGroupTypeRef.current !== 3 && +currentTabIndex !== 1 &&
                         <JoinGroupButton hasAccess={hasAccess} currentAddress={currentAddress} changeJoinStatus={(groupType) => changeJoinStatus(groupType)} chainId={chainId} />
                       }
                     </div>

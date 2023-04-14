@@ -19,21 +19,24 @@ const networks =  [
         reaPacket: RED_PACKET,
         giveaway: 'giveaways',
         version: "v1",
-        address: "0x71d17da8b8a90f94528a7557e34b30df041f278f"
+        address: "0x71d17da8b8a90f94528a7557e34b30df041f278f",
+        giveaway_: "giveaway"
       },
       '0x1ec08c106c85caa680a89f206501f227e2bde5a2': {
         graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
         reaPacket: RED_PACKET,
         giveaway: 'giveawayV2S',
         version: "v2",
-        address: "0x1ec08c106c85caa680a89f206501f227e2bde5a2"
+        address: "0x1ec08c106c85caa680a89f206501f227e2bde5a2",
+        giveaway_: "giveaway"
       },
       '0x4c5da4d8a00289a2b8336926752f4c07721620ba': {
         graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
         reaPacket: RED_PACKET_V2,
         giveaway: 'giveawayV2S',
         version: "v3",
-        address: "0x4c5da4d8a00289a2b8336926752f4c07721620ba"
+        address: "0x4c5da4d8a00289a2b8336926752f4c07721620ba",
+        giveaway_: "giveawayV2"
       }
     },
     versionList: {
@@ -43,6 +46,7 @@ const networks =  [
         reaPacket: RED_PACKET,
         giveaway: 'giveaways',
         version: "v1",
+        giveaway_: "giveaway"
       },
       v2: {
         address: '0x1ec08c106c85caa680a89f206501f227e2bde5a2',
@@ -50,13 +54,15 @@ const networks =  [
         reaPacket: RED_PACKET_V2,
         giveaway: 'giveawayV2S',
         version: "v2",
+        giveaway_: "giveaway"
       },
       v3: {
         address: '0x4c5da4d8a00289a2b8336926752f4c07721620ba',
         graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
         reaPacket: RED_PACKET_V2,
         giveaway: 'giveawayV2S',
-        version: "v3"
+        version: "v3",
+        giveaway_: "giveawayV2"
       }
     }
   }

@@ -53,10 +53,10 @@ export default function ReceiveInfo(props) {
 
   }
   const getReceiveAmount = async() => {
-    const { graphUrl } = currentGiveAwayVersion
+    const { graphUrl, giveaway_ } = currentGiveAwayVersion
     const tokensQuery = `
-    query{
-      giveaway(id: "`+ currentRedEnvelopId +`"){
+    {
+      ${giveaway_}(id: "`+ currentRedEnvelopId +`"){
         receiveProfile(where: {sender: "`+  getLocal('account')?.toLowerCase() +`"}){
           sender,
           amount,
@@ -68,7 +68,9 @@ export default function ReceiveInfo(props) {
       url: graphUrl
     })
     const res = await client?.query(tokensQuery).toPromise()
-    const amount = ethers.utils.formatEther(res?.data?.giveaway?.receiveProfile[0]?.amount)
+    const result = giveaway_ === 'giveawayV2' ? res?.data?.giveawayV2?.receiveProfile[0]?.amount : res?.data?.giveaway?.receiveProfile[0]?.amount
+    if(!result) return
+    const amount = ethers.utils.formatEther(result)
     setReceivedAmount(Number(amount).toFixed(6))
   }
   const getReceiveInfo = async (skip = 0) => {
@@ -125,6 +127,8 @@ export default function ReceiveInfo(props) {
     setReceiveDecimals(newList?.decimals)
     if(receivedInfo?.lastCount > 0 || item?.sender?.toLowerCase() === getLocal('account')?.toLowerCase()) {
       setHasRedPacket(true)
+    } else {
+      setHasRedPacket(false)
     }
   }
   const loadingDatas = () => {
