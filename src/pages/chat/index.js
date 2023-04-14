@@ -124,6 +124,7 @@ export default function Chat() {
   const hasAccessRef = useRef()
   const myAvatarRef = useRef()
   const showJoinGroupButtonRef = useRef()
+  const ACCOUNT = accounts || getLocal('account') 
   useEffect(() => {
     if (hasQuitRoom) {
       setShowMask(false)
@@ -190,7 +191,7 @@ export default function Chat() {
     if (currentTabIndex === 1) {
       getMyAvatar()
       localForage.getItem('publicKeyList').then(res => {
-        const key = res && res[getLocal('account')]
+        const key = res && res[ACCOUNT]
         if (!key) {
           getMyPublicKey()
         }
@@ -200,7 +201,7 @@ export default function Chat() {
   const getMyAvatar = async () => {
     const tokensQuery = `
     query{
-      profile(id: "`+ getLocal('account').toLowerCase() + `"){
+      profile(id: "`+ ACCOUNT.toLowerCase() + `"){
         name,
         avatar,
       }
@@ -224,16 +225,16 @@ export default function Chat() {
     window.ethereum
       .request({
         method: 'eth_getEncryptionPublicKey',
-        params: [getLocal('account')], // you must have access to the specified account
+        params: [ACCOUNT], // you must have access to the specified account
       })
       .then((result) => {
         localForage.getItem('publicKeyList').then(res => {
           if (res) {
-            res[getLocal('account')] = result
+            res[ACCOUNT] = result
             localForage.setItem('publicKeyList', res)
           } else {
             const obj = {}
-            obj[getLocal('account')] = result
+            obj[ACCOUNT] = result
             localForage.setItem('publicKeyList', obj)
           }
         })
@@ -241,9 +242,9 @@ export default function Chat() {
       })
   }
   const getManager = async (id, type) => {
-    if (type == 3) return
+    if (+type === 3) return
     const tx = await getDaiWithSigner(id, PUBLIC_GROUP_ABI).profile()
-    const canSendText = tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase()
+    const canSendText = tx.manager?.toLowerCase() == ACCOUNT?.toLowerCase()
     setCanSendText(canSendText)
     if (!canSendText || !hasAccess) {
       setShowJoinGroupButton(true)
@@ -308,8 +309,8 @@ export default function Chat() {
       const list = Object.keys(chatListInfo)
       const currentNetwork = getLocal('network')
       chatListInfo[currentNetwork] = list.length ? chatListInfo[currentNetwork] : {}
-      chatListInfo[currentNetwork][getLocal('account')] = chatListInfo[currentNetwork][getLocal('account')] ? chatListInfo[currentNetwork][getLocal('account')] : {}
-      chatListInfo[currentNetwork][getLocal('account')]['publicRooms'] = [...groupList]
+      chatListInfo[currentNetwork][ACCOUNT] = chatListInfo[currentNetwork][ACCOUNT] ? chatListInfo[currentNetwork][ACCOUNT] : {}
+      chatListInfo[currentNetwork][ACCOUNT]['publicRooms'] = [...groupList]
       // console.log('chatListInfo====3')
       localForage.setItem('chatListInfo', chatListInfo).then(res => {
         setRoomList(groupList)
@@ -323,14 +324,12 @@ export default function Chat() {
     }
   }
   const getGroupName = async(roomAddress, groupType, groupInfo) => {
-    if(Boolean(+getLocal('isConnect')) || accounts || chainId) {
-      getJoinRoomAccess(roomAddress, groupType)
-    }
-    if (groupType == 3 && roomAddress) {
+    debugger
+    if(!roomAddress || !groupType || !groupInfo) return
+    getJoinRoomAccess(roomAddress, groupType)
+    if (groupType == 3) {
       var  { name } = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo()
-      updateGroupList(name, roomAddress, groupType)
     } else {
-      if(!roomAddress) return
       var  { name } = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
     }
     setCurrentRoomName(name || groupInfo?.name)
@@ -371,6 +370,8 @@ export default function Chat() {
   const isRoom = async (roomAddress) => {
     try {
       initCurrentAddress(roomAddress)
+      const index = roomList.findIndex(item => item.id === roomAddress?.toLocaleLowerCase())
+      if(index > -1) return
       const groupInfo = await setGroupInfo(roomAddress)
       await getGroupName(roomAddress, groupInfo?._type, groupInfo)
     }
@@ -393,17 +394,10 @@ export default function Chat() {
     setShowMask(false)
   }
   const getHasAccessStatus = async(roomAddress, groupType) => {
-    if (groupType == 3) {
-      var res = await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
-    } else {
-      if(getLocal('account') && roomAddress) {
-        var res = await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(getLocal('account'))
-      }
-    }
-    if(!res) {
-      setHasAccess(false)
-    }
-    if(!res) return
+    if(!ACCOUNT || !roomAddress || !groupType) return
+    const res = groupType == 3 
+              ? await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(ACCOUNT)
+              : await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(ACCOUNT)
     const hasAccess= ethers.BigNumber.from(res) > 0
     setHasAccess(hasAccess)
     return hasAccess
@@ -411,18 +405,16 @@ export default function Chat() {
   const getReceivedStatus = async(version, id) => {
     const envelopId = parseInt(id || redEnvelopId)
     setCurrentRedEnvelopId(envelopId)
-    const tx = await getDaiWithSigner(version.address, version.reaPacket).giveawayInfo_exist(envelopId, getLocal('account'))
+    const tx = await getDaiWithSigner(version.address, version.reaPacket).giveawayInfo_exist(envelopId, ACCOUNT)
     let isReceived = (new BigNumber(Number(tx))).toNumber()
     return isReceived
   }
   const getJoinRoomAccess = async (roomAddress, groupType) => {
-    if(!roomAddress && !groupType) return
+    if(!roomAddress || !groupType) return
     try {
       if(location?.state?.currentIndex === 0 || currentTabIndex === 0) {
         const hasAccess = await getHasAccessStatus(roomAddress, groupType)
-        if (!Boolean(hasAccess)) {
-          setShowJoinGroupButton(true)
-        }
+        setShowJoinGroupButton(!Boolean(hasAccess))
         setShowMask(false)
       }
     } catch(error) {
@@ -566,9 +558,9 @@ export default function Chat() {
     setHasAccess()
     setHasMore(true)
     if (currentTabIndex === 0 && window.ethereum) {
+      await getJoinRoomAccess(item.id, item._type)
       getManager(item.id, item._type)
       await handleReadMessage(item.id)
-      getJoinRoomAccess(item.id, item._type)
       // history.push(`/chat/${item.id}/${getLocal('network')}`)
       const state = {
         address: item.id,
@@ -670,7 +662,7 @@ export default function Chat() {
   const loadingPrivateData = async() => {
     const firstBlock = chatList && chatList[chatList.length-1]?.block
     if(!firstBlock) return
-    const myAddress = getLocal('account')?.toLowerCase()
+    const myAddress = ACCOUNT?.toLowerCase()
     const tokensSenderQuery = `
     query{
       encryptedInfos(orderBy:block,orderDirection:desc, first:20, where:{sender: "`+ myAddress +`", to: "`+ currentAddressRef?.current?.toLowerCase() + `",block_lt: ` + firstBlock + `}){
@@ -736,7 +728,7 @@ export default function Chat() {
   }
 
   const fetchPrivateChatList = async(toAddress, avatar) => {
-    const myAddress = getLocal('account')?.toLowerCase()
+    const myAddress = ACCOUNT?.toLowerCase()
     const tokensSenderQuery = `
     query{
       encryptedInfos(orderBy:block,orderDirection:desc, first:20, where:{sender: "`+ myAddress +`", to: "`+ toAddress?.toLowerCase() + `"}){
@@ -990,12 +982,12 @@ export default function Chat() {
     const currentGroup = list?.filter(item => item.id === roomAddress?.toLowerCase())
     let res = await localForage.getItem('chatListInfo')
     const currNetwork = location?.state?.network || NETWORK || CURRENT_NETWORK || getLocal('network')
-    const publicRooms = res && res[currNetwork]?.[getLocal('account')]?.['publicRooms']
+    const publicRooms = res && res[currNetwork]?.[ACCOUNT]?.['publicRooms']
     const index = publicRooms?.findIndex(item => item.id == roomAddress?.toLowerCase())
     if(index > -1) {
       publicRooms[index]['newChatCount'] = 0
       publicRooms[index]['chatCount'] = currentGroup[0]?.chatCount
-      res[currNetwork][getLocal('account')]['publicRooms'] = [...publicRooms]
+      res[currNetwork][ACCOUNT]['publicRooms'] = [...publicRooms]
       // console.log('chatListInfo====4')
       localForage.setItem('chatListInfo', res)
       setRoomList(publicRooms)
@@ -1116,7 +1108,7 @@ export default function Chat() {
 
   const verifyRegister = async(reaPacket) => {
     if(globalNftAddress) {
-      const registerNftInfos = await getDaiWithSigner(globalNftAddress, reaPacket).balanceOf(getLocal('account'))
+      const registerNftInfos = await getDaiWithSigner(globalNftAddress, reaPacket).balanceOf(ACCOUNT)
       if(+registerNftInfos < 1) {
         setShowTips(true)
         const text = `${intl.get('YouMust')} ${intl.get('CheckIn')} ${intl.get('ReceiveRedEnvelope')}`
@@ -1132,10 +1124,10 @@ export default function Chat() {
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == haveToken.toLocaleLowerCase())
     if(+haveToken === 0){
-      tokenBalance = await getCurrentBalance(getLocal('account'))
+      tokenBalance = await getCurrentBalance(ACCOUNT)
     }else {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
-      const res = await getBalance(provider, haveToken, getLocal('account'))
+      const res = await getBalance(provider, haveToken, ACCOUNT)
       tokenBalance = getBalanceNumber(new BigNumber(Number(res)), selectedToken[0]?.decimals)
     }
     if ((tokenBalance < +mustHaveAmount)){
@@ -1277,7 +1269,7 @@ export default function Chat() {
             hasDelete: false,
             isSuccess: true,
             showProfile: false,
-            position: Boolean(+getLocal('isConnect')) ? (item?._type ==='Giveaway' || item?._type === 'GiveawayV2' ? res?.sender?.toLowerCase() === getLocal('account')?.toLowerCase() : item?.user?.id.toLowerCase() === getLocal('account')?.toLowerCase()) : false,
+            position: Boolean(+getLocal('isConnect')) ? (item?._type ==='Giveaway' || item?._type === 'GiveawayV2' ? res?.sender?.toLowerCase() === ACCOUNT?.toLowerCase() : item?.user?.id.toLowerCase() === ACCOUNT?.toLowerCase()) : false,
             showOperate: false,
             isOpen: false,
             wishesText: item?.chatText?.split('---')[1]
@@ -1309,7 +1301,7 @@ export default function Chat() {
     window.ethereum
       .request({
         method: 'eth_decrypt',
-        params: [message, getLocal('account')]
+        params: [message, ACCOUNT]
       })
       .then((decryptedMessage) => {
         collection.update({
@@ -1466,7 +1458,7 @@ export default function Chat() {
     const tokensQuery = `
     {
       registerInfos(
-        where: {manager: "`+ getLocal('account')?.toLowerCase() + `", register: "`+globalNftAddress?.toLowerCase()+`"}
+        where: {manager: "`+ ACCOUNT?.toLowerCase() + `", register: "`+globalNftAddress?.toLowerCase()+`"}
       ) {
         id
         lastDate
@@ -1536,7 +1528,7 @@ export default function Chat() {
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
-    getCurrentBalance(getLocal('account'))
+    getCurrentBalance(ACCOUNT)
     setState({
       canMint: true,
       hasEndStack: true
@@ -1620,7 +1612,7 @@ export default function Chat() {
       setShowChat(false)
       setMyAddress(accounts)
     }
-    setMyAddress(getLocal('account'))
+    setMyAddress(ACCOUNT)
     return () => {
       clearInterval(timer.current)
       clearInterval(allTimer.current)
