@@ -39,6 +39,7 @@ import useProfile from '../../hooks/useProfile'
 const urlParams = new URLSearchParams(window.location.search)
 const RED_PACKET_ID = urlParams.get('id')
 const RED_PACKET_VERSION = urlParams.get('version')
+const IS_SHARE = urlParams.get('share')
 const PAGE_PATH = window.location.pathname.split('/chat/')[1]
 const GROUP_ADDRESS = PAGE_PATH?.split('/')[0]
 const NETWORK = PAGE_PATH?.split('/')[1] || getLocal('network')
@@ -158,7 +159,7 @@ export default function Chat() {
     groupListRef.current = groupLists
   }, [groupLists])
   useEffect(() => {
-    const isShare = history.location.search.split('share=')[1] || history?.location?.state?.share
+    const isShare = IS_SHARE || history?.location?.state?.share
     if(detectMobile()) {
       getAccount()
     }
@@ -370,7 +371,7 @@ export default function Chat() {
   const isRoom = async (roomAddress) => {
     try {
       initCurrentAddress(roomAddress)
-      const index = roomList.findIndex(item => item.id === roomAddress?.toLocaleLowerCase())
+      const index = roomList?.findIndex(item => item.id === roomAddress?.toLocaleLowerCase())
       if(index > -1) return
       const groupInfo = await setGroupInfo(roomAddress)
       await getGroupName(roomAddress, groupInfo?._type, groupInfo)
