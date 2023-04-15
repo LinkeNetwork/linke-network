@@ -16,7 +16,7 @@ export default function GroupList(props) {
   const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo, transactionRoomHash, groupLists } = useGlobal()
   const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, currentTabIndex, currentAddress, searchGroup } = props
   const [groupList, setGroupList] = useState([])
-  const { getPublicGroupList } = useGroupList()
+  const { getPublicGroupList, getCachePublicGroup } = useGroupList()
   const { chainId } = useWallet()
   const timer = useRef()
   const { formatGroup, formatPrivateGroup } = useGroupList()
@@ -52,42 +52,6 @@ export default function GroupList(props) {
     `
     const res = await clientInfo?.query(tokensQuery).toPromise()
     return res?.data?.groupInfo
-  }
-  const getCurrentGroup = async () => {
-    if (!currentAddress?.toLowerCase() || getLocal('isConnect')) return
-    let fetchData = await getCurrentGroupInfo(currentAddress)
-    if (fetchData) {
-      const { chatCount, id, name, _type } = fetchData
-      const index = groupList?.findIndex(item => item.id == currentAddress?.toLowerCase())
-      if (index === -1) {
-        groupList.push({
-          newChatCount: 0,
-          chatCount: chatCount,
-          id: id,
-          name: name,
-          _type: _type
-        })
-        // console.log('setGroupList===>1', groupList)
-        setGroupList(groupList)
-        // console.log(groupList, 'groupInfos====1')
-        setState({
-          groupLists: groupList
-        })
-      }
-    }
-
-  }
-  const getCachePublicGroup = async () => {
-    const currNetwork = currentNetworkInfo?.name || getLocal('network');
-    let cachePrivateGroup = [];
-    await localForage.getItem('chatListInfo').then(res => {
-      if (currNetwork && getLocal('isConnect')) {
-        const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
-        const publicRooms = account ? account['publicRooms'] : []
-        cachePrivateGroup = [...publicRooms]
-      }
-    });
-    return cachePrivateGroup
   }
 
   const compareGroup = async(currentGroupList, cacheGroupList) => {
@@ -356,10 +320,15 @@ export default function GroupList(props) {
     hiddenMask()
     return privateGroupList
   }
-
+  const fetchPublicGroupList = async() => {
+    const groupList = await getPublicGroupList()
+    setState({
+      groupLists: groupList
+    })
+  }
   const startInterval = () => {
     timer.current = setInterval(() => {
-      getPublicGroupList()
+      fetchPublicGroupList()
     }, 20000)
   }
   const processingGroup = async () => {
@@ -419,9 +388,6 @@ export default function GroupList(props) {
     // console.log(group, 'setGroupList====88')
     setGroupList(group)
   }, [searchGroup])
-  useEffect(() => {
-    getCurrentGroup()
-  }, [currentAddress])
   useEffect(() => {
     setGroupList([...newGroupList])
   }, [newGroupList])

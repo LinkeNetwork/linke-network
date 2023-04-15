@@ -3,7 +3,7 @@ import { Jazzicon } from '@ukstv/jazzicon-react'
 import BigNumber from 'bignumber.js'
 import networks from '../../context/networks'
 import { PROFILE_ABI } from '../../abi/index'
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { createClient } from 'urql'
 import intl from "react-intl-universal"
 import { CopyToClipboard } from 'react-copy-to-clipboard'
@@ -11,6 +11,7 @@ import { useHistory } from 'react-router-dom'
 import Image from "../../component/Image"
 import InfiniteScroll from 'react-infinite-scroll-component'
 import useGlobal from "../../hooks/useGlobal"
+import useCheckIn from "../../hooks/useCheckIn"
 import packetImg from '../../assets/images/packet.svg'
 import { TwitterShareButton } from 'react-twitter-embed'
 import { tokenListInfo } from '../../constant/tokenList'
@@ -18,10 +19,12 @@ import { ethers } from "ethers"
 export default function ChatContext(props) {
   var numeral = require('numeral')
   const { hasMore, chatList, currentAddress, shareInfo, loadingData, currentTabIndex, handleDecryptedMessage, handleReceive } = props
-  const { setState, clientInfo, tokenAddress } = useGlobal()
+  const { setState } = useGlobal()
+  const { getCheckInToken } = useCheckIn()
   const [showOperate, setShowOperate] = useState(false)
   const [selectText, setSelectText] = useState('')
   const [timeOutEvent, setTimeOutEvent] = useState()
+  const [tokenAddress, setTokenAddress] = useState()
   const [longClick, setLongClick] = useState(0)
   const [copyText, setCopyText] = useState('copy')
   const [optionsList, setOptionsList] = useState({})
@@ -38,6 +41,11 @@ export default function ChatContext(props) {
       v.showProfile = false
       setShowOperate(false)
     }, 4000)
+  }
+  const getSelectedToken = async() => {
+    if(currentTabIndex === 1) return
+    const token =  await getCheckInToken()
+    setTokenAddress(token)
   }
   const handleLeaveProfile = (e, v) => {
     if (!detectMobile()) return
@@ -184,6 +192,9 @@ export default function ChatContext(props) {
       state: v?.user?.id
     })
   }
+  useEffect(() => {
+    getSelectedToken()
+  }, [currentAddress])
   return (
     <div
       id="scrollableDiv"

@@ -1,7 +1,8 @@
 import { getLocal, getClient } from '../utils/index'
 import useGlobal from './useGlobal'
+import localForage from "localforage"
 export default function useGroupList() {
-  const { setState } = useGlobal()
+  const { setState, currentNetworkInfo } = useGlobal()
   const getPublicGroupList = async() => {
     const address = getLocal('account')
     if (!address) return
@@ -24,10 +25,7 @@ export default function useGroupList() {
     groupInfos?.forEach((group) => {
       group.hasDelete = false
     })
-    setState({
-      groupLists: groupInfos
-    })
-    return res?.data?.groupUser || []
+    return res?.data?.groupUser?.groupInfos || []
   }
 
   const formatGroup = (publicGroup, cachePublicGroup) => {
@@ -56,5 +54,18 @@ export default function useGroupList() {
     return result
   }
 
-  return { getPublicGroupList, formatGroup, formatPrivateGroup }
+  const getCachePublicGroup = async () => {
+    const currNetwork = currentNetworkInfo?.name || getLocal('network')
+    let cachePrivateGroup = []
+    await localForage.getItem('chatListInfo').then(res => {
+      if (currNetwork && getLocal('isConnect')) {
+        const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
+        const publicRooms = account ? account['publicRooms'] : []
+        cachePrivateGroup = [...publicRooms]
+      }
+    });
+    return cachePrivateGroup
+  }
+
+  return { getPublicGroupList, formatGroup, formatPrivateGroup, getCachePublicGroup }
 }
