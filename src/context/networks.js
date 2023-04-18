@@ -28,7 +28,7 @@ const networks =  [
         giveaway: 'giveawayV2S',
         version: "v2",
         address: "0x1ec08c106c85caa680a89f206501f227e2bde5a2",
-        giveaway_: "giveaway"
+        giveaway_: "giveawayV2"
       },
       '0x4c5da4d8a00289a2b8336926752f4c07721620ba': {
         graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",

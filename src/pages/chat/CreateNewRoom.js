@@ -112,7 +112,6 @@ export default function CreateNewRoom(props) {
     const name_ = 'group'
     const symbol_ = 'GROUP'
     const styleList = JSON.stringify(style)
-    debugger
     try {
       const params = +currentGroup.value === 4 
         ? ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string"], [name, describe, avatarUrl, name_, symbol_])

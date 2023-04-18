@@ -44,7 +44,8 @@ export default function ChatContext(props) {
   }
   const getSelectedToken = async() => {
     if(currentTabIndex === 1) return
-    const token =  await getCheckInToken()
+    const token =  await getCheckInToken(currentAddress)
+    console.log(token, 'token====', currentAddress)
     setTokenAddress(token)
   }
   const handleLeaveProfile = (e, v) => {

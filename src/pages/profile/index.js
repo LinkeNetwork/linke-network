@@ -17,7 +17,6 @@ export default function Profile() {
   const [pathName, setPathName] = useState()
   const [hasCreate, setHasCreate] = useState()
   const getProfileStatus = async (account) => {
-    // debugger
     if (account) {
       try {
         if (currentNetworkInfo && currentNetworkInfo?.ProfileAddress) {

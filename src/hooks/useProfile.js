@@ -35,7 +35,6 @@ export default function useProfile() {
   const getMyprofileInfo = async(profileId) => {
     const networkInfo = await getCurrentNetworkInfo()
     if(hasCreate) {
-      // debugger
       try {
         if(networkInfo && networkInfo?.ProfileAddress) {
           const res = await getDaiWithSigner(networkInfo?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)

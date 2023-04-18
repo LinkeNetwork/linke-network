@@ -89,7 +89,6 @@ export default function GroupMember(props) {
     })
   }
   const confirmQuitRoom = async () => {
-    debugger
     try {
       const abi = groupType == 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
       const tx = await getDaiWithSigner(currentAddress, abi).quitRoom()
@@ -203,7 +202,6 @@ export default function GroupMember(props) {
       console.log(tx, 'tx===manager')
     }
     if (groupType == 3) {
-      debugger
       var res = await getDaiWithSigner(currentAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
       const isMaster = ethers.BigNumber.from(res) > 0
       setCanQuitRoom(isMaster)

@@ -67,5 +67,25 @@ export default function useGroupList() {
     return cachePrivateGroup
   }
 
-  return { getPublicGroupList, formatGroup, formatPrivateGroup, getCachePublicGroup }
+  const compareGroup = async(currentGroupList, cacheGroupList) => {
+    let chatCountChanged = false
+    const result = currentGroupList.map(group => {
+      const cachedGroup = cacheGroupList.find(cached => cached.id === group.id)
+      if (cachedGroup) {
+        const newChatCount = cachedGroup.newChatCount || parseInt(group.chatCount) - parseInt(cachedGroup.chatCount)
+        if(+group.chatCount === +cachedGroup.chatCount) {
+          chatCountChanged = false
+        } else {
+          chatCountChanged = true
+        }
+        const chatCount = cachedGroup ? group.chatCount : cachedGroup.chatCount
+        return {...group, newChatCount, hasDelete: cachedGroup.hasDelete, chatCount}
+      } else {
+        chatCountChanged = false
+        return group
+      }
+    }).concat(cacheGroupList.filter(group => !currentGroupList.find(current => current.id === group.id)))
+    return { result, chatCountChanged }
+  }
+  return { getPublicGroupList, formatGroup, formatPrivateGroup, getCachePublicGroup, compareGroup }
 }

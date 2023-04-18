@@ -4,7 +4,7 @@ import BigNumber from 'bignumber.js'
 import networks from '../context/networks'
 import { TOKEN_ABI, SIGN_IN_ABI } from '../abi/index'
 import { createClient } from 'urql'
-
+import localForage from "localforage"
 const { utils } = Web3
 const { numberToHex } = utils
 const PAGE_PATH = window.location.pathname.split('/chat/')[1]
@@ -212,4 +212,18 @@ export const getStackedAmount = async(nftAddress) => {
   const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
   const userAmount = ethers.utils.formatEther(registerUserInfos?.amount)
   return userAmount
+}
+
+export const setCacheGroup = (currentGroups, currentTabIndex) => {
+  const currNetwork =  PAGE_PATH?.split('/')[1] || getLocal('network')
+  localForage.getItem('chatListInfo').then(res => {
+    let chatListInfo = res ? res : {}
+    if(currentTabIndex === 0) {
+      chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...currentGroups]
+    } else {
+      chatListInfo[currNetwork][getLocal('account')]['privateRooms'] = [...currentGroups]
+    }
+    // console.log('chatListInfo====1')
+    localForage.setItem('chatListInfo', chatListInfo)
+  })
 }

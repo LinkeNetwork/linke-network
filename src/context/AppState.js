@@ -29,6 +29,7 @@ const state = {
   signInAddress: '0xD6425022DC33C6b5bf339AC873430b442d50D63b',
   currentChain: '',
   showOpen: false,
+  getNewMsg: false,
   showReceiveBtn: true,
   currentChatInfo: {},
   transactionRoomHash: '',

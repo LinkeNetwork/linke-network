@@ -54,7 +54,6 @@ export default function JoinGroupButton(props) {
         changeJoinStatus(groupType)
       }
     } catch (error) {
-      debugger
       console.log(error, '==error=======')
       const provider = new ethers.providers.Web3Provider(window.ethereum)
       const receipt = await provider.getTransactionReceipt(transactionHash)

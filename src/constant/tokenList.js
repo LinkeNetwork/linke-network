@@ -73,12 +73,20 @@ export const tokenListInfo = [
   },
   {
     "chainId": 513100,
-    "address": "0x7127deeff734cE589beaD9C4edEFFc39C9128771",
+    "address": "0xf81ed9cecFE069984690A30b64c9AAf5c0245C9F",
     "name": "FREN Crypto",
     "symbol": "FREN",
     "decimals": 18,
     "logoURI": "https://ethf.mdaoswap.com/fren.jpg",
   },
+  // {
+  //   "chainId": 513100,
+  //   "address": "0x7127deeff734cE589beaD9C4edEFFc39C9128771",
+  //   "name": "FREN Crypto",
+  //   "symbol": "FREN",
+  //   "decimals": 18,
+  //   "logoURI": "https://ethf.mdaoswap.com/fren.jpg",
+  // },
   {
     "chainId": 513100,
     "address": "0x68fc76e3934a63c70ed87540714a1e08fc9e72d8",

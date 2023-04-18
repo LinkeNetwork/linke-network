@@ -27,7 +27,6 @@ export default function InputForm(props) {
     const handleSave = async() => {
     setShowLoading(true)
     const info = await client.add(multiavatar(myAddress))
-        debugger
 
     const avatarUrl = `https://ipfs.linke.network/ipfs/${info.path}`
     const expandInfo = []
