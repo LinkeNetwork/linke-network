@@ -153,13 +153,13 @@ export default function Chat() {
     if(!(+getLocal('isConnect')) && groupLists?.length) {
       setCurrentRoomName(groupLists[0].name)
     }
-    if(currentTabIndex === 0) {
-      if(groupLists !== undefined) {
-        const list = [...groupLists]
-        console.log('setRoomList====1', list)
-        setRoomList(list)
-      }
-    }
+    // if(currentTabIndex === 0) {
+    //   if(groupLists !== undefined) {
+    //     const list = [...groupLists]
+    //     console.log('setRoomList====1', list)
+    //     setRoomList(list)
+    //   }
+    // }
     groupListRef.current = groupLists
   }, [groupLists])
   useEffect(() => {
@@ -187,15 +187,20 @@ export default function Chat() {
     }
   }
   useEffect(() => {
-    const address = GROUP_ADDRESS || ROOM_ADDRESS || currentAddress
+    const address = GROUP_ADDRESS || currentAddress
     const network = NETWORK || CURRENT_NETWORK
-    if(address && network && detectMobile()) {
+    if(address && network) {
+      if(currentTabIndex === 0) {
+        fetchPublicChatList(address)
+      }
       setShowChat(true)
-      setState({
-        showHeader: false
-      })
+      if(detectMobile()) {
+        setState({
+          showHeader: false
+        })
+      }
     }
-  }, [GROUP_ADDRESS,ROOM_ADDRESS, currentAddress, CURRENT_NETWORK, NETWORK])
+  }, [GROUP_ADDRESS, currentAddress, CURRENT_NETWORK, NETWORK])
   useEffect(() => {
     if (currentTabIndex === 1) {
       getMyAvatar()
@@ -570,15 +575,12 @@ export default function Chat() {
     setShowMask(true)
     setHasAccess()
     setHasMore(true)
+    setCurrentAddress(item.id)
+    setState({
+      currentAddress: item.id
+    })
+    setCurrentRoomName(item.name)
     if (currentTabIndex === 0 && window.ethereum) {
-      
-      await getJoinRoomAccess(item.id, item._type)
-      getManager(item.id, item._type)
-      if(+item.newChatCount > 0) {
-        await getCurrentChatList(item.id)
-        await handleReadMessage(item.id)
-      }
-      // history.push(`/chat/${item.id}/${getLocal('network')}`)
       const state = {
         address: item.id,
         network: getLocal('network'),
@@ -586,6 +588,13 @@ export default function Chat() {
         name: item.name
       }
       history.push('/chat', state)
+      await getJoinRoomAccess(item.id, item._type)
+      getManager(item.id, item._type)
+      if(+item.newChatCount > 0) {
+        await getCurrentChatList(item.id)
+        await handleReadMessage(item.id)
+      }
+      // history.push(`/chat/${item.id}/${getLocal('network')}`)
       // history.push('/chat')
     }
     setShowChat(true)
@@ -608,11 +617,6 @@ export default function Chat() {
     }
     setMemberCount()
     setHasMore(true)
-    setCurrentAddress(item.id)
-    setState({
-      currentAddress: item.id
-    })
-    setCurrentRoomName(item.name)
     setShowMask(true)
     setHasScroll(false)
   }
@@ -1007,7 +1011,6 @@ export default function Chat() {
     setHasScroll(true)
   }
   const handleReadMessage = async(roomAddress) => {
-    // debugger
     const currentGroupList = await getPublicGroupList()
     const list = currentGroupList || [...groupLists] || [...roomList]
     const currentGroup = list?.filter(item => item.id === roomAddress?.toLowerCase())
@@ -1029,7 +1032,6 @@ export default function Chat() {
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
     const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
-debugger
     const lastBlock = newBlock || res?.length && +res[0]?.block + 1
     // if(!lastBlock || chatListRef.current[0]?.block == 0) return
     const tokensQuery = `
@@ -1605,7 +1607,6 @@ debugger
     const cacheGroupList = await getCachePublicGroup()
     const compareResult = await compareGroup(groupList, cacheGroupList)
     const { hasNewMsgGroup, result } = compareResult
-    debugger
     const address = ROOM_ADDRESS || currentAddress || GROUP_ADDRESS || currentAddressRef.current
     const foundGroup = result?.find(group => group.id === address?.toLowerCase() && group.newChatCount > 0)
     console.log(foundGroup, 'compareResult===', address)
@@ -1711,7 +1712,7 @@ debugger
     if(window?.ethereum) {
       getNftAddress()
     } else {
-      fetchPublicChatList(address)
+      // fetchPublicChatList(address)
     }
     if(location.hash === '#p') {
       setCurrentTabIndex(1)
@@ -1724,9 +1725,9 @@ debugger
           showHeader: false
         })
       }
-      if(!location.hash) {
-        getInitChatList(address)
-      }
+      // if(!location.hash) {
+      //   getInitChatList(address)
+      // }
       setCurrentAddress(address)
     }
   }, [ROOM_ADDRESS, GROUP_ADDRESS])

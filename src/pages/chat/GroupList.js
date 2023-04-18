@@ -120,14 +120,12 @@ export default function GroupList(props) {
       }
       if (type === 1) {
         const cachePublicGroup = chatListInfo[currNetwork][getLocal('account')]['publicRooms']
-        debugger
         const groupList = await compareGroup(groupInfos, cachePublicGroup)
         const { result } = groupList
         const index = result.findIndex((item) => item.id === currentAddress?.toLowerCase())
         if (index >= 0) {
           result[index].newChatCount = 0
         }
-        debugger
         chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...result]
         localForage.setItem('chatListInfo', chatListInfo)
       } else {
@@ -323,7 +321,6 @@ export default function GroupList(props) {
   }
 
   const processingGroup = async () => {
-    debugger
     const currNetwork = currentNetworkInfo?.name || getLocal('network')
     let publicGroup = []
     let privateGroup = []
@@ -356,7 +353,6 @@ export default function GroupList(props) {
     //       }
     //       res[currNetwork][getLocal('account')]['privateRooms'] = [...groupList]
     //       // console.log('chatListInfo====2')
-    //       debugger
     //       localForage.setItem('chatListInfo', res)
     //       const currentChatInfo = groupList.filter((item) => item?.id?.toLowerCase() === currentAddress?.toLowerCase())
     //       // console.log('setGroupList===>7', groupList)
