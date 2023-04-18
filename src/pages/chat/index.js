@@ -320,6 +320,7 @@ export default function Chat() {
       const currentNetwork = getLocal('network')
       chatListInfo[currentNetwork] = list.length ? chatListInfo[currentNetwork] : {}
       chatListInfo[currentNetwork][ACCOUNT] = chatListInfo[currentNetwork][ACCOUNT] ? chatListInfo[currentNetwork][ACCOUNT] : {}
+      // debugger
       chatListInfo[currentNetwork][ACCOUNT]['publicRooms'] = [...groupList]
       // console.log('chatListInfo====3')
       localForage.setItem('chatListInfo', chatListInfo).then(res => {
@@ -830,6 +831,19 @@ export default function Chat() {
     )
     return encryptedMessage
   }
+  // const getNewMsgIndex = async(block) => {
+  //   const tokensQuery = `
+  //   query{
+  //     chatInfos(where:{room: "`+ currentAddress?.toLowerCase() +`", block: ` + block + `}){
+  //       index
+  //     }
+  //   }
+  // `
+
+  // const client = await getClient()
+  // const data = await client?.query(tokensQuery).toPromise()
+  // console.log(data, '====>>>>getNewMsgIndex')
+  // }
   const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount) => {
     const haveAmount = !minAmount ? 0 : ethers.utils.parseEther(minAmount)
     const lastDate = getTimestamp(7)
@@ -972,6 +986,7 @@ export default function Chat() {
       await handleReadMessage(currentAddress, groupList)
       if (callback?.status === 1) {
         const index = chatList?.findIndex((item) => item.id.toLowerCase() == tx.hash.toLowerCase())
+        // await getNewMsgIndex(callback?.blockNumber)
         chatList[index].isSuccess = true
         chatList[index].block = callback?.blockNumber
         chatList[index].isDecrypted = true
@@ -992,7 +1007,7 @@ export default function Chat() {
     setHasScroll(true)
   }
   const handleReadMessage = async(roomAddress) => {
-    
+    // debugger
     const currentGroupList = await getPublicGroupList()
     const list = currentGroupList || [...groupLists] || [...roomList]
     const currentGroup = list?.filter(item => item.id === roomAddress?.toLowerCase())
@@ -1014,12 +1029,12 @@ export default function Chat() {
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
     const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
-
-    const lastBlock = newBlock || res?.length && +res[0]?.index + 1
+debugger
+    const lastBlock = newBlock || res?.length && +res[0]?.block + 1
     // if(!lastBlock || chatListRef.current[0]?.block == 0) return
     const tokensQuery = `
         query{
-          chatInfos(orderBy:index,orderDirection:desc, where:{room: "`+ roomAddress?.toLowerCase() +`", index_gte: ` + lastBlock + `}){
+          chatInfos(orderBy:index,orderDirection:desc, where:{room: "`+ roomAddress?.toLowerCase() +`", block_gte: ` + lastBlock + `}){
             id,
             transaction,
             block,
@@ -1058,7 +1073,7 @@ export default function Chat() {
           // console.log('setChatList===12', chatList)
           setChatList(newList.concat(list))
           
-          await handleReadMessage(currentAddress)
+          // await handleReadMessage(currentAddress)
         }
       }
     // }
@@ -1293,6 +1308,7 @@ export default function Chat() {
             position: Boolean(+getLocal('isConnect')) ? (item?._type ==='Giveaway' || item?._type === 'GiveawayV2' ? res?.sender?.toLowerCase() === ACCOUNT?.toLowerCase() : item?.user?.id.toLowerCase() === ACCOUNT?.toLowerCase()) : false,
             showOperate: false,
             isOpen: false,
+            index: item.index,
             wishesText: item?.chatText?.split('---')[1]
           }
           Object.assign(item, params)
@@ -1588,18 +1604,18 @@ export default function Chat() {
     const groupList = await getPublicGroupList()
     const cacheGroupList = await getCachePublicGroup()
     const compareResult = await compareGroup(groupList, cacheGroupList)
-    const { chatCountChanged, result } = compareResult
-    
-    const address = ROOM_ADDRESS || currentAddress || GROUP_ADDRESS
+    const { hasNewMsgGroup, result } = compareResult
+    debugger
+    const address = ROOM_ADDRESS || currentAddress || GROUP_ADDRESS || currentAddressRef.current
     const foundGroup = result?.find(group => group.id === address?.toLowerCase() && group.newChatCount > 0)
-    console.log(foundGroup, 'compareResult===', compareResult,result, address)
+    console.log(foundGroup, 'compareResult===', address)
     if (foundGroup) {
       await getCurrentGroupChatList(address)
     }
-    if(chatCountChanged && !searchGrouName ) {
+    if(hasNewMsgGroup?.length > 0 && !searchGrouName ) {
       // setCacheGroup(result, currentTabIndex)
       setState({
-        groupLists: result
+        groupLists: result?.length > 0 ? [...result] : []
       })
     }
   }

@@ -68,24 +68,22 @@ export default function useGroupList() {
   }
 
   const compareGroup = async(currentGroupList, cacheGroupList) => {
-    let chatCountChanged = false
+    const hasNewMsgGroup = []
     const result = currentGroupList.map(group => {
       const cachedGroup = cacheGroupList.find(cached => cached.id === group.id)
       if (cachedGroup) {
-        const newChatCount = cachedGroup.newChatCount || parseInt(group.chatCount) - parseInt(cachedGroup.chatCount)
-        if(+group.chatCount === +cachedGroup.chatCount) {
-          chatCountChanged = false
-        } else {
-          chatCountChanged = true
-        }
+        const newChatCount = parseInt(group.chatCount) - parseInt(cachedGroup.chatCount)
+        let chatCountChanged = +group.chatCount === +cachedGroup.chatCount ? false : true
         const chatCount = cachedGroup ? group.chatCount : cachedGroup.chatCount
-        return {...group, newChatCount, hasDelete: cachedGroup.hasDelete, chatCount}
+        if(+group.chatCount !== +cachedGroup.chatCount) {
+          hasNewMsgGroup.push(group.id)
+        }
+        return {...group, newChatCount, hasDelete: cachedGroup.hasDelete, chatCount, chatCountChanged}
       } else {
-        chatCountChanged = false
         return group
       }
     }).concat(cacheGroupList.filter(group => !currentGroupList.find(current => current.id === group.id)))
-    return { result, chatCountChanged }
+    return { result, hasNewMsgGroup }
   }
   return { getPublicGroupList, formatGroup, formatPrivateGroup, getCachePublicGroup, compareGroup }
 }

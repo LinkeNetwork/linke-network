@@ -16,10 +16,8 @@ export default function GroupList(props) {
   const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo, transactionRoomHash, groupLists } = useGlobal()
   const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, currentTabIndex, currentAddress, searchGroup, searchGrouName } = props
   const [groupList, setGroupList] = useState([])
-  const { getPublicGroupList, getCachePublicGroup } = useGroupList()
+  const { getCachePublicGroup } = useGroupList()
   const { chainId } = useWallet()
-  const timer = useRef()
-  const location = useLocation()
   const { formatGroup, formatPrivateGroup } = useGroupList()
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
@@ -61,13 +59,14 @@ export default function GroupList(props) {
     const result = currentGroupList.map(group => {
       const cachedGroup = cacheGroupList.find(cached => cached.id === group.id)
       if (cachedGroup) {
-        const newChatCount = cachedGroup.newChatCount || parseInt(group.chatCount) - parseInt(cachedGroup.chatCount)
+        const newChatCount = parseInt(group.chatCount) - parseInt(cachedGroup.chatCount)
         if(+group.chatCount === +cachedGroup.chatCount) {
           chatCountChanged = false
         } else {
           chatCountChanged = true
         }
-        const chatCount = cachedGroup ? group.chatCount : cachedGroup.chatCount
+        // const chatCount = cachedGroup ? group.chatCount : cachedGroup.chatCount
+        const chatCount = cachedGroup.chatCount
         return {...group, newChatCount, hasDelete: cachedGroup.hasDelete, chatCount}
       } else {
         chatCountChanged = false
@@ -121,12 +120,14 @@ export default function GroupList(props) {
       }
       if (type === 1) {
         const cachePublicGroup = chatListInfo[currNetwork][getLocal('account')]['publicRooms']
+        debugger
         const groupList = await compareGroup(groupInfos, cachePublicGroup)
         const { result } = groupList
         const index = result.findIndex((item) => item.id === currentAddress?.toLowerCase())
         if (index >= 0) {
           result[index].newChatCount = 0
         }
+        debugger
         chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...result]
         localForage.setItem('chatListInfo', chatListInfo)
       } else {
@@ -322,6 +323,7 @@ export default function GroupList(props) {
   }
 
   const processingGroup = async () => {
+    debugger
     const currNetwork = currentNetworkInfo?.name || getLocal('network')
     let publicGroup = []
     let privateGroup = []
@@ -330,46 +332,47 @@ export default function GroupList(props) {
     } else {
       privateGroup = await getPrivateGroupList()
     }
-    localForage.getItem('chatListInfo').then(res => {
-      const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
-      const cachePublicGroup = account ? account['publicRooms'] : []
-      const cachePrivateGroup = account ? account['privateRooms'] : []
-      if (currentTabIndex === 0) {
-        const result = formatGroup(publicGroup, cachePublicGroup)
-        // console.log('setGroupList====7', result)
+    // localForage.getItem('chatListInfo').then(res => {
+    //   const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
+    //   const cachePublicGroup = account ? account['publicRooms'] : []
+    //   const cachePrivateGroup = account ? account['privateRooms'] : []
+    //   if (currentTabIndex === 0) {
+    //     const result = formatGroup(publicGroup, cachePublicGroup)
+    //     // console.log('setGroupList====7', result)
 
-        setGroupList(result)
-        // console.log(result, 'groupLists====4')
-        setState({
-          isGetGroupList: true,
-          groupLists: result
-        })
-      }
-      if (currentTabIndex === 1) {
-          const list = initPrivateMember()
-          const groupList = formatPrivateGroup(privateGroup, cachePrivateGroup)
-          const index = groupList?.findIndex((item) => item?.id?.toLowerCase() === list?.id?.toLowerCase())
-          if (Object.keys(list).length !== 0 && index === -1) {
-            groupList.push(list)
-          }
-          res[currNetwork][getLocal('account')]['privateRooms'] = [...groupList]
-          // console.log('chatListInfo====2')
-          localForage.setItem('chatListInfo', res)
-          const currentChatInfo = groupList.filter((item) => item?.id?.toLowerCase() === currentAddress?.toLowerCase())
-          // console.log('setGroupList===>7', groupList)
-        // console.log('setGroupList====8', groupList)
+    //     setGroupList(result)
+    //     // console.log(result, 'groupLists====4')
+    //     setState({
+    //       isGetGroupList: true,
+    //       groupLists: result
+    //     })
+    //   }
+    //   if (currentTabIndex === 1) {
+    //       const list = initPrivateMember()
+    //       const groupList = formatPrivateGroup(privateGroup, cachePrivateGroup)
+    //       const index = groupList?.findIndex((item) => item?.id?.toLowerCase() === list?.id?.toLowerCase())
+    //       if (Object.keys(list).length !== 0 && index === -1) {
+    //         groupList.push(list)
+    //       }
+    //       res[currNetwork][getLocal('account')]['privateRooms'] = [...groupList]
+    //       // console.log('chatListInfo====2')
+    //       debugger
+    //       localForage.setItem('chatListInfo', res)
+    //       const currentChatInfo = groupList.filter((item) => item?.id?.toLowerCase() === currentAddress?.toLowerCase())
+    //       // console.log('setGroupList===>7', groupList)
+    //     // console.log('setGroupList====8', groupList)
 
-          setGroupList(groupList)
-          // console.log(groupList, 'groupLists====4')
-          setState({
-            isGetGroupList: true,
-            groupLists: groupList,
-            currentChatInfo: currentChatInfo[0]
-          })
-      }
-    }).catch(error => {
-      console.log(error, 'error===')
-    })
+    //       setGroupList(groupList)
+    //       // console.log(groupList, 'groupLists====4')
+    //       setState({
+    //         isGetGroupList: true,
+    //         groupLists: groupList,
+    //         currentChatInfo: currentChatInfo[0]
+    //       })
+    //   }
+    // }).catch(error => {
+    //   console.log(error, 'error===')
+    // })
   }
   useEffect(() => {
     if (accounts && chainId) {
@@ -385,9 +388,9 @@ export default function GroupList(props) {
     // console.log('setGroupList====1', newGroupList)
     setGroupList([...newGroupList])
   }, [newGroupList])
-  useEffect(() => {
-    updateChatCount()
-  },[groupLists])
+  // useEffect(() => {
+  //   updateChatCount()
+  // },[groupLists])
   return (
     <ListGroupContainer>
       <Modal title="Confirm" visible={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
