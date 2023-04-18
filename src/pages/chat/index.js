@@ -438,7 +438,7 @@ export default function Chat() {
   const fetchPublicChatList = async (roomAddress) => {
     const tokensQuery = `
     query{
-      chatInfos(orderBy:block,orderDirection:desc, first:20, where:{room: "`+ roomAddress?.toLowerCase() + `"}){
+      chatInfos(orderBy:index,orderDirection:desc, first:20, where:{room: "`+ roomAddress?.toLowerCase() + `"}){
         id,
         transaction,
         block,
@@ -616,11 +616,11 @@ export default function Chat() {
     setHasScroll(false)
   }
   const loadingGroupData = async () => {
-    const firstBlock = chatList && chatList[chatList.length - 1]?.block
+    const firstBlock = chatList && chatList[chatList.length - 1]?.index
     if (!firstBlock) return
     const tokensQuery = `
     query{
-      chatInfos(orderBy:block,orderDirection:desc, first:20, where:{room: "`+ currentAddressRef?.current?.toLowerCase() + `", block_lt: ` + firstBlock + `}){
+      chatInfos(orderBy:index,orderDirection:desc, first:20, where:{room: "`+ currentAddressRef?.current?.toLowerCase() + `",index_lt: ` + firstBlock + `}){
         id,
         transaction,
         block,
@@ -1011,17 +1011,15 @@ export default function Chat() {
     }
   }
   const getCurrentGroupChatList = async(roomAddress, newBlock) => {
-    
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
     const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
-    
-    const currentGroup = groupLists.filter((item) => item.id === roomAddress?.toLocaleLowerCase())
-    const lastBlock = newBlock || res?.length && +res[0]?.block + 1
+
+    const lastBlock = newBlock || res?.length && +res[0]?.index + 1
     // if(!lastBlock || chatListRef.current[0]?.block == 0) return
     const tokensQuery = `
         query{
-          chatInfos(orderBy:block,orderDirection:desc, where:{room: "`+ roomAddress?.toLowerCase() +`", block_gte: ` + lastBlock + `}){
+          chatInfos(orderBy:index,orderDirection:desc, where:{room: "`+ roomAddress?.toLowerCase() +`", index_gte: ` + lastBlock + `}){
             id,
             transaction,
             block,
@@ -1594,7 +1592,7 @@ export default function Chat() {
     
     const address = ROOM_ADDRESS || currentAddress || GROUP_ADDRESS
     const foundGroup = result?.find(group => group.id === address?.toLowerCase() && group.newChatCount > 0)
-    console.log(foundGroup, 'compareResult===', compareResult, location)
+    console.log(foundGroup, 'compareResult===', compareResult,result, address)
     if (foundGroup) {
       await getCurrentGroupChatList(address)
     }
