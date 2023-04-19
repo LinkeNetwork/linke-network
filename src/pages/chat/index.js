@@ -187,7 +187,7 @@ export default function Chat() {
     }
   }
   useEffect(() => {
-    const address = GROUP_ADDRESS || currentAddress
+    const address = GROUP_ADDRESS
     const network = NETWORK || CURRENT_NETWORK
     if(address && network) {
       if(currentTabIndex === 0) {
@@ -200,7 +200,7 @@ export default function Chat() {
         })
       }
     }
-  }, [GROUP_ADDRESS, currentAddress, CURRENT_NETWORK, NETWORK])
+  }, [GROUP_ADDRESS, CURRENT_NETWORK, NETWORK])
   useEffect(() => {
     if (currentTabIndex === 1) {
       getMyAvatar()
@@ -295,7 +295,7 @@ export default function Chat() {
     }
     if (address) {
       setCurrentAddress(address)
-      if(!location.hash) {
+      if(GROUP_ADDRESS) {
         await getInitChatList(address)
       }
       setState({
@@ -564,6 +564,7 @@ export default function Chat() {
   const showChatList = async(item) => {
     // console.log('setChatList===5')
     setChatList([])
+    setClickNumber(clickNumber+1)
     setHasOpenedSignIn(false)
     setState({
       canUnstake: false,
@@ -581,6 +582,7 @@ export default function Chat() {
     })
     setCurrentRoomName(item.name)
     if (currentTabIndex === 0 && window.ethereum) {
+      await handleReadMessage(currentAddress)
       const state = {
         address: item.id,
         network: getLocal('network'),
@@ -986,8 +988,8 @@ export default function Chat() {
      
       let callback = await tx.wait()
       console.log(callback, 'handlecallback====>>>')
-      const groupList = await getPublicGroupList()
-      await handleReadMessage(currentAddress, groupList)
+      // const groupList = await getPublicGroupList()
+      // await handleReadMessage(currentAddress, groupList)
       if (callback?.status === 1) {
         const index = chatList?.findIndex((item) => item.id.toLowerCase() == tx.hash.toLowerCase())
         // await getNewMsgIndex(callback?.blockNumber)
@@ -1011,8 +1013,7 @@ export default function Chat() {
     setHasScroll(true)
   }
   const handleReadMessage = async(roomAddress) => {
-    const currentGroupList = await getPublicGroupList()
-    const list = currentGroupList || [...groupLists] || [...roomList]
+    const list = groupLists?.length > 0 || roomList?.length > 0 ? [...groupLists] || [...roomList] : await getPublicGroupList()
     const currentGroup = list?.filter(item => item.id === roomAddress?.toLowerCase())
     let res = await localForage.getItem('chatListInfo')
     const currNetwork = location?.state?.network || NETWORK || CURRENT_NETWORK || getLocal('network')
@@ -1403,7 +1404,7 @@ export default function Chat() {
   useEffect(() => {
     // console.log(history.location, 'history.location===5')
     setCurrentRedEnvelopId(RED_PACKET_ID)
-    const address = GROUP_ADDRESS || ROOM_ADDRESS
+    const address = GROUP_ADDRESS
     const network = NETWORK || CURRENT_NETWORK
     const hash = history.location.hash
     hash ? setCurrentTabIndex(1) : setCurrentTabIndex(0)
@@ -1412,9 +1413,6 @@ export default function Chat() {
     }
     if(network) {
       initRoomAddress(hash)
-    }
-    if(address && !(+getLocal('isConnect')) && !network) {
-      // alert('Please connect wallet first')
     }
   }, [])
   const handleAwardBonus = async() => {
@@ -1607,16 +1605,19 @@ export default function Chat() {
     const cacheGroupList = await getCachePublicGroup()
     const compareResult = await compareGroup(groupList, cacheGroupList)
     const { hasNewMsgGroup, result } = compareResult
-    const address = ROOM_ADDRESS || currentAddress || GROUP_ADDRESS || currentAddressRef.current
+    const address =  currentAddressRef.current || ROOM_ADDRESS || currentAddress || GROUP_ADDRESS
+    // debugger
     const foundGroup = result?.find(group => group.id === address?.toLowerCase() && group.newChatCount > 0)
-    console.log(foundGroup, 'compareResult===', address)
+    console.log(foundGroup, 'compareResult===', address, compareResult)
     if (foundGroup) {
       await getCurrentGroupChatList(address)
     }
     if(hasNewMsgGroup?.length > 0 && !searchGrouName ) {
       // setCacheGroup(result, currentTabIndex)
+      const list = result?.length > 0 ? [...result] : []
+      setRoomList(list)
       setState({
-        groupLists: result?.length > 0 ? [...result] : []
+        groupLists: list
       })
     }
   }
@@ -1725,9 +1726,9 @@ export default function Chat() {
           showHeader: false
         })
       }
-      // if(!location.hash) {
-      //   getInitChatList(address)
-      // }
+      if(ROOM_ADDRESS && +clickNumber === 0) {
+        getInitChatList(address)
+      }
       setCurrentAddress(address)
     }
   }, [ROOM_ADDRESS, GROUP_ADDRESS])
