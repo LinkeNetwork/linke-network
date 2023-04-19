@@ -54,11 +54,17 @@ export default function Profile() {
             connectWallet={() => connectWallet()}></Introduction>
         }
         {
-          (!hasCreate && hasCreate !== undefined && accounts && pathName !== undefined && urlParams !== undefined && pathName?.toLowerCase() === accounts?.toLowerCase()) && <CreateProfile newAccounts={urlParams} />
+          accounts &&
+          <>
+            {
+              (!hasCreate && hasCreate !== undefined && accounts && pathName !== undefined && urlParams !== undefined && pathName?.toLowerCase() === accounts?.toLowerCase()) && <CreateProfile newAccounts={urlParams} />
+            }
+            {
+              (hasCreate && accounts && urlParams !== undefined || (pathName !== undefined && pathName?.toLowerCase() !== accounts?.toLowerCase())) && <ViewProfile urlParams={urlParams} currentNetwork={currentNetworkInfo} />
+            }
+          </>
         }
-        {
-          (hasCreate && accounts && urlParams !== undefined || (pathName !== undefined && pathName?.toLowerCase() !== accounts?.toLowerCase())) && <ViewProfile urlParams={urlParams} currentNetwork={currentNetworkInfo} />
-        }
+
       </div>
     </div>
   )

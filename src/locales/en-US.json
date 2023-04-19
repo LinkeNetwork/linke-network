@@ -137,6 +137,8 @@
   "JoinRoomText": "Please Join the group first",
   "ReceivedText": "You've already received it",
   "StackedAmount": "Stacked Amount",
-  "Stacked": "Stack"
+  "Stacked": "Stack",
+  "Airdrop": "Airdrop",
+  "CheckInGroup": "Check In Groups"
 }
 

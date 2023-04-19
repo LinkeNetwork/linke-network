@@ -190,10 +190,9 @@ export default function Chat() {
     const address = GROUP_ADDRESS
     const network = NETWORK || CURRENT_NETWORK
     if(address && network) {
-      if(currentTabIndex === 0) {
-        fetchPublicChatList(address)
-      }
+      setCurrentAddress(address)
       setShowChat(true)
+      getInitChatList(address)
       if(detectMobile()) {
         setState({
           showHeader: false
@@ -810,7 +809,8 @@ export default function Chat() {
         await fetchPrivateChatList(toAddress, avatar)
       }
     } else {
-      if(toAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase()) {
+      const address = currentAddressRef?.current || GROUP_ADDRESS || ROOM_ADDRESS
+      if(toAddress?.toLowerCase() === address?.toLowerCase()) {
         const list = uniqueChatList(res, 'block')
         // console.log('setChatList===9', list)
         setChatList(list)
@@ -1409,7 +1409,7 @@ export default function Chat() {
     const hash = history.location.hash
     hash ? setCurrentTabIndex(1) : setCurrentTabIndex(0)
     if(!(+getLocal('isConnect')) && address) {
-      fetchPublicChatList(address)
+      getInitChatList(address)
     }
     if(network) {
       initRoomAddress(hash)
@@ -1670,11 +1670,6 @@ export default function Chat() {
     }
   }, [hasCreateRoom])
   useEffect(() => {
-    if(accounts) {
-      setCurrentAddress('')
-      setShowChat(false)
-      setMyAddress(accounts)
-    }
     setMyAddress(ACCOUNT)
     return () => {
       window.removeEventListener('scroll', throttle(handleScroll, 500), true)
@@ -1732,12 +1727,6 @@ export default function Chat() {
       setCurrentAddress(address)
     }
   }, [ROOM_ADDRESS, GROUP_ADDRESS])
-  useEffect(() => {
-    if(!location.state && !location?.hash) {
-      setCurrentAddress('')
-      setShowChat(false)
-    }
-  }, [location])
   return(
     <div className={`chat-ui-wrapper ${!showGroupList ? 'chat-ui-wrapper-share' : ''}`}>
       {

@@ -32,7 +32,7 @@ color: #FFCE00;
 background: #f6f6f6;
 font-size: 14px;
 div {
-  left: 121px;
+  left: 161px;
 }
 .connect-client {
   left: 0

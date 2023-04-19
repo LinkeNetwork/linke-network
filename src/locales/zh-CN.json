@@ -134,5 +134,7 @@
   "JoinRoomText": "請先加入群組",
   "ReceivedText": "你已經領取過了",
   "StackedAmount": "質押數量",
-  "Stacked": "質押"
+  "Stacked": "質押",
+  "Airdrop": "空投",
+  "CheckInGroup": "簽到群"
 }
