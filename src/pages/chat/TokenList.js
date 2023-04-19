@@ -66,20 +66,23 @@ export default function TokenList(props) {
   }
   const getDefaultList = () => {
     const tempList = [...tokenListInfo]
-    tempList[0].balance = Number(currentTokenBalance).toFixed(4)
-    setDefaultList(tempList[0])
+    const result = tempList.filter(item => item.name !== "FREN")
+    result[0].balance = Number(currentTokenBalance).toFixed(4)
+    setDefaultList(result[0])
   }
   const formatList = () => {
     const tempList = [...tokenListInfo]
-    tempList.shift()
-    for(let i = 0; i < tempList.length; i++) {
-      getTokenBalance(tempList[i], tempList, i)
+    const result = tempList.filter(item => item.name !== "FREN")
+    result.shift()
+    for(let i = 0; i < result.length; i++) {
+      getTokenBalance(result[i], result, i)
     }
   }
   const handleSearch = (event) => {
     const value = event.target.value
     const list = [...tokenListInfo]
-    var newList = list.filter(item => item.symbol.toUpperCase().includes(value.toUpperCase()) || item.address.toUpperCase().includes(value.toUpperCase()))
+    const result = list.filter(item => item.name !== "FREN")
+    var newList = result.filter(item => item.symbol.toUpperCase().includes(value.toUpperCase()) || item.address.toUpperCase().includes(value.toUpperCase()))
     setTokenInfo(newList)
   }
   const searchContent = () => {
