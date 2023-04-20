@@ -290,7 +290,7 @@ export default function SignIn(props) {
       setBtnText(intl.get('Mint'))
     }
     setIsAuthorization(authorization)
-  }, [authorization, secondaryAuthorization, tokenBalance, quantity])
+  }, [authorization, secondaryAuthorization, tokenBalance])
   useEffect(() => {
     if(nftImageList.length > 0) {
       setCanSend(true)
