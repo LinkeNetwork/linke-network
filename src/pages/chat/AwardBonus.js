@@ -137,12 +137,12 @@ export default function AwardBonus(props) {
         setAmount(result)
       }
     }
-  }, [currentBonusType])
+  }, [currentBonusType, quantity, totalAmount])
   useEffect(() => {
     if(+amount > 0 && selectedToken !== 'ETHF') {
       getAuthorization()
     }
-  }, [amount])
+  }, [amount, selectedToken])
   useEffect(() => {
     if(currentBonusType === intl.get('RandomAmount') && quantity && amount) {
       setTotalAmount(amount)
@@ -153,8 +153,7 @@ export default function AwardBonus(props) {
   }, [currentBonusType, amount, quantity])
   useEffect(() => {
     amountRef.current = amount
-    setClickNumber(clickNumber+1)
-  }, [currentBonusType, amount])
+  }, [amount])
   useEffect(() => {
     (tokenBalance > totalAmount && quantity && amount) ? setCanSend(true) : setCanSend(false)
   }, [totalAmount, quantity, amount])
@@ -283,7 +282,7 @@ export default function AwardBonus(props) {
         </div>
         <div className="amount-wrapper">
           {
-            detectMobile() && (amount == 0 || amount == 'NaN' || !amount) &&
+            detectMobile() && (+amount === 0 || amount === 'NaN' || !amount) &&
             <NumericInput layout="number" placeholder="0.00" onInput={(key) => { handleAmountInput(key) }}/>
           }
           {

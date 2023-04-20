@@ -43,7 +43,7 @@ export default function ChatContext(props) {
       setShowOperate(false)
     }, 4000)
   }
-  const getSelectedToken = async() => {
+  const getSelectedToken = async(currentAddress) => {
     if(currentTabIndex === 1) return
     const info =  await getCheckInToken(currentAddress)
     const { symbol, decimals } = info
@@ -197,7 +197,7 @@ export default function ChatContext(props) {
     })
   }
   useEffect(() => {
-    getSelectedToken()
+    getSelectedToken(currentAddress)
   }, [currentAddress])
   return (
     <div

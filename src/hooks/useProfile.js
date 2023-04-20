@@ -6,7 +6,7 @@ import { getLocal } from '../utils'
 import { useEffect, useState } from 'react'
 
 export default function useProfile() {
-  const { currentNetworkInfo, setState } = useGlobal()
+  const { currentNetworkInfo, setState, accounts } = useGlobal()
   const [hasCreate, setHasCreate] = useState()
   const [profileName, setProfileName] = useState()
   const [ProfileDescription, setProfileDescription] = useState()
@@ -39,7 +39,7 @@ export default function useProfile() {
         if(networkInfo && networkInfo?.ProfileAddress) {
           const res = await getDaiWithSigner(networkInfo?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)
           console.log(res)
-          const {name, description, selfNFT}= JSON.parse(res)
+          const {name, description}= JSON.parse(res)
           setProfileName(name)
           setProfileDescription(description)
         }
@@ -49,10 +49,14 @@ export default function useProfile() {
     }
   }
   useEffect(() => {
-    if(getLocal('isConnect')) {
+    const account = getLocal('account') || accounts
+    const isConnect = getLocal('isConnect')
+    
+    if (isConnect && account) {
       getProfileStatus()
     }
-  }, [getLocal('account'), currentNetworkInfo])
+  }, [getLocal])
+  
   
   return { hasCreate, profileName, ProfileDescription, profileId, getProfileStatus }
 }

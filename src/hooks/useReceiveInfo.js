@@ -1,8 +1,6 @@
 import useGlobal from "./useGlobal"
-import { getLocal } from "../utils"
 import { createClient } from 'urql'
 export default function useReceiveInfo() {
-  const { networks } = useGlobal()
   const getReceiveInfo = async(currentRedEnvelopId, giveawayVersion, graphUrl, version) => {
     const tokensQuery = `
     {

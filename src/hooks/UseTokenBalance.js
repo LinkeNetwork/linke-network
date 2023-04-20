@@ -9,9 +9,7 @@ export default function UseTokenBalance() {
   const [authorization, setAuthorization] = useState(false)
   const [poolBalance,setPoolBalance] = useState(0)
   const [approveLoading, setApproveLoading] = useState(false)
-  const [hasGetTokenList, setHasGetTokenList] = useState(false)
   const [secondaryAuthorization, setSecondaryAuthorization] = useState(false)
-  const [isApprove, setIsApprove] = useState(true)
   const [tokenList, setTokenList] = useState([])
   const getTokenBalance = async(item, arr, index) => {
     const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
@@ -24,7 +22,6 @@ export default function UseTokenBalance() {
         list[index].balance = tokenBalance.toFixed(4)
         list.sort(function (a, b) { return b.balance - a.balance })
         setTokenList(list)
-        setHasGetTokenList(true)
       } catch (error) {
         setPoolBalance(0)
       }
@@ -66,7 +63,6 @@ export default function UseTokenBalance() {
       setAuthorization(true)
       setSecondaryAuthorization(true)
       setApproveLoading(false)
-      setIsApprove(res)
     } catch (error) {
       console.log(error, '====error')
       setAuthorization(false)

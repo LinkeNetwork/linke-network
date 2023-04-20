@@ -14,6 +14,7 @@ import { SIGN_IN_ABI } from '../../abi/index'
 import CountDown from "./CountDown"
 import nftImage from '../../assets/images/nft.jpg'
 import CumulativeTime from './CumulativeTime'
+import useCheckIn from "../../hooks/useCheckIn"
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
@@ -24,6 +25,7 @@ export default function SignIn(props) {
   const [isAuthorization, setIsAuthorization] = useState(false)
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
+  const { getCheckInToken} = useCheckIn()
   const [unstackTime, setUnstackTime] = useState()
   const [isOpenAutoCheckIn, setIsOpenAutoCheckIn] = useState(false)
   const [selectedTokenInfo, setSelectedTokenInfo] = useState('')
@@ -99,7 +101,8 @@ export default function SignIn(props) {
     const account = getLocal('account').toLowerCase()
     const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
     const {lastDate, tokenId, amount, cancelDate} = registerUserInfos
-    const userAmount = ethers.utils.formatEther(amount)
+    const selectedToken = await getCheckInToken(currentAddress)
+    const userAmount = ethers.utils.formatUnits(amount, selectedToken?.decimals)
     setState({
       canMint: !(+userAmount)
     })

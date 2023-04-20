@@ -51,13 +51,13 @@ export default function ChatInputBox(props) {
       nftAddress: tx.nft
     })
     const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
-    if(tx && tx[0] == 0 && res?.manager?.toLowerCase() == accounts?.toLowerCase() && +groupType === 4) {
+    if(tx && +tx[0] === 0 && res?.manager?.toLowerCase() === accounts?.toLowerCase() && +groupType === 4) {
       setShowOpenSignIcon(true)
       setState({
         showOpenSignIcon: false
       })
     }
-    if(tx && tx[0] != 0 && +groupType === 4) {
+    if(tx && +tx[0] !== 0 && +groupType === 4) {
       setState({
         showOpenSignIcon: true
       })
@@ -246,12 +246,12 @@ export default function ChatInputBox(props) {
     setShowOpenSignIn(false)
     handleOpenSign(tokenAddress)
   }
-  const handlePlaceClick = () => {
-    setState({
-      hasClickPlace: true
-    })
-    handleShowPlace()
-  }
+  // const handlePlaceClick = () => {
+  //   setState({
+  //     hasClickPlace: true
+  //   })
+  //   handleShowPlace()
+  // }
   const handleAward = async() => {
     await isOpenSignIn()
     handleAwardBonus()

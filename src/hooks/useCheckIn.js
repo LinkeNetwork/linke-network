@@ -9,7 +9,7 @@ export default function useCheckIn() {
     if(+res?.nft === 0) return
     const tx = await getDaiWithSigner(res?.nft, SIGN_IN_ABI).token()
     const tokenList = [...tokenListInfo]
-    const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == tx.toLocaleLowerCase())
+    const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() === tx?.toLocaleLowerCase())
     const { symbol, decimals } = selectedToken.length && selectedToken[0]
     return { symbol, decimals}
   }

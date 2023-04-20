@@ -1,7 +1,7 @@
 import { token } from "../constant/token"
 import { ethers } from "ethers"
 import { detectMobile, getLocal, setLocal, getCurrentNetworkInfo } from "../utils"
-import { useState, useLayoutEffect } from "react"
+import { useState, useEffect } from "react"
 import useProfile from "./useProfile"
 import MetaMaskOnboarding from '@metamask/onboarding'
 import { useHistory } from 'react-router-dom'
@@ -216,7 +216,7 @@ export default function useWallet() {
       }
     }
   }
-  useLayoutEffect(() => {
+  useEffect(() => {
     initWallet()
   }, [getLocal('account')])
   return { disConnect, chainId, balance ,network, changeNetwork, connectOkexchain, getCurrentBalance }
