@@ -1,11 +1,11 @@
-import React, { Component, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import imgURL from '../../assets/images/logo.png';
 import QRCode from 'qrcode.react'
 import html2canvas from 'html2canvas'
 import { detectMobile, getLocal } from '../../utils';
 import useGlobal from '../../hooks/useGlobal';
 export default function ShareInfo(props) {
-  const { closeShareInfo, currentAddress, shareTextInfo, currentNetwork } = props
+  const { closeShareInfo, currentAddress, shareTextInfo } = props
   const { showShareContent, clientInfo } = useGlobal()
   const [canvasImage, setCanvasImage] = useState()
   const [shareInfoStyle, setShareInfoStyle] = useState({})
@@ -93,7 +93,7 @@ export default function ShareInfo(props) {
           {
             shareInfoStyle.avatar &&
             <div className='logo-wrapper'>
-              <img src={shareInfoStyle.avatar} />
+              <img src={shareInfoStyle.avatar} alt="" />
             </div>
           }
 

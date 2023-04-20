@@ -1,6 +1,6 @@
 import Modal from  '../../component/Modal'
 import styled from "styled-components"
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import intl from "react-intl-universal"
 import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI } from '../../abi'
 import { getDaiWithSigner } from '../../utils'
@@ -42,7 +42,7 @@ export default function JoinGroupButton(props) {
     setShowLoading(true)
     try {
       if(groupType) {
-        const abi = groupType == 3 ?  PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
+        const abi = +groupType === 3 ?  PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
         const tx = await getDaiWithSigner(currentAddress, abi).joinRoom(name)
         setTransactionHash(tx.hash)
         console.log(tx, 'tx====')

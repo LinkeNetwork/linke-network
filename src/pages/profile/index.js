@@ -44,7 +44,7 @@ export default function Profile() {
     const pathname = path.split('/profile/')[1]
     setPathName(pathname)
     getProfileStatus(pathname)
-  }, [accounts, getLocal('isConnect'), hasCreate, pathName, profileId, currentProfileAddress, isJumpToProfile, currentNetworkInfo])
+  }, [accounts, getLocal('isConnect'), path, hasCreate, profileId, currentProfileAddress, isJumpToProfile, currentNetworkInfo])
   return (
     <div className='profile-container'>
       <div className='profile-wrapper'>

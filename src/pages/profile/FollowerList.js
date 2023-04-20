@@ -26,15 +26,7 @@ export default function FollowerList(props) {
     const res = await clientInfo?.query(tokensQuery).toPromise()
     let profiles = res?.data?.profiles
     const noProfiles = ids.filter(ele => profiles.every(item => item.id !== ele))
-    noProfiles.map(item => {
-      profiles.push({
-        name: '',
-        id: item,
-        avatar: ''
-      })
-    })
     setFollowerList(profiles)
-    console.log(noProfiles, profiles, 'noProfiles==')
   }
   const geFollowerList = async () => {
     let tokensQuery = ''

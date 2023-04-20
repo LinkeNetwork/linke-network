@@ -1,5 +1,4 @@
 import styled from "styled-components"
-import bgImage from '../../assets/images/introduction.svg'
 import intl from "react-intl-universal";
 
 export default function Introduction() {

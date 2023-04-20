@@ -68,6 +68,7 @@ export default function SignIn(props) {
         break;
       case intl.get('AutoCheckIn'):
         handleAutoCheckIn()
+        break;
       default:
         return null;
     }
@@ -162,10 +163,10 @@ export default function SignIn(props) {
     console.log(isOpenAutoCheckIn, '====getAutomatic')
     const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).token()
     const tokenList = [...tokenListInfo]
-    const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == tx.toLocaleLowerCase())
+    const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() === tx.toLocaleLowerCase())
     const { symbol, logoURI, address, decimals } = selectedToken.length && selectedToken[0]
     setSelectToken(address)
-    if (tx == 0) {
+    if (+tx === 0) {
       setTokenBalance(Number(currentTokenBalance).toFixed(4))
     } else {
       if(!selectedToken.length) return
@@ -262,14 +263,14 @@ export default function SignIn(props) {
     if(+stakedNum > 0 && isOpenAutoCheckIn) {
       setBtnText(intl.get('CancelCheckIN'))
     }
-  }, [stakedNum])
+  }, [stakedNum, isOpenAutoCheckIn])
   useEffect(() => {
     if (+quantity > 0 && +quantity <= +tokenBalance) {
       setCanSend(true)
     } else {
       setCanSend(false)
     }
-  }, [quantity])
+  }, [quantity, tokenBalance])
   useEffect(() => {
     getNftInfo()
     getSelectedToken()
@@ -289,7 +290,7 @@ export default function SignIn(props) {
       setBtnText(intl.get('Mint'))
     }
     setIsAuthorization(authorization)
-  }, [authorization, secondaryAuthorization])
+  }, [authorization, secondaryAuthorization, tokenBalance, quantity])
   useEffect(() => {
     if(nftImageList.length > 0) {
       setCanSend(true)

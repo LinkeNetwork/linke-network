@@ -1,4 +1,3 @@
-import useGlobal from "./useGlobal"
 import { createClient } from 'urql'
 export default function useReceiveInfo() {
   const getReceiveInfo = async(currentRedEnvelopId, giveawayVersion, graphUrl, version) => {

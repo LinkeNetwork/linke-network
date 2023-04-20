@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { Picker } from 'emoji-mart'
 import intl from "react-intl-universal"
-import { Modal, Loading } from '../../component/index'
+import { Modal } from '../../component/index'
 import { PUBLIC_GROUP_ABI, REGISTER_ABI } from '../../abi'
 import styled from "styled-components"
 import { detectMobile, getDaiWithSigner } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleShowPlace, handleAwardBonus, handleSignIn, handleOpenSign, hasOpenedSignIn, currentTabIndex } = props
+  const { startChat, clearChatInput, resetChatInputStatus, handleAwardBonus, handleSignIn, handleOpenSign, hasOpenedSignIn, currentTabIndex } = props
   const { setState, accounts, signInAddress, groupType, currentAddress } = useGlobal()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
   const [emoji, setEmoji] = useState()
-  const [showLoding, setShowLoding] = useState(false)
   const [editorBacker, setEditorBacker] = useState(null)
   const [textCounter, setTextCounter] = useState(null)
   const limitCnt = 2048
@@ -276,10 +275,6 @@ export default function ChatInputBox(props) {
   }, [])
   return (
     <ChatInputBoxContanier>
-      {
-        showLoding && <Loading></Loading>
-      }
-
       {
         <Modal title={intl.get('OpenCheckIn')} visible={showOpenSignIn} onClose={handleClose}>
           <div className="sign-in-wrapper">

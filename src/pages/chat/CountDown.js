@@ -5,7 +5,7 @@ import intl from "react-intl-universal"
 function CountDown({ timestamp }) {
   const [count, setCount] = useState(0);
   const { setState } = useGlobal()
-  const days = Math.floor(count / (1000 * 60 * 60 * 24));
+  // const days = Math.floor(count / (1000 * 60 * 60 * 24));
   const hours = Math.floor((count % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   const minutes = Math.floor((count % (1000 * 60 * 60)) / (1000 * 60));
   const seconds = Math.floor((count % (1000 * 60)) / 1000);

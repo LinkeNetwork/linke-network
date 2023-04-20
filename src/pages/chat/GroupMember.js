@@ -11,7 +11,6 @@ import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, ENCRYPTED_COMMUNICATION_A
 import { detectMobile, formatAddress, getLocal, getDaiWithSigner } from "../../utils"
 import useGroupMember from '../../hooks/useGroupMember'
 import useGlobal from "../../hooks/useGlobal"
-import Loading from '../../component/Loading'
 import { ethers } from "ethers"
 import ewmLogo from '../../assets/images/ewm.png'
 export default function GroupMember(props) {
@@ -29,7 +28,6 @@ export default function GroupMember(props) {
   const [showQuitRoomConfirm, setShowQuitRoomConfirm] = useState(false)
   const [groupType, setGroupType] = useState()
   const [orignMemberList, setOrignMemberList] = useState([])
-  const [showLoading, setShowLoading] = useState(false)
   const [showPrivateChat, setShowPrivateChat] = useState(false)
   const [privateKey, setPrivateKey] = useState()
   const [showAddManager, setShowAddManager] = useState(false)
@@ -90,7 +88,7 @@ export default function GroupMember(props) {
   }
   const confirmQuitRoom = async () => {
     try {
-      const abi = groupType == 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
+      const abi = +groupType === 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
       const tx = await getDaiWithSigner(currentAddress, abi).quitRoom()
       handleShowMask()
       closeGroupMember()
@@ -194,14 +192,14 @@ export default function GroupMember(props) {
     margin: '0 10px'
   }
   const getManager = async (groupType) => {
-    if (groupType == 1 || groupType == 2) {
+    if (+groupType === 1 || +groupType === 2) {
       const tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
       setManager(tx.manager)
-      const canQuitRoom = tx.manager?.toLowerCase() == getLocal('account')?.toLowerCase()
+      const canQuitRoom = tx.manager?.toLowerCase() === getLocal('account')?.toLowerCase()
       setCanQuitRoom(canQuitRoom)
       console.log(tx, 'tx===manager')
     }
-    if (groupType == 3) {
+    if (+groupType === 3) {
       var res = await getDaiWithSigner(currentAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
       const isMaster = ethers.BigNumber.from(res) > 0
       setCanQuitRoom(isMaster)
@@ -221,10 +219,6 @@ export default function GroupMember(props) {
       {
         showAddManager &&
         addManagerWrapper()
-      }
-      {
-        showLoading &&
-        <Loading />
       }
       {
         quitRoomConfirm()
@@ -278,7 +272,7 @@ export default function GroupMember(props) {
                       <div className="button-wrapper">
                         <div className="view-btn" onClick={() => viewProfile(item)}>{intl.get('View')}</div>
                         {
-                          showPrivateChat && getLocal('account').toLowerCase() != item?.id.toLowerCase() &&
+                          showPrivateChat && getLocal('account').toLowerCase() !== item?.id.toLowerCase() &&
                           <div className="view-btn" onClick={() => handleChat(item)}>{intl.get('Chat')}</div>
                         }
                       </div>
@@ -297,9 +291,9 @@ export default function GroupMember(props) {
                   <div className="address">
                     {formatAddress(item.id, 6, 6)}
                   </div>
-                  {(groupType == 1 || groupType == 2) && getLocal('account') == item.id && manager?.toLowerCase() !== item.id.toLowerCase() && <div>(You)</div>}
+                  {(+groupType === 1 || +groupType === 2) && getLocal('account') === item.id && manager?.toLowerCase() !== item.id.toLowerCase() && <div>(You)</div>}
                   {
-                    (groupType == 1 || groupType == 2) && manager?.toLowerCase() == item.id.toLowerCase() && <div>(Owner)</div>
+                    (+groupType === 1 || +groupType === 2) && manager?.toLowerCase() === item.id.toLowerCase() && <div>(Owner)</div>
                   }
                   {
                     // groupType == 3 && canQuitRoom && <div>(Owner)</div>

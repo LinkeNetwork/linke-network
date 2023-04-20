@@ -1,6 +1,6 @@
 import styled from "styled-components"
 import { create } from 'ipfs-http-client'
-import { Buffer } from 'buffer/';
+// import { Buffer } from 'buffer/';
 import { useHistory } from 'react-router-dom'
 import {PROFILE_ABI} from '../../abi'
 import UploadImage from './UploadImage'
@@ -11,9 +11,9 @@ import multiavatar from '@beeprotocol/beemultiavatar/esm'
 import { getDaiWithSigner, getLocal } from '../../utils'
 import useGlobal from "../../hooks/useGlobal"
 
-const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
-const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
-const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
+// const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
+// const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
+// const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64')
 
 const client = create('https://ipfs.linke.network')
 
@@ -21,7 +21,7 @@ export default function InputForm(props) {
     const { myAddress, showNav, roomAddress } = props
     const { currentNetworkInfo } = useGlobal()
     const history = useHistory()
-    const [bgImage, setBgImage] = useState()
+    // const [bgImage, setBgImage] = useState()
     const [showLoading, setShowLoading] = useState(false)
 
     const handleSave = async() => {
@@ -64,13 +64,10 @@ export default function InputForm(props) {
   const changeDescribeInput = (e) => {
     setDescribe(e.target.value)
   }
-  const uploadBg = (url) => {
-    setBgImage(url)
-  }
   return(
     <InputFormContainer>
       <div className="create-box">
-        <UploadImage uploadBg={(url) => uploadBg(url)} myAddress={myAddress} />
+        <UploadImage myAddress={myAddress} />
         <UserInfo myAddress={myAddress}/>
         <div className="theme-wrap"></div>
       </div>

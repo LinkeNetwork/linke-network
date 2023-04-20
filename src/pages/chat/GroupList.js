@@ -1,7 +1,7 @@
 import { detectMobile, getLocal, formatAddress, setCacheGroup } from "../../utils"
-import { useEffect, useState, Fragment, useRef } from "react"
+import { useEffect, useState, Fragment } from "react"
 import Modal from '../../component/Modal'
-import { useHistory, useLocation } from "react-router-dom"
+import { useHistory } from "react-router-dom"
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import styled from "styled-components"
 import { Jazzicon } from '@ukstv/jazzicon-react'
@@ -11,14 +11,11 @@ import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 import useWallet from "../../hooks/useWallet"
 import intl from "react-intl-universal"
-import useGroupList from "../../hooks/useGroupList";
 export default function GroupList(props) {
-  const { hasCreateRoom, setState, currentNetworkInfo, hasQuitRoom, accounts, clientInfo, transactionRoomHash, groupLists } = useGlobal()
+  const { hasCreateRoom, setState, hasQuitRoom, accounts, clientInfo, transactionRoomHash } = useGlobal()
   const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, currentTabIndex, currentAddress, searchGroup, searchGrouName } = props
   const [groupList, setGroupList] = useState([])
-  const { getCachePublicGroup } = useGroupList()
   const { chainId } = useWallet()
-  const { formatGroup, formatPrivateGroup } = useGroupList()
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [longClick, setLongClick] = useState(0)
   const [startX, setStartX] = useState()
@@ -97,13 +94,6 @@ export default function GroupList(props) {
     }
     return result
   }
-  
-  const updateChatCount = async () => {
-    const currentGroupList = groupLists?.length > 0 ? [...groupLists] : []
-    const cacheGroupList = await getCachePublicGroup()
-    if(!cacheGroupList.length || !currentGroupList.length) return
-    await compareGroup(currentGroupList, cacheGroupList)
-  }
   const setCacheGroupInfo = (groupInfos, type) => {
     const currNetwork = getLocal('network')
     if (!currNetwork) return
@@ -112,11 +102,16 @@ export default function GroupList(props) {
       let chatListInfo = res ? res : {}
       if (!account && currNetwork) {
         const list = Object.keys(chatListInfo)
-        chatListInfo[currNetwork] = chatListInfo[currNetwork] && list.length ? chatListInfo[currNetwork] : {}
-        chatListInfo[currNetwork][getLocal('account')] = {
-          ['publicRooms']: [],
-          ['privateRooms']: []
+        if (!chatListInfo[currNetwork]) {
+          chatListInfo[currNetwork] = {}
         }
+        if (!list.length) {
+          chatListInfo[currNetwork][getLocal('account')] = {
+            publicRooms: [],
+            privateRooms: []
+          }
+        }
+
       }
       if (type === 1) {
         const cachePublicGroup = chatListInfo[currNetwork][getLocal('account')]['publicRooms']
@@ -321,54 +316,11 @@ export default function GroupList(props) {
   }
 
   const processingGroup = async () => {
-    const currNetwork = currentNetworkInfo?.name || getLocal('network')
-    let publicGroup = []
-    let privateGroup = []
     if (currentTabIndex === 0) {
-      publicGroup = await getGroupList()
+      await getGroupList()
     } else {
-      privateGroup = await getPrivateGroupList()
+      await getPrivateGroupList()
     }
-    // localForage.getItem('chatListInfo').then(res => {
-    //   const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
-    //   const cachePublicGroup = account ? account['publicRooms'] : []
-    //   const cachePrivateGroup = account ? account['privateRooms'] : []
-    //   if (currentTabIndex === 0) {
-    //     const result = formatGroup(publicGroup, cachePublicGroup)
-    //     // console.log('setGroupList====7', result)
-
-    //     setGroupList(result)
-    //     // console.log(result, 'groupLists====4')
-    //     setState({
-    //       isGetGroupList: true,
-    //       groupLists: result
-    //     })
-    //   }
-    //   if (currentTabIndex === 1) {
-    //       const list = initPrivateMember()
-    //       const groupList = formatPrivateGroup(privateGroup, cachePrivateGroup)
-    //       const index = groupList?.findIndex((item) => item?.id?.toLowerCase() === list?.id?.toLowerCase())
-    //       if (Object.keys(list).length !== 0 && index === -1) {
-    //         groupList.push(list)
-    //       }
-    //       res[currNetwork][getLocal('account')]['privateRooms'] = [...groupList]
-    //       // console.log('chatListInfo====2')
-    //       localForage.setItem('chatListInfo', res)
-    //       const currentChatInfo = groupList.filter((item) => item?.id?.toLowerCase() === currentAddress?.toLowerCase())
-    //       // console.log('setGroupList===>7', groupList)
-    //     // console.log('setGroupList====8', groupList)
-
-    //       setGroupList(groupList)
-    //       // console.log(groupList, 'groupLists====4')
-    //       setState({
-    //         isGetGroupList: true,
-    //         groupLists: groupList,
-    //         currentChatInfo: currentChatInfo[0]
-    //       })
-    //   }
-    // }).catch(error => {
-    //   console.log(error, 'error===')
-    // })
   }
   useEffect(() => {
     if (accounts && chainId) {
@@ -384,9 +336,6 @@ export default function GroupList(props) {
     // console.log('setGroupList====1', newGroupList)
     setGroupList([...newGroupList])
   }, [newGroupList])
-  // useEffect(() => {
-  //   updateChatCount()
-  // },[groupLists])
   return (
     <ListGroupContainer>
       <Modal title="Confirm" visible={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>

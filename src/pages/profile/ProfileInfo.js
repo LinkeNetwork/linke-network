@@ -87,7 +87,7 @@ export default function ProfileInfo(props) {
     if (profileInfo?.selfNFT) {
       setShoMask(true)
       const res = await getDaiWithSigner(profileInfo?.selfNFT, FOLLOW_ABI).awardItem(urlParams, tokenrul)
-      let callback = await res.wait()
+      await res.wait()
       setHasFollow(true)
       getMyprofileInfo(address)
     }
@@ -217,23 +217,23 @@ export default function ProfileInfo(props) {
         hasCreateProfile &&
         <div className='follow-operate'>
           {
-            (urlParams && !hasFollow && hasFollow != undefined && pathname != accounts) &&
+            (urlParams && !hasFollow && hasFollow !== undefined && pathname !== accounts) &&
             <div className='follow-btn' onClick={(handleFollow)}>Follow</div>
           }
           {
-            hasFollow && hasFollow != undefined &&
+            hasFollow && hasFollow !== undefined &&
             <div className='follow-btn' onClick={handleCancelFollow}>Following</div>
           }
 
           {
-            pathname != accounts && showPrivateChat != undefined && showPrivateChat &&
+            pathname != accounts && showPrivateChat !== undefined && showPrivateChat &&
             <div className='follow-btn' onClick={jupmToChat}>
               <span>Chat</span>
             </div>
           }
 
           {
-            showPrivateChat != undefined && !showPrivateChat && pathname == accounts &&
+            showPrivateChat !== undefined && !showPrivateChat && pathname === accounts &&
             <div className='follow-btn open-btn' onClick={OpenPrivate}>
               <span>Open Private Message</span>
             </div>

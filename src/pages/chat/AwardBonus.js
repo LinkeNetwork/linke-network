@@ -19,7 +19,6 @@ export default function AwardBonus(props) {
   const [minStackedAmount, setMinStackedAmount] = useState()
   const [quantity, setQuantity] = useState('')
   const [amountText, setAmountText] = useState(intl.get('Total'))
-  const [clickNumber, setClickNumber] = useState(0)
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
   const [selectedTokenInfo, setSelectedTokenInfo] = useState('')

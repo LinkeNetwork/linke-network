@@ -23,7 +23,7 @@ const CumulativeTime = ({timestamp, stakedNum, isOpenAutoCheckIn, cancelTime}) =
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [timestamp]);
+  }, [timestamp, firstDate]);
 
   return (
     <div className="cumulative-time">

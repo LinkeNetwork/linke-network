@@ -55,7 +55,7 @@ export default function useProfile() {
     if (isConnect && account) {
       getProfileStatus()
     }
-  }, [getLocal])
+  }, [getLocal, accounts])
   
   
   return { hasCreate, profileName, ProfileDescription, profileId, getProfileStatus }

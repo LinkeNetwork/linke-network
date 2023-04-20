@@ -2,7 +2,7 @@ import { Jazzicon } from '@ukstv/jazzicon-react';
 import { detectMobile } from '../../utils';
 import Image from "../../component/Image"
 export default function RoomHeader(props) {
-  const {showChat, currentRoomName, currentAddress, userCount, hiddenChat, getGroupMember, memberCount, roomAvatar, currentTabIndex, showGroupList} = props
+  const {showChat, currentRoomName, currentAddress, hiddenChat, getGroupMember, memberCount, roomAvatar, currentTabIndex} = props
   return (
     <div className={`right-header-content ${showChat ? 'translate-header-content' : ''}`}>
       {
@@ -31,7 +31,7 @@ export default function RoomHeader(props) {
         </div>
       </div>
       {
-        currentTabIndex == 0 &&
+        +currentTabIndex === 0 &&
         <div className={`group-more ${detectMobile() ? 'group-more-client': ''}`} onClick={getGroupMember}>
           <span className='iconfont icon-more'></span>
         </div>

@@ -1,6 +1,5 @@
 import styled from "styled-components"
 import { Jazzicon } from '@ukstv/jazzicon-react'
-import useGlobal from "../../hooks/useGlobal"
 import { useEffect, useState } from "react"
 import { ethers } from "ethers";
 import { detectMobile, getLocal, formatAddress } from '../../utils'
@@ -8,7 +7,6 @@ import { tokenListInfo } from '../../constant/tokenList'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Image from "../../component/Image"
 import { createClient } from 'urql'
-import { List } from 'react-virtualized'
 export default function ReceiveInfo(props) {
   const { currentRedEnvelopId, handleCloseReceiveInfo, currentGiveAwayVersion } = props
   const [receivedInfo, setReceivedInfo] = useState()
@@ -17,9 +15,7 @@ export default function ReceiveInfo(props) {
   const [hasRedPacket, setHasRedPacket] = useState(false)
   const [receivedAmount, setReceivedAmount] = useState()
   const [receiveSymbol, setReceiveSymbol] = useState()
-  const [listHeight, setListHeight] = useState(240)
   const [receiveDecimals, setReceiveDecimals] = useState('')
-  const { clientInfo } = useGlobal()
   const [skipNum, setSkipNum] = useState(0)
 
   const rowRenderer = () => {

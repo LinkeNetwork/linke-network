@@ -9,12 +9,12 @@ export default function Banner() {
     <BannerContainer className={`${detectMobile() ? 'container-client' : ''}`}>
       <div className='banner-left'>
         <div className='banner-title'>
-          <img src={titleLogo}/>
+          <img src={titleLogo} alt="" />
         </div>
         <div className='banner-info'>{intl.get("BannerText") }</div>
       </div>
       <div className='banner-right'>
-        <img src={banner}/>
+        <img src={banner} alt="" />
       </div>
     </BannerContainer>
   )
@@ -83,25 +83,5 @@ const BannerContainer = styled.div`
       bottom: 120px;
       line-height: 24px;
     }
-  }
-`
-const FollowButton = styled.button`
-  position: absolute;
-  bottom: 50px;
-  font-size: 20px;
-  width: 100%;
-  .follow-us {
-    width: 180px;
-    display: inline-block;
-    height: 44px;
-    background: #fff;
-    border-radius: 30px;
-    line-height: 44px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #231815;
-  }
-  @media (max-width: 991.98px) {
-    bottom: 40px;
   }
 `

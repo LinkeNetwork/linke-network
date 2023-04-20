@@ -1,26 +1,25 @@
 import styled from "styled-components"
-import { create } from 'ipfs-http-client'
-import { useEffect, useRef, useState } from 'react'
+// import { create } from 'ipfs-http-client'
+import { useEffect, useRef } from 'react'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
-const client = create('https://ipfs.linke.network')
+// const client = create('https://ipfs.linke.network')
 export default function UploadImage(props) {
-  const { uploadBg, myAddress } = props
+  const { myAddress } = props
   const avatarRef = useRef()
-  const [showLoading, setShowLoading] = useState(false)
-  const [fileUrl, updateFileUrl] = useState('')
-  const onChange = async (e) => {
-    const file = e.target.files[0]
-    try {
-      setShowLoading(true)
-      const added = await client.add(file)
-      const url = `https://ipfs.linke.network/ipfs/${added.path}`
-      setShowLoading(false)
-      updateFileUrl(url)
-      uploadBg(url)
-    } catch (error) {
-      console.log('Error uploading file: ', error)
-    }
-  }
+  // const [showLoading, setShowLoading] = useState(false)
+  // const [fileUrl, updateFileUrl] = useState('')
+  // const onChange = async (e) => {
+  //   const file = e.target.files[0]
+  //   try {
+  //     setShowLoading(true)
+  //     const added = await client.add(file)
+  //     const url = `https://ipfs.linke.network/ipfs/${added.path}`
+  //     setShowLoading(false)
+  //     updateFileUrl(url)
+  //   } catch (error) {
+  //     console.log('Error uploading file: ', error)
+  //   }
+  // }
   useEffect(() => {
     if(myAddress) {
       if(avatarRef && avatarRef?.current) {
@@ -31,22 +30,22 @@ export default function UploadImage(props) {
   return (
     <UploadImageContainer>
       <div className="bg-wrap">
-        {
+        {/* {
           showLoading &&
           <div className="iconfont icon-loading"></div>
         }
-        {/* {
+        {
           !fileUrl && !showLoading &&
           <div className="iconfont icon-shangchuan"></div>
         }
         <input
           type="file"
           onChange={onChange}
-        /> */}
+        />
         {
           fileUrl &&
           <img src={fileUrl} alt=""/>
-        }
+        } */}
       </div>
       <div className="user-image-wrap">
         {/* <div className="iconfont icon-shangchuan"></div> */}

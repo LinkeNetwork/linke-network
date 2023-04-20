@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { formatAddress, getLocal } from '../../utils'
+import { formatAddress } from '../../utils'
 export default function UserInfo(props) { 
   const { myAddress } = props
   return(

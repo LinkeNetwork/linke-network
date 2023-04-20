@@ -9,12 +9,12 @@ import multiavatar from '@beeprotocol/beemultiavatar/esm'
 import { ethers } from "ethers";
 import Select from 'react-select'
 import Message from "../../component/Message"
-import { Buffer } from 'buffer/';
+// import { Buffer } from 'buffer/';
 import { useHistory } from 'react-router-dom'
 import intl from "react-intl-universal"
-const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
-const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
-const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
+// const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
+// const projectSecret = '2979fb1378a5ec0a0dfec5f97a4fba96';
+// const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
 
 // const client = create({
 //   host: 'ipfs.infura.io',
@@ -38,7 +38,6 @@ export default function CreateNewRoom(props) {
   const [currentGroupType, setCurrentGroupType] = useState()
   const [groupLogo, setGroupLogo] = useState('')
   const [showLoading, setShowLoading] = useState(false)
-  const [showSubLoading, setShowSubLoading] = useState(false)
   const [currentColor, setCurrentColor] = useState('#ffffff')
   const [subTitle, setSubTitle] = useState('')
   const [footerTitle, setFooterTitle] = useState('')
@@ -83,6 +82,8 @@ export default function CreateNewRoom(props) {
           setShowExplain3(false)
         }, 2000);
         break;
+      default:
+        return null;
     }
   }
   const handleCreate = async () => {
@@ -146,8 +147,7 @@ export default function CreateNewRoom(props) {
 
   }
   const handleSelectChange = (val) => {
-    console.log(val, 'handleSelectChange')
-    if (val.value == 3) {
+    if (+val.value === 3) {
       setContentHeight('500px')
     }
     setCurrentGroup(val)
@@ -165,7 +165,6 @@ export default function CreateNewRoom(props) {
         setShowLoading(false)
       } else {
         setQrCodeBg(url)
-        setShowSubLoading(false)
       }
     } catch (error) {
       console.log('Error uploading file: ', error)
@@ -228,7 +227,7 @@ export default function CreateNewRoom(props) {
           }
         </div>
         {
-          currentGroupType == 3 &&
+          +currentGroupType === 3 &&
           <div>
             <div className="form-wrap">
               <legend className="name">{intl.get('Logo')}
@@ -248,7 +247,7 @@ export default function CreateNewRoom(props) {
                 />
                 {
                   groupLogo &&
-                  <img src={groupLogo} style={{ width: '100%' }} />
+                  <img src={groupLogo} style={{ width: '100%' }} alt="" />
                 }
               </div>
             </div>
@@ -269,7 +268,7 @@ export default function CreateNewRoom(props) {
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(1)}></span>
                 {
                   showExplain1 &&
-                  <img src="https://linke.infura-ipfs.io/ipfs/QmZk1Rd98aeVUCGtPe9uT5iKXFgobLjfdNBERf3msDAud1" />
+                  <img src="https://linke.infura-ipfs.io/ipfs/QmZk1Rd98aeVUCGtPe9uT5iKXFgobLjfdNBERf3msDAud1" alt="" />
                 }
               </div>
               <input
@@ -287,7 +286,7 @@ export default function CreateNewRoom(props) {
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(2)}></span>
                 {
                   showExplain2 &&
-                  <img src="https://linke.infura-ipfs.io/ipfs/QmdJQKnqvSeDAiyyBAxExjQSPdkYL6eo4yDEAMk1m6iaEG" />
+                  <img src="https://linke.infura-ipfs.io/ipfs/QmdJQKnqvSeDAiyyBAxExjQSPdkYL6eo4yDEAMk1m6iaEG" alt="" />
                 }
               </div>
               <input
@@ -305,7 +304,7 @@ export default function CreateNewRoom(props) {
                 <span className="iconfont icon-prompt" onClick={() => handleShowExplain(3)}></span>
                 {
                   showExplain3 &&
-                  <img src="https://linke.infura-ipfs.io/ipfs/Qme2MXxFhnFRMFT6yfrz7GvVabPKkHHaQXvmbZF2g2KYET" />
+                  <img src="https://linke.infura-ipfs.io/ipfs/Qme2MXxFhnFRMFT6yfrz7GvVabPKkHHaQXvmbZF2g2KYET" alt="" />
                 }
               </div>
               <input

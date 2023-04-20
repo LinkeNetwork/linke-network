@@ -75,7 +75,7 @@ export default function Nav(props) {
     if(detectMobile()) {
       setIsAirdropSubMenuOpen(true)
     }
-  }, [])
+  }, [path])
   return (
     <div>
       {

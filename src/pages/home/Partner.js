@@ -26,7 +26,7 @@ export default function Partner() {
           partnerList.map((item,index) => {
             return(
               <li className="image-wrap" key={index}>
-                <img src={item} />
+                <img src={item} alt="" />
               </li>
             )
           })

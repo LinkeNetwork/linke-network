@@ -2,7 +2,7 @@ import { getLocal, getClient } from '../utils/index'
 import useGlobal from './useGlobal'
 import localForage from "localforage"
 export default function useGroupList() {
-  const { setState, currentNetworkInfo } = useGlobal()
+  const { currentNetworkInfo } = useGlobal()
   const getPublicGroupList = async() => {
     const address = getLocal('account')
     if (!address) return

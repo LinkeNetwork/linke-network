@@ -25,7 +25,7 @@ export const setLocal = (key, value) => {
 }
 
 export const getLocal = (key) => {
-  if(localStorage.getItem(key) != 'undefined') {
+  if(localStorage.getItem(key) !== 'undefined') {
     return localStorage.getItem(key)
   }
 }

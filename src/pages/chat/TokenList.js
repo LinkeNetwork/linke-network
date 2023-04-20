@@ -1,5 +1,4 @@
 import styled from "styled-components"
-import axios from 'axios'
 import { useEffect, useState } from "react"
 import { detectMobile } from "../../utils"
 import UseTokenBalance from "../../hooks/UseTokenBalance"
@@ -113,19 +112,9 @@ export default function TokenList(props) {
   const setHeight = () => {
     setContentHeight(detectMobile() ? 200 : 450)
   }
-  const getTokenList = () => {
-    axios.get('https://tokens.etherfair.org/')
-      .then(function (res) {
-        formatList(res.data.tokens)
-      })
-      .catch(function (error) {
-        console.log(error);
-      })
-  }
   useEffect(() => {
     getDefaultList()
     formatList()
-    // getTokenList()
   }, [])
   useEffect(() => {
     setListHeight(contentHeight)
