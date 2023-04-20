@@ -22,6 +22,7 @@ export default function ChatContext(props) {
   const { setState } = useGlobal()
   const { getCheckInToken } = useCheckIn()
   const [showOperate, setShowOperate] = useState(false)
+  const [tokenDecimals, setTokenDecimals] = useState()
   const [selectText, setSelectText] = useState('')
   const [timeOutEvent, setTimeOutEvent] = useState()
   const [tokenAddress, setTokenAddress] = useState()
@@ -44,9 +45,11 @@ export default function ChatContext(props) {
   }
   const getSelectedToken = async() => {
     if(currentTabIndex === 1) return
-    const token =  await getCheckInToken(currentAddress)
-    console.log(token, 'token====', currentAddress)
-    setTokenAddress(token)
+    const info =  await getCheckInToken(currentAddress)
+    const { symbol, decimals } = info
+    console.log(symbol, 'token====', currentAddress)
+    setTokenAddress(symbol)
+    setTokenDecimals(decimals)
   }
   const handleLeaveProfile = (e, v) => {
     if (!detectMobile()) return
@@ -274,8 +277,9 @@ export default function ChatContext(props) {
                       <div className="check-in-text">
                           <span className="check-in-address">{formatAddress(v.chatText.split("---")[1], 5, 4)}</span>
                           <span className="text">{intl.get('CheckIn')}</span>
-                          <span className="check-in-amount">{ethers.utils.formatEther(v.chatText.split("---")[2])}</span>
+                          <span className="check-in-amount">{ethers.utils.formatUnits((v.chatText.split("---")[2]).toString(), tokenDecimals)}</span>
                           <span>{tokenAddress}</span>
+                          
                       </div> 
                     }
                     {

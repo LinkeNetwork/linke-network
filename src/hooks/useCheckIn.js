@@ -10,8 +10,8 @@ export default function useCheckIn() {
     const tx = await getDaiWithSigner(res?.nft, SIGN_IN_ABI).token()
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == tx.toLocaleLowerCase())
-    const { symbol } = selectedToken.length && selectedToken[0]
-    return symbol
+    const { symbol, decimals } = selectedToken.length && selectedToken[0]
+    return { symbol, decimals}
   }
   return { getCheckInToken }
 }
