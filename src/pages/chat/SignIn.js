@@ -27,6 +27,7 @@ export default function SignIn(props) {
   const [unstackTime, setUnstackTime] = useState()
   const [isOpenAutoCheckIn, setIsOpenAutoCheckIn] = useState(false)
   const [selectedTokenInfo, setSelectedTokenInfo] = useState('')
+  const [selectedTokenDecimals, setSelectedTokenDecimals] = useState()
   const [tokenBalance, setTokenBalance] = useState('')
   const [selectTokenId, setSelectTokenId] = useState()
   const [selectToken, setSelectToken] = useState()
@@ -128,9 +129,9 @@ export default function SignIn(props) {
   const handleContinueMint = async(quantity) => {
     setMintInfo()
     if(!quantity) {
-      await handleMint(quantity, selectedToken)
+      await handleMint(quantity, selectedToken, selectedTokenDecimals)
     } else {
-      handleMint(quantity, selectedToken)
+      handleMint(quantity, selectedToken, selectedTokenDecimals)
     }
   }
   const setMintInfo = async() => {
@@ -159,7 +160,7 @@ export default function SignIn(props) {
     const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).token()
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() == tx.toLocaleLowerCase())
-    const { symbol, logoURI, address } = selectedToken.length && selectedToken[0]
+    const { symbol, logoURI, address, decimals } = selectedToken.length && selectedToken[0]
     setSelectToken(address)
     if (tx == 0) {
       setTokenBalance(Number(currentTokenBalance).toFixed(4))
@@ -174,6 +175,7 @@ export default function SignIn(props) {
     setSelectedTokenInfo(selectedToken[0])
     setTokenLogo(logoURI)
     setSelectedToken(symbol)
+    setSelectedTokenDecimals(decimals)
     if (symbol === 'ETHF') {
       setIsAuthorization(true)
       return
