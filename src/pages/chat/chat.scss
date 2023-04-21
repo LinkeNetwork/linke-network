@@ -36,6 +36,10 @@
     &-client {
       height: 100vh;
       margin-top: 0;
+      .room-name{
+        display: flex;
+        flex-direction: column;
+      }
     }
     &.chat-content-share {
       height: 100%;
