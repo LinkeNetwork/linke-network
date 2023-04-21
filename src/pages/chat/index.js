@@ -21,7 +21,7 @@ import AwardBonus from './AwardBonus'
 import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
-import { detectMobile, throttle, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient, getTimestamp, getCurrentNetworkInfo, getStackedAmount } from '../../utils'
+import { detectMobile, throttle, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient, getTimestamp, getCurrentNetworkInfo, getStackedAmount, getTokenInfo } from '../../utils'
 import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
@@ -1153,7 +1153,7 @@ export default function Chat() {
     const stackedAmount = await getStackedAmount(globalNftAddress)
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() === haveToken.toLocaleLowerCase())
-    const needStackedAmount = ethers.utils.formatEther(scoreAmount)
+    const needStackedAmount = ethers.utils.formatUnits(scoreAmount, selectedToken[0].decimals)
     console.log(needStackedAmount, 'verifyStackedAmount')
     if(+needStackedAmount > +stackedAmount) {
       setShowTips(true)
@@ -1179,13 +1179,13 @@ export default function Chat() {
     }
 
     if(RED_PACKET_VERSION !== 'v1' && version !== 'v1') {
-     
       if(+giveawayInfos?.scoreToken !== 0) {
           const isRegister = await verifyRegister(reaPacket)
           if(!isRegister) return false
       }
       console.log(giveawayInfos?.scoreAmount, 'scoreAmount==')
-      const mustHaveAmount = giveaway === 'giveawayV2S' && ethers.utils.formatEther(giveawayInfos?.haveAmount)
+      const tokenInfo = getTokenInfo(giveawayInfos?.haveToken)
+      const mustHaveAmount = giveaway === 'giveawayV2S' && ethers.utils.formatUnits(giveawayInfos?.haveAmount, tokenInfo?.decimals)
       if(+mustHaveAmount !== 0) {
         const isHaveToken = await verifyHaveToken(giveawayInfos?.haveToken, mustHaveAmount)
           if(!isHaveToken) return false

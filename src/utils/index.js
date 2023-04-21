@@ -5,6 +5,7 @@ import networks from '../context/networks'
 import { TOKEN_ABI, SIGN_IN_ABI } from '../abi/index'
 import { createClient } from 'urql'
 import localForage from "localforage"
+import { tokenListInfo } from '../constant/tokenList'
 const { utils } = Web3
 const { numberToHex } = utils
 const PAGE_PATH = window.location.pathname.split('/chat/')[1]
@@ -226,4 +227,10 @@ export const setCacheGroup = (currentGroups, currentTabIndex) => {
     // console.log('chatListInfo====1')
     localForage.setItem('chatListInfo', chatListInfo)
   })
+}
+
+export const getTokenInfo = (token) => {
+  const tokenList = [...tokenListInfo]
+  const currentToken = tokenList.filter(item => item.address.toLocaleLowerCase() === token.toLocaleLowerCase())
+  return currentToken?.length > 0 ? currentToken[0] : []
 }

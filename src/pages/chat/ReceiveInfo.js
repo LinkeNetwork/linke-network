@@ -2,7 +2,7 @@ import styled from "styled-components"
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import { useEffect, useState } from "react"
 import { ethers } from "ethers";
-import { detectMobile, getLocal, formatAddress } from '../../utils'
+import { detectMobile, getLocal, formatAddress, getTokenInfo } from '../../utils'
 import { tokenListInfo } from '../../constant/tokenList'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import Image from "../../component/Image"
@@ -53,6 +53,7 @@ export default function ReceiveInfo(props) {
     const tokensQuery = `
     {
       ${giveaway_}(id: "`+ currentRedEnvelopId +`"){
+        token,
         receiveProfile(where: {sender: "`+  getLocal('account')?.toLowerCase() +`"}){
           sender,
           amount,
@@ -64,10 +65,14 @@ export default function ReceiveInfo(props) {
       url: graphUrl
     })
     const res = await client?.query(tokensQuery).toPromise()
-    const result = giveaway_ === 'giveawayV2' ? res?.data?.giveawayV2?.receiveProfile[0]?.amount : res?.data?.giveaway?.receiveProfile[0]?.amount
-    if(!result) return
-    const amount = ethers.utils.formatEther(result)
-    setReceivedAmount(Number(amount).toFixed(6))
+    const version = giveaway_ === 'giveawayV2'
+    const data = version ? res?.data?.giveawayV2 : res?.data?.giveaway
+    const amount = version ? data?.receiveProfile[0]?.amount : data?.receiveProfile[0]?.amount
+    if(!amount) return
+    const tokenInfo = getTokenInfo(data.token)
+    setReceiveSymbol(tokenInfo?.symbol)
+    const result = ethers.utils.formatUnits(amount, tokenInfo?.decimals)
+    setReceivedAmount(Number(result.toString()).toFixed(6))
   }
   const getReceiveInfo = async (skip = 0) => {
     const { giveaway, graphUrl } = currentGiveAwayVersion
@@ -165,7 +170,7 @@ export default function ReceiveInfo(props) {
           </div>
         }
 
-        <div className="receive-num">{receivedAmount}</div>
+        <div className="receive-num">{receivedAmount}<span className="receive-token">{receiveSymbol}</span></div>
         <div className="divider"></div>
         {
           hasRedPacket &&
@@ -280,6 +285,10 @@ transition: 0.4s;
   margin: 10px 0;
   font-size: 36px;
   color: rgb(230,206,160);
+}
+.receive-token{
+  font-size: 16px;
+  margin-left: 4px;
 }
 .receive-list-item {
   display: flex;
