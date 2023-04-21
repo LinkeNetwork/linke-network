@@ -169,8 +169,10 @@ export default function ReceiveInfo(props) {
 
           </div>
         }
-
-        <div className="receive-num">{receivedAmount}<span className="receive-token">{receiveSymbol}</span></div>
+        {
+          receivedAmount &&
+          <div className="receive-num">{receivedAmount}<span className="receive-token">{receiveSymbol}</span></div>
+        }
         <div className="divider"></div>
         {
           hasRedPacket &&
