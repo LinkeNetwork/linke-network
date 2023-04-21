@@ -1611,7 +1611,7 @@ export default function Chat() {
     }
     const isEthf = token === 'ETHF'
     const valueE = isEthf ? ethers.utils.parseEther(quantity) : 0
-    const formatQuantity = isEthf ? ethers.utils.parseEther(quantity) : ethers.utils.parseUnits(new BigNumber(quantity).toFixed(decimals), decimals)
+    const formatQuantity = ethers.utils.parseUnits(quantity, decimals)
     const value = isEthf ? formatQuantity : formatQuantity.toString()
     const tx = await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).mint(value,{value: valueE})
     setShowSignIn(false)
