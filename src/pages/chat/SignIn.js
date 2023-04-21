@@ -89,11 +89,12 @@ export default function SignIn(props) {
     }
   }
   const getNftInfo = async() => {
+    const tokenInfo = await getCheckInToken(currentAddress)
     const list = [...nftImageList]
     for (let i = 0; i < list.length; i++) {
       const tokenId = list[i].tokenId;
       const result = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId)
-      list[i].score = Number(ethers.utils.formatEther(result.score))
+      list[i].score = Number(ethers.utils.formatUnits(result.score.toString(), tokenInfo?.decimals))
     }
     setNftInfo(list)
     return list
