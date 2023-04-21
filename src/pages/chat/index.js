@@ -252,9 +252,10 @@ export default function Chat() {
   const initRoomAddress = async(hash) => {
     let data = history.location?.state
     if (data) {
-      const { currentIndex, address, name, avatar, privateKey, share } = data
+      const { currentIndex, address, name, avatar, privateKey, share, userCount } = data
       setCurrentTabIndex(currentIndex)
       setCurrentAddress(address)
+      setMemberCount(userCount)
       setState({
         currentAddress: address
       })
@@ -515,7 +516,8 @@ export default function Chat() {
         address: item.id,
         network: getLocal('network'),
         currentIndex: 0,
-        name: item.name
+        name: item.name, 
+        userCount: item.userCount
       }
       history.push('/chat', state)
       await getJoinRoomAccess(item.id, item._type)
@@ -1498,7 +1500,11 @@ export default function Chat() {
   }
   const fetchPublicGroupList = async() => {
     const groupList = await getPublicGroupList()
+    console.log('groupList', 'groupList===');
+    
     const cacheGroupList = await getCachePublicGroup()
+    console.log('cacheGroupList', 'cacheGroupList===');
+
     const compareResult = await compareGroup(groupList, cacheGroupList)
     const { hasNewMsgGroup, result } = compareResult
     const address =  currentAddressRef.current || ROOM_ADDRESS || currentAddress || GROUP_ADDRESS
