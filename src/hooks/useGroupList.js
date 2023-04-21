@@ -69,7 +69,7 @@ export default function useGroupList() {
 
   const compareGroup = async(currentGroupList, cacheGroupList) => {
     const hasNewMsgGroup = []
-    const result = currentGroupList.map(group => {
+    const result = currentGroupList?.map(group => {
       const cachedGroup = cacheGroupList.find(cached => cached.id === group.id)
       if (cachedGroup) {
         const newChatCount = parseInt(group.chatCount) - parseInt(cachedGroup.chatCount)

@@ -11,6 +11,7 @@ import useGlobal from "../../hooks/useGlobal"
 import Image from "../../component/Image"
 import useWallet from "../../hooks/useWallet"
 import intl from "react-intl-universal"
+const PAGE_PATH = window.location.pathname.split('/')[2]
 export default function GroupList(props) {
   const { hasCreateRoom, setState, hasQuitRoom, accounts, clientInfo, transactionRoomHash } = useGlobal()
   const { showChatList, showMask, hiddenMask, onClickDialog, newGroupList, currentTabIndex, currentAddress, searchGroup, searchGrouName } = props
@@ -30,6 +31,8 @@ export default function GroupList(props) {
   const [hasTransition, setHasTransition] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const history = useHistory()
+  const STATE = history.location?.state
+  const ACCOUNT = accounts || getLocal('account') 
   const getCurrentGroupInfo = async (currentAddress) => {
     if (!currentAddress) return
     const tokensQuery = `
@@ -51,9 +54,8 @@ export default function GroupList(props) {
   }
 
   const compareGroup = async(currentGroupList, cacheGroupList) => {
-    
     let chatCountChanged = false
-    const result = currentGroupList.map(group => {
+    const result = currentGroupList?.map(group => {
       const cachedGroup = cacheGroupList.find(cached => cached.id === group.id)
       if (cachedGroup) {
         const newChatCount = parseInt(group.chatCount) - parseInt(cachedGroup.chatCount)
@@ -62,7 +64,6 @@ export default function GroupList(props) {
         } else {
           chatCountChanged = true
         }
-        // const chatCount = cachedGroup ? group.chatCount : cachedGroup.chatCount
         const chatCount = cachedGroup.chatCount
         return {...group, newChatCount, hasDelete: cachedGroup.hasDelete, chatCount}
       } else {
@@ -71,7 +72,7 @@ export default function GroupList(props) {
       }
     }).concat(cacheGroupList.filter(group => !currentGroupList.find(current => current.id === group.id)))
     if(currentTabIndex === 0 && !searchGrouName) {
-      console.log(!searchGrouName,'setGroupList====3', result)
+      // console.log(!searchGrouName,'setGroupList====3', result)
       setGroupList(result)
     }
     return { result, chatCountChanged }
@@ -89,7 +90,7 @@ export default function GroupList(props) {
       }
     }).concat(cachePrivateGroupList.filter(group => !currentPrivateGroupList.find(current => current.id === group.id)))
     if(currentTabIndex === 1) {
-      console.log('setGroupList====4', result)
+      // console.log('setGroupList====4', result)
       setGroupList(result)
     }
     return result
@@ -98,50 +99,48 @@ export default function GroupList(props) {
     const currNetwork = getLocal('network')
     if (!currNetwork) return
     localForage.getItem('chatListInfo').then(async(res) => {
-      const account = res && res[currNetwork] ? res[currNetwork][getLocal('account')] : null
+      const account = res && res[currNetwork] ? res[currNetwork][ACCOUNT] : null
       let chatListInfo = res ? res : {}
       if (!account && currNetwork) {
-        const list = Object.keys(chatListInfo)
         if (!chatListInfo[currNetwork]) {
           chatListInfo[currNetwork] = {}
         }
-        if (!list.length) {
-          chatListInfo[currNetwork][getLocal('account')] = {
+        if(!(ACCOUNT in chatListInfo)) {
+          chatListInfo[currNetwork][ACCOUNT] = {
             publicRooms: [],
             privateRooms: []
           }
         }
-
-      }
-      if (type === 1) {
-        const cachePublicGroup = chatListInfo[currNetwork][getLocal('account')]['publicRooms']
-        const groupList = await compareGroup(groupInfos, cachePublicGroup)
-        const { result } = groupList
-        const index = result.findIndex((item) => item.id === currentAddress?.toLowerCase())
-        if (index >= 0) {
-          result[index].newChatCount = 0
+        if (type === 1) {
+          const cachePublicGroup = chatListInfo[currNetwork][ACCOUNT]['publicRooms']
+          const groupList = await compareGroup(groupInfos, cachePublicGroup)
+          const { result } = groupList
+          const index = result.findIndex((item) => item.id === currentAddress?.toLowerCase())
+          if (index >= 0) {
+            result[index].newChatCount = 0
+          }
+          chatListInfo[currNetwork][ACCOUNT]['publicRooms'] = [...result]
+          localForage.setItem('chatListInfo', chatListInfo)
+        } else {
+          const cachePublicGroup = chatListInfo[currNetwork][ACCOUNT]['privateRooms']
+          const result = await comparePrivateGroup(groupInfos, cachePublicGroup)
+          chatListInfo[currNetwork][ACCOUNT]['privateRooms'] = [...result]
+          localForage.setItem('chatListInfo', chatListInfo)
         }
-        chatListInfo[currNetwork][getLocal('account')]['publicRooms'] = [...result]
-        localForage.setItem('chatListInfo', chatListInfo)
-      } else {
-        const cachePublicGroup = chatListInfo[currNetwork][getLocal('account')]['privateRooms']
-        const result = await comparePrivateGroup(groupInfos, cachePublicGroup)
-        chatListInfo[currNetwork][getLocal('account')]['privateRooms'] = [...result]
-        localForage.setItem('chatListInfo', chatListInfo)
       }
     }).catch(error => {
       console.log(error, '=====error')
     })
   }
   const getGroupList = async () => {
-    const address = getLocal('account')
-    if (!address) {
+    const account = ACCOUNT
+    if (!account) {
       hiddenMask()
       return
     }
     const tokensQuery = `
     query{
-      groupUser(id: "`+ address.toLowerCase() + `"){
+      groupUser(id: "`+ account.toLowerCase() + `"){
         id,
         groupInfos{
           id,
@@ -154,16 +153,31 @@ export default function GroupList(props) {
     `
     const res = await clientInfo?.query(tokensQuery).toPromise()
     var groupInfos = res?.data?.groupUser?.groupInfos || []
-    let fetchData = await getCurrentGroupInfo(currentAddress)
-    if (currentAddress) {
-      const index = groupInfos?.findIndex((item) => item.id === currentAddress)
+    const address = currentAddress || PAGE_PATH
+    if (address) {
+      const index = groupInfos?.findIndex((item) => item.id === address.toLowerCase())
       if (index === -1 && !hasQuitRoom) {
+        let fetchData = await getCurrentGroupInfo(address)
         groupInfos.push({
-          id: currentAddress,
+          id: address,
           name: fetchData?.name,
           chatCount: fetchData?.chatCount,
-          _type: fetchData?._type
+          _type: fetchData?._type,
+          hasDelete: false,
+          newChatCount: 0
         })
+        setGroupList([...groupInfos])
+        setState({
+          groupLists: [...groupInfos]
+        })
+        let res = await localForage.getItem('chatListInfo')
+        let chatListInfo = res ? res : {}
+        const list = Object.keys(chatListInfo)
+        const currentNetwork = getLocal('network')
+        chatListInfo[currentNetwork] = list.length ? chatListInfo[currentNetwork] : {}
+        chatListInfo[currentNetwork][ACCOUNT] = chatListInfo[currentNetwork][ACCOUNT] ? chatListInfo[currentNetwork][ACCOUNT] : {}
+        chatListInfo[currentNetwork][ACCOUNT]['publicRooms'] = [...groupInfos]
+        localForage.setItem('chatListInfo', chatListInfo)
       }
     }
     hiddenMask()
@@ -171,8 +185,6 @@ export default function GroupList(props) {
       group.hasDelete = false
     })
     setCacheGroupInfo(groupInfos, 1)
-    console.log('setGroupList====5', groupInfos)
-
     setGroupList([...groupInfos] || [])
     return groupInfos
   }
@@ -244,10 +256,9 @@ export default function GroupList(props) {
     showChatList(item)
   }
   const initPrivateMember = () => {
-    const data = history.location?.state
     var list = []
-    if (data) {
-      const { address, name, avatar } = history.location?.state
+    if (STATE) {
+      const { address, name, avatar } = STATE
       list = {
         id: address,
         name: name,
@@ -446,19 +457,15 @@ const ListGroupContainer = styled.div`
   }
 .chat-list {
   .operate-btn{
-    // width: 120px;
     height: 100%;
-    
     position: absolute;
     right: 0;
     top: 0;
     color: #fff;
     display: flex;
     align-self: center;
-    // justify-content: space-between;
     text-align: center;
     border-radius: 0;
-    // padding: 0 15px;
     .del-btn, .copy-btn{
       display: flex;
       flex-direction: column;
@@ -476,10 +483,6 @@ const ListGroupContainer = styled.div`
     .copy-btn {
       background-color: rgba(128, 128, 128, 0.7);;
     }
-    // .message-tips {
-    //   left: -270px;
-    //   bottom: 20px;
-    // }
   }
   .delete-btn-wrapper{
     position: absolute;
@@ -503,8 +506,6 @@ const ListGroupContainer = styled.div`
       position: absolute;
       right: 155px;
       justify-content: space-around;
-      // padding-left: 30px;
-      
     }
   }
   .unread-num {

@@ -147,17 +147,9 @@ export default function Chat() {
     showJoinGroupButtonRef.current = showJoinGroupButton
   }, [currentAddress, hasScroll, roomList, chatList, currentGroupType, hasAccess, showJoinGroupButton, myAvatar, ROOM_ADDRESS])
   useEffect(() => {
- 
     if(!(+getLocal('isConnect')) && groupLists?.length) {
       setCurrentRoomName(groupLists[0].name)
     }
-    // if(currentTabIndex === 0) {
-    //   if(groupLists !== undefined) {
-    //     const list = [...groupLists]
-    //     console.log('setRoomList====1', list)
-    //     setRoomList(list)
-    //   }
-    // }
     groupListRef.current = groupLists
   }, [groupLists])
   useEffect(() => {
@@ -193,7 +185,6 @@ export default function Chat() {
     if(address && network) {
       setCurrentAddress(address)
       setShowChat(true)
-      getInitChatList(address)
       if(detectMobile()) {
         setState({
           showHeader: false
@@ -294,50 +285,9 @@ export default function Chat() {
       })
     }
     if (address) {
-      setCurrentAddress(address)
-      if(GROUP_ADDRESS) {
-        await getInitChatList(address)
-      }
-      setState({
-        currentAddress: address
-      })
       if(!hash) {
         await isRoom(address)
       }
-    }
-  }
-  const updateGroupList = async (name, roomAddress, type) => {
-    const list = groupListRef?.current.length > 0 ? groupListRef?.current : await getPublicGroupList()
-    const index = list?.findIndex(item => item.id.toLowerCase() === roomAddress.toLowerCase())
-    const groupList = list?.length > 0 ? [...list] : []
-    if (index === -1) {
-      groupList.push({
-        id: roomAddress,
-        name: name,
-        chatCount: 0,
-        newChatCount: 0,
-        _type: type,
-        hasDelete: false
-      })
-      let res = await localForage.getItem('chatListInfo')
-      let chatListInfo = res ? res : {}
-      const list = Object.keys(chatListInfo)
-      const currentNetwork = getLocal('network')
-      chatListInfo[currentNetwork] = list.length ? chatListInfo[currentNetwork] : {}
-      chatListInfo[currentNetwork][ACCOUNT] = chatListInfo[currentNetwork][ACCOUNT] ? chatListInfo[currentNetwork][ACCOUNT] : {}
-      // debugger
-      chatListInfo[currentNetwork][ACCOUNT]['publicRooms'] = [...groupList]
-      // console.log('chatListInfo====3')
-      localForage.setItem('chatListInfo', chatListInfo).then(res => {
-        setRoomList(groupList)
-        // console.log('setRoomList====2', groupList)
-
-        setState({
-          groupLists: groupList
-        })
-      }).catch(err => {
-        console.log(err)
-      })
     }
   }
   const getGroupName = async(roomAddress, groupType, groupInfo) => {
@@ -345,9 +295,6 @@ export default function Chat() {
     getJoinRoomAccess(roomAddress, groupType)
     const { name } = +groupType === 3 ? await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo() : await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
     setCurrentRoomName(name || groupInfo?.name)
-    if (name) {
-      updateGroupList(name, roomAddress, groupType)
-    }
   }
   const getGroupInfo = (groupInfo) => {
     if(chainId !== 513100 && groupInfo && !(+getLocal('isConnect')) ) {
@@ -361,14 +308,11 @@ export default function Chat() {
           _type: _type
         }
       ]
-      // console.log(roomInfo, 'groupLists=====8')
       setState({
         groupLists: [...roomInfo]
       })
-      setCurrentRoomName(name)
-      // console.log('setRoomList====3', roomInfo)
-
-      setRoomList([...roomInfo])
+      // setCurrentRoomName(name)
+      // setRoomList([...roomInfo])
     }
   }
   const setGroupInfo = async(roomAddress) => {
@@ -388,6 +332,7 @@ export default function Chat() {
       const result = roomList || list
       const index = result?.slice()?.findIndex(item => item.id === roomAddress?.toLocaleLowerCase())
       if(+index > -1) return
+      getInitChatList(roomAddress)
       const groupInfo = await setGroupInfo(roomAddress)
       await getGroupName(roomAddress, groupInfo?._type, groupInfo)
     }
@@ -799,7 +744,6 @@ export default function Chat() {
       const address = currentAddressRef?.current || GROUP_ADDRESS || ROOM_ADDRESS
       if(toAddress?.toLowerCase() === address?.toLowerCase()) {
         const list = uniqueChatList(res, 'block')
-        // console.log('setChatList===9', list)
         setChatList(list)
       }
       setShowMask(false)
@@ -998,8 +942,7 @@ export default function Chat() {
       publicRooms[index]['chatCount'] = currentGroup[0]?.chatCount
       res[currNetwork][ACCOUNT]['publicRooms'] = [...publicRooms]
       localForage.setItem('chatListInfo', res)
-      console.log('setRoomList====4', publicRooms)
-
+      // console.log('setRoomList====4', publicRooms)
       setRoomList(publicRooms)
     }
   }
@@ -1376,7 +1319,6 @@ export default function Chat() {
     globalNftAddress = tx.nft
   }
   useEffect(() => {
-    // console.log(history.location, 'history.location===5')
     setCurrentRedEnvelopId(RED_PACKET_ID)
     const address = GROUP_ADDRESS
     const network = NETWORK || CURRENT_NETWORK
@@ -1584,7 +1526,6 @@ export default function Chat() {
     const address =  currentAddressRef.current || ROOM_ADDRESS || currentAddress || GROUP_ADDRESS
     // debugger
     const foundGroup = result?.find(group => group.id === address?.toLowerCase() && group.newChatCount > 0)
-    console.log(foundGroup, 'compareResult===', address, compareResult)
     if (foundGroup) {
       await getCurrentGroupChatList(address)
     }
@@ -1639,7 +1580,6 @@ export default function Chat() {
     }
   }
   useEffect(() => {
-    // console.log(history.location, 'history.location===6')
     if(hasCreateRoom && redEnvelopId) {
       setShowRedEnvelope(true)
     }
@@ -1682,7 +1622,7 @@ export default function Chat() {
     }
   }, [getLocal('isConnect')])
   useEffect(() => {
-    const address = ROOM_ADDRESS || GROUP_ADDRESS
+    const address = ROOM_ADDRESS
     if(window?.ethereum) {
       getNftAddress()
     }
@@ -1690,19 +1630,19 @@ export default function Chat() {
       setCurrentTabIndex(1)
     }
     if(address) {
-      isRoom(ROOM_ADDRESS)
+      isRoom(address)
       if(detectMobile()) {
         setShowChat(true)
         setState({
           showHeader: false
         })
       }
-      if(ROOM_ADDRESS && +clickNumber === 0) {
+      if(+clickNumber === 0) {
         getInitChatList(address)
       }
       setCurrentAddress(address)
     }
-  }, [ROOM_ADDRESS, GROUP_ADDRESS])
+  }, [ROOM_ADDRESS])
   return(
     <div className={`chat-ui-wrapper ${!showGroupList ? 'chat-ui-wrapper-share' : ''}`}>
       {

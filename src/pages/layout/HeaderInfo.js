@@ -29,6 +29,7 @@ export default function HeaderInfo() {
   const [showMenulist, setShowMenulist] = useState(false)
   const isConnect = (+getLocal('isConnect'))
   const selectNetwrok = (item) => {
+    debugger
     switch(item.name) {
       case 'MetaX':
         connectOkexchain()
