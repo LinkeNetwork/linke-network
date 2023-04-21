@@ -170,7 +170,10 @@ export default function Chat() {
       setShowChat(true)
       setShowGroupList(false)
     } else {
-      const address = location?.state?.room || GROUP_ADDRESS
+      const address = location?.state?.room || GROUP_ADDRESS || location?.state?.address
+      if(!address) {
+        setShowChat(false)
+      }
       setCurrentAddress(address)
     }
     return() => {

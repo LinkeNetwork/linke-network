@@ -190,7 +190,8 @@ export default function useWallet() {
         history.push({
           pathname: `/chat`,
           state: {
-            currentIndex: 0
+            currentIndex: 0,
+            address: ''
           }
         })
         console.log('accountsChanged====>>>')
