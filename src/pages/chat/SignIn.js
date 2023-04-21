@@ -85,7 +85,7 @@ export default function SignIn(props) {
     if(needApprove) {
       setShowTips(true)
     } else {
-      handleCheckIn(selectToken, tokenId, quantity)
+      handleCheckIn(selectToken, tokenId, quantity, selectedTokenDecimals)
     }
   }
   const getNftInfo = async() => {
