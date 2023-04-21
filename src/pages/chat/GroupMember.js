@@ -245,7 +245,7 @@ export default function GroupMember(props) {
           <span className="icon-search-wrapper">
             <i className="iconfont icon-search"></i>
           </span>
-          <input className="search-input" type="search" placeholder={intl.get('Search')} aria-label="Search..." onInput={handleSearchMember} />
+          <input className="search-input" placeholder={intl.get('Search')} aria-label="Search..." onInput={handleSearchMember} />
         </div>
       </div>
 

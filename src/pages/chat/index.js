@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
+import { useHistory, useLocation } from 'react-router-dom'
 import './chat.scss'
 import intl from "react-intl-universal"
 import 'emoji-mart/css/emoji-mart.css'
@@ -21,7 +22,7 @@ import AwardBonus from './AwardBonus'
 import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
-import { detectMobile, throttle, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient, getTimestamp, getCurrentNetworkInfo, getStackedAmount, getTokenInfo } from '../../utils'
+import { detectMobile, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient, getTimestamp, getCurrentNetworkInfo, getStackedAmount, getTokenInfo } from '../../utils'
 import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
@@ -31,7 +32,6 @@ import RoomHeader from './RoomHeader'
 import ChatContext from './ChatContext'
 import GroupMember from './GroupMember'
 import JoinGroupButton from './JoinGroupButton'
-import { useHistory, useLocation } from 'react-router-dom'
 import useGlobal from '../../hooks/useGlobal'
 import SignIn from './SignIn'
 import useWallet from '../../hooks/useWallet'
@@ -89,8 +89,6 @@ export default function Chat() {
   const [showJoinGroupButton, setShowJoinGroupButton] = useState()
   const [handlingFeeTips, setHandlingFeeTips] = useState()
   const chatListRef = useRef()
-  const [hasScroll, setHasScroll] = useState(false)
-  const hasScrollRef = useRef(null)
   const [hasNotice, setHasNotice] = useState(false)
   const [showMask, setShowMask] = useState(false)
   const [tipsText, setTipsText] = useState('')
@@ -106,7 +104,6 @@ export default function Chat() {
   const [showChat, setShowChat] = useState(false)
   const [showSettingList, setShowSettingList] = useState(false)
   const [roomList, setRoomList] = useState([])
-  const roomListRef = useRef()
   const [currentRedPackeVersion, setCurrentRedPackeVersion] = useState()
   const [clearChatInput, setClearChatInput] = useState(false)
   const [hasMore, setHasMore] = useState(true)
@@ -125,7 +122,6 @@ export default function Chat() {
   const currentGroupTypeRef = useRef()
   const hasAccessRef = useRef()
   const myAvatarRef = useRef()
-  const showJoinGroupButtonRef = useRef()
   const ACCOUNT = accounts || getLocal('account') 
   useEffect(() => {
     if (hasQuitRoom) {
@@ -139,13 +135,10 @@ export default function Chat() {
   useEffect(() => {
     myAvatarRef.current = myAvatar
     currentAddressRef.current = currentAddress || ROOM_ADDRESS
-    hasScrollRef.current = hasScroll
-    roomListRef.current = roomList
     chatListRef.current = chatList
     currentGroupTypeRef.current = currentGroupType
     hasAccessRef.current = hasAccess
-    showJoinGroupButtonRef.current = showJoinGroupButton
-  }, [currentAddress, hasScroll, roomList, chatList, currentGroupType, hasAccess, showJoinGroupButton, myAvatar, ROOM_ADDRESS])
+  }, [currentAddress, chatList, currentGroupType, hasAccess, myAvatar, ROOM_ADDRESS])
   useEffect(() => {
     if(!(+getLocal('isConnect')) && groupLists?.length) {
       setCurrentRoomName(groupLists[0].name)
@@ -251,11 +244,6 @@ export default function Chat() {
     const tx = await getDaiWithSigner(id, PUBLIC_GROUP_ABI).profile()
     const canSendText = tx.manager?.toLowerCase() === ACCOUNT?.toLowerCase()
     setCanSendText(canSendText)
-    if (!canSendText || !hasAccess) {
-      setShowJoinGroupButton(true)
-    } else {
-      setShowJoinGroupButton(false)
-    }
   }
   const getPrivateChatStatus = async (id) => {
     const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(id)
@@ -298,7 +286,7 @@ export default function Chat() {
   }
   const getGroupInfo = (groupInfo) => {
     if(chainId !== 513100 && groupInfo && !(+getLocal('isConnect')) ) {
-      const { chatCount, id, name, __typename, _type } = groupInfo
+      const { chatCount, id, name, __typename, _type, userCount } = groupInfo
       const roomInfo = [
         {
           chatCount: chatCount,
@@ -308,11 +296,10 @@ export default function Chat() {
           _type: _type
         }
       ]
+      setMemberCount(userCount)
       setState({
         groupLists: [...roomInfo]
       })
-      // setCurrentRoomName(name)
-      // setRoomList([...roomInfo])
     }
   }
   const setGroupInfo = async(roomAddress) => {
@@ -459,7 +446,6 @@ export default function Chat() {
   }
   const getCurrentRoomInfo = (roomAddress) => {
     setShowJoinRoom(false)
-    setHasScroll(false)
     // console.log('setChatList===3')
     setChatList([])
     setShowMask(true)
@@ -477,7 +463,6 @@ export default function Chat() {
         showHeader: false
       })
     }
-    // console.log('setChatList===4')
     setChatList([])
     setShowMask(false)
     setCurrentRoomName(name)
@@ -503,6 +488,7 @@ export default function Chat() {
     setShowSettingList(false)
   }
   const showChatList = async(item) => {
+    debugger
     // console.log('setChatList===5')
     setChatList([])
     setClickNumber(clickNumber+1)
@@ -521,6 +507,7 @@ export default function Chat() {
     setState({
       currentAddress: item.id
     })
+    setMemberCount(item.userCount)
     setCurrentRoomName(item.name)
     if (currentTabIndex === 0 && window.ethereum) {
       await handleReadMessage(currentAddress)
@@ -537,8 +524,6 @@ export default function Chat() {
         await getCurrentChatList(item.id)
         await handleReadMessage(item.id)
       }
-      // history.push(`/chat/${item.id}/${getLocal('network')}`)
-      // history.push('/chat')
     }
     setShowChat(true)
     if (detectMobile()) {
@@ -558,10 +543,6 @@ export default function Chat() {
       getPrivateChatStatus(item.id)
       history.push(`/chat/${item.id}#p`)
     }
-    setMemberCount()
-    setHasMore(true)
-    setShowMask(true)
-    setHasScroll(false)
   }
   const loadingGroupData = async () => {
     const firstBlock = chatList && chatList[chatList.length - 1]?.index
@@ -926,9 +907,6 @@ export default function Chat() {
     } catch (error) {
       console.log(error, 'error==')
     }
-  }
-  const handleScroll = () => {
-    setHasScroll(true)
   }
   const handleReadMessage = async(roomAddress) => {
     const list = groupLists?.length > 0 || roomList?.length > 0 ? [...groupLists] || [...roomList] : await getPublicGroupList()
@@ -1589,9 +1567,6 @@ export default function Chat() {
   }, [hasCreateRoom, currentAddress])
   useEffect(() => {
     setMyAddress(ACCOUNT)
-    return () => {
-      window.removeEventListener('scroll', throttle(handleScroll, 500), true)
-    }
   }, [ACCOUNT])
   useEffect(() => {
     if(RED_PACKET_ID) {
@@ -1855,8 +1830,8 @@ export default function Chat() {
                         showChat={showChat}
                         currentAddress={currentAddress}
                         currentRoomName={currentRoomName}
-                        memberCount={memberCount}
                         roomAvatar={roomAvatar}
+                        memberCount={memberCount}
                         currentTabIndex={currentTabIndex}
                         getGroupMember={() => {setShowGroupMember(true)}}
                         hiddenChat={hiddenChat}

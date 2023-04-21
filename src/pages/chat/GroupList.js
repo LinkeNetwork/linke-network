@@ -143,6 +143,7 @@ export default function GroupList(props) {
       groupUser(id: "`+ account.toLowerCase() + `"){
         id,
         groupInfos{
+          userCount,
           id,
           name,
           chatCount,
@@ -160,6 +161,7 @@ export default function GroupList(props) {
         let fetchData = await getCurrentGroupInfo(address)
         groupInfos.push({
           id: address,
+          userCount: fetchData?.userCount,
           name: fetchData?.name,
           chatCount: fetchData?.chatCount,
           _type: fetchData?._type,

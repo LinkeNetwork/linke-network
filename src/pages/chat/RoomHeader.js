@@ -1,6 +1,7 @@
 import { Jazzicon } from '@ukstv/jazzicon-react';
 import { detectMobile } from '../../utils';
 import Image from "../../component/Image"
+import intl from "react-intl-universal"
 export default function RoomHeader(props) {
   const {showChat, currentRoomName, currentAddress, hiddenChat, getGroupMember, memberCount, roomAvatar, currentTabIndex} = props
   return (
@@ -25,7 +26,7 @@ export default function RoomHeader(props) {
           <div className='room-name'>{currentRoomName}
             {
               memberCount > 0 &&
-              <span className='member-num'>({memberCount})</span>
+              <span className='member-num'>({memberCount}{intl.get('Members')})</span>
             }
           </div>
         </div>
