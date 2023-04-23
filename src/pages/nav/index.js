@@ -98,7 +98,7 @@ export default function Nav(props) {
                   <li key={index} className={`${item.subMenu ? 'has-submenu' : ''} ${isAirdropSubMenuOpen && item.subMenu ? 'submenu-expand' : ''} ${item.path && path.includes(item.path) && !item.action ? 'active' : ''}`}>
                     <div key={index} onClick={() => {
                       jumpPage(item)
-                      if (item.name === intl.get('Airdrop')) {
+                      if (item.name === 'Airdrop') {
                         setIsAirdropSubMenuOpen(!isAirdropSubMenuOpen)
                       }
                     }}>
