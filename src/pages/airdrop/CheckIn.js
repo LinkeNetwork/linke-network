@@ -25,6 +25,10 @@ export default function CheckIn(props) {
     {
       name: 'ETHW',
       link: '/chat/0x44c237e17e9acfa3dc77c8dca17787c42b58c822/ETHF'
+    },
+    {
+      name: 'Fren',
+      link: '/chat/0x64a3010c4d13f98811c84016fa3339f3947f1322/ETHF'
     }
   ]
   const checkInGroupInfo = () => {

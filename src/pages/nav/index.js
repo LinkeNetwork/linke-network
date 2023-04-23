@@ -33,7 +33,13 @@ export default function Nav(props) {
       subMenu: [
         {
           name: intl.get('CheckIn'),
-          path: '/checkin'
+          path: '/checkin',
+          icon: 'icon-sign2'
+        },
+        {
+          name: intl.get('Bridge'),
+          path: 'https://dapp.chainge.finance/',
+          icon: 'icon-jiaoyijilu'
         }
       ]
     }
@@ -60,7 +66,11 @@ export default function Nav(props) {
           history.push(path)
         }
       } else {
-        history.push(path)
+        if(item.name === 'Bridge') {
+          window.open(path, '_blank')
+        } else {
+          history.push(path)
+        }
       }
       setState({
         profileAvatar: ''
@@ -103,7 +113,7 @@ export default function Nav(props) {
                       <ul className="dropdown-list">
                         {item.subMenu.map((subItem, subIndex) => (
                           <li key={subIndex}  className={`${subItem.path && path.includes(subItem.path) ? 'active' : ''}`} onClick={() => jumpPage(subItem)}>
-                            <span className='iconfont icon-sign2'></span>
+                            <span className={`iconfont ${subItem.icon}`}></span>
                             {subItem.name}
                           </li>
                         ))}
