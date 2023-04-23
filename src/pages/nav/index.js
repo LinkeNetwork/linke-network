@@ -105,7 +105,7 @@ export default function Nav(props) {
                       <span className={`iconfont ${item.icon}`}></span>
                       {intl.get(item.name)}
                       {
-                        item.name === intl.get('Airdrop') && !detectMobile() &&<span className='iconfont icon-expand'></span>
+                        item.name === 'Airdrop' && !detectMobile() &&<span className='iconfont icon-expand'></span>
                       }
                       {item.subMenu && <span className="iconfont icon-down"></span>}
                     </div>
