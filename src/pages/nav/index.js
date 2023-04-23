@@ -66,7 +66,7 @@ export default function Nav(props) {
           history.push(path)
         }
       } else {
-        if(item.name === 'Bridge') {
+        if(item.name === intl.get('Bridge')) {
           window.open(path, '_blank')
         } else {
           history.push(path)
