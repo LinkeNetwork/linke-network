@@ -313,6 +313,12 @@ export default function ChatInputBox(props) {
               <span className='iconfont icon-sign2'></span>
             </div>
           }
+          {
+            (showOpenSignIcon || hasOpenedSignIn) &&
+            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleCheckIn}>
+              <span className='iconfont icon-robot_1'></span>
+            </div>
+          }
         </div>
         <div className={`rich-editor chat-input ${!detectMobile() ? 'chat-input-pc' : 'chat-input-client'}`}>
           <div className={`wrapper ${!detectMobile() ? 'wrapper-pc' : 'wrapper-client'}`}>

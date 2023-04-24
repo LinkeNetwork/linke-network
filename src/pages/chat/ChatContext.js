@@ -60,6 +60,7 @@ export default function ChatContext(props) {
   const shareToTwitter = async(e, v) => {
     const item = await getCurrentNetworkInfo()
     const info = item?.addressList[v.user.id]
+    if(!info) return
     const { version, graphUrl, giveaway } = info
     e.stopPropagation()
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText?.split('---')[0] : v?.chatText
@@ -102,6 +103,7 @@ export default function ChatContext(props) {
   const setTwitterInfo = async(v) => {
     const item = await getCurrentNetworkInfo()
     const info = item?.addressList[v.user.id]
+    if(!info) return
     const { version, graphUrl, giveaway } = info
     const chatText = v?.chatText?.indexOf('---') ? v?.chatText?.split('---')[0] : v?.chatText
     const res = await getGiveawaysInfo(chatText, graphUrl, giveaway)

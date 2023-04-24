@@ -13,6 +13,22 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-RobotOutline:before {
+  content: "\e689";
+}
+
+.icon-a-smartrobot-line:before {
+  content: "\ea29";
+}
+
+.icon-robot_1:before {
+  content: "\e681";
+}
+
+.icon-Robot:before {
+  content: "\e661";
+}
+
 .icon-sign:before {
   content: "\e607";
 }
