@@ -234,3 +234,16 @@ export const getTokenInfo = (token) => {
   const currentToken = tokenList.filter(item => item.address.toLocaleLowerCase() === token.toLocaleLowerCase())
   return currentToken?.length > 0 ? currentToken[0] : []
 }
+
+export const getTokenBalance = async(tokenAddress, decimals) => {
+  const provider = new Web3.providers.HttpProvider("https://rpc.etherfair.org")
+  if(provider && getLocal('account')) {
+    try {
+      const res = await getBalance(provider, tokenAddress, getLocal('account'))
+      const tokenBalance = getBalanceNumber(new BigNumber(Number(res)), decimals)
+      return tokenBalance
+    } catch(error) {
+      console.log(error)
+    }
+  }
+}

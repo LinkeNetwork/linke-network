@@ -137,5 +137,9 @@
   "Stacked": "質押",
   "Airdrop": "空投",
   "CheckInGroup": "簽到群",
-  "Bridge": "跨鏈"
+  "Bridge": "跨鏈",
+  "OpenChatgpt": "開通 Chatgpt",
+  "BuyChatgpt": "購買 Chatgpt",
+  "MinPurchasesTimes": "最少購買次數",
+  "Times": "次"
 }

@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { Picker } from 'emoji-mart'
 import intl from "react-intl-universal"
 import { Modal } from '../../component/index'
-import { PUBLIC_GROUP_ABI, REGISTER_ABI } from '../../abi'
+import { GPT_ABI, PUBLIC_GROUP_ABI, REGISTER_ABI} from '../../abi'
 import styled from "styled-components"
-import { detectMobile, getDaiWithSigner } from '../../utils'
+import { detectMobile, getDaiWithSigner, getTokenBalance } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleAwardBonus, handleSignIn, handleOpenSign, hasOpenedSignIn, currentTabIndex } = props
-  const { setState, accounts, signInAddress, groupType, currentAddress } = useGlobal()
+  const { startChat, clearChatInput, resetChatInputStatus, handleAwardBonus, handleSignIn, handleOpenSign, hasOpenedSignIn, currentTabIndex, handleOpenChatgpt } = props
+  const { setState, accounts, signInAddress, groupType, currentAddress, chatGptAddress, giveAwayAddressV3, dogewowAddress } = useGlobal()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
   const [emoji, setEmoji] = useState()
@@ -18,7 +18,10 @@ export default function ChatInputBox(props) {
   const limitCnt = 2048
   const [tokenAddress, setTokenAddress] = useState()
   const [isComposing, setIsComposing] = useState(false)
+  const [showChatgptService, setShowChatgptService] = useState(false)
+  const [showOpenChatgpt, setShowOpenChatgpt] = useState(false)
   const [chatText, setChatText] = useState()
+  const [purchasesTimes, setPurchasesTimes] = useState(30)
   const [canSendMessage, setCanSendMessage] = useState(true)
   const [isClickSend, setIsClickSend] = useState(false)
   const [lastEditRange, setLastEditRange] = useState(null)
@@ -26,6 +29,9 @@ export default function ChatInputBox(props) {
   const [showOpenSignIcon, setShowOpenSignIcon] = useState(false)
   const [showSignInIcon, setShowSignInIcon] = useState(false)
   const [showOpenSignIn, setShowOpenSignIn] = useState(false)
+  const [groupRemainingTimes, setGroupRemainingTimes] = useState()
+  const [dogewowBalance, setDogewowBalance] = useState()
+  const [showTips, setShowTips] = useState(false)
   const initTextArea = () => {
     var editorArea = document.querySelector('.editor-area')
     var editorBacker = document.querySelector('.editor-backer')
@@ -67,6 +73,39 @@ export default function ChatInputBox(props) {
       })
       setShowSignInIcon(false)
     }
+  }
+  const handleIsOpenChatgpt = () => {
+    setShowOpenChatgpt(false)
+    handleOpenChatgpt()
+  }
+  const handleOpenChatgptService = () => {
+
+  }
+  const handleChange = (event) => {
+    setPurchasesTimes(event.target.value)
+  }
+  const handleBlur = (event) => {
+    const value = event.target.value
+    if (value < 30 || !Number.isInteger(Number(value))) {
+      setShowTips(true)
+    } else {
+      setShowTips(false)
+    }
+  }
+  const handleChatgpt = async() => {
+    setShowChatgptService(true)
+    debugger
+    const balance = await getTokenBalance(dogewowAddress, 18)
+    setDogewowBalance(balance)
+    const res = await getDaiWithSigner(currentAddress, GPT_ABI).groupAddressList(chatGptAddress)
+    console.log(res, 'GPT_ABI====')
+    // const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddressV3)
+    // console.log(res, '====handleChatgpt')
+    // if(!Boolean(res?.state)) {
+    //   setShowOpenChatgpt(true)
+    // } else {
+    //   setShowChatgptService(true)
+    // }
   }
   const getLength = (val) => {
     var bytesCount = 0
@@ -153,6 +192,28 @@ export default function ChatInputBox(props) {
   }
   const onClickPicker = () => {
     setShowPicker(!showPicker)
+  }
+  const chatgptService = () => {
+    return (
+      <div className='chat-gpt-info'>
+        <div className='item'>
+          <span className='name'>Purchases Times：</span>
+          <input type="number" min="30" value={purchasesTimes} onChange={handleChange} onBlur={handleBlur} />
+          {
+            showTips &&
+            <div className='tips'>{intl.get('MinPurchasesTimes')}：30 {intl.get('Times')}</div>
+          }
+        </div>
+        <div className='item'>
+          <span className='name'>Group Remaining Times：</span>
+          <div>{groupRemainingTimes}</div>
+        </div>
+        <div className='item'>
+          <span className='name'>Dogewow Balance：</span>
+          <span>{dogewowBalance}</span>
+        </div>
+      </div>
+    )
   }
   const getTextRange = (emoji) => {
     var edit = document.getElementById('contenteditablediv')
@@ -276,6 +337,23 @@ export default function ChatInputBox(props) {
   return (
     <ChatInputBoxContanier>
       {
+        <Modal title={intl.get('OpenChatgpt')} visible={showOpenChatgpt} onClose={() => { setShowOpenChatgpt(false) }}>
+          <div className='btn-operate-award'>
+            <div className='btn btn-primary' onClick={handleIsOpenChatgpt}>{intl.get('Open')}</div>
+            <div className='btn btn-light' onClick={() => { setShowOpenChatgpt(false) }}>{intl.get('Cancel')}</div>
+          </div>
+        </Modal>
+      }
+      {
+        <Modal title={intl.get('BuyChatgpt')} visible={showChatgptService} onClose={() => { setShowChatgptService(false) }}>
+          {chatgptService()}
+          <div className='btn-operate-award'>
+            <div className='btn btn-primary' onClick={handleOpenChatgptService}>{intl.get('Confirm')}</div>
+            <div className='btn btn-light' onClick={() => { setShowChatgptService(false) }}>{intl.get('Cancel')}</div>
+          </div>
+        </Modal>
+      }
+      {
         <Modal title={intl.get('OpenCheckIn')} visible={showOpenSignIn} onClose={handleClose}>
           <div className="sign-in-wrapper">
             <OpenSignIn handleSelectedToken={(item) => {handleSelectedToken(item)}} />
@@ -313,12 +391,9 @@ export default function ChatInputBox(props) {
               <span className='iconfont icon-sign2'></span>
             </div>
           }
-          {
-            (showOpenSignIcon || hasOpenedSignIn) &&
-            <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleCheckIn}>
-              <span className='iconfont icon-robot_1'></span>
-            </div>
-          }
+          <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleChatgpt}>
+            <span className='iconfont icon-Robot'></span>
+          </div>
         </div>
         <div className={`rich-editor chat-input ${!detectMobile() ? 'chat-input-pc' : 'chat-input-client'}`}>
           <div className={`wrapper ${!detectMobile() ? 'wrapper-pc' : 'wrapper-client'}`}>
@@ -368,10 +443,13 @@ position: relative;
   border-radius: 0.375rem;
   transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
 }
+.icon-Robot {
+  font-size: 20px;
+}
 .chat-input {
   overflow-y: auto;
   resize: none;
-  margin-left: 7.6rem;
+  margin-left: 10rem;
   padding: 0.375rem 2.5rem 0.375rem 1rem;
   border-radius: 1rem;
   &-client, &-pc {

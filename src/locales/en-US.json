@@ -140,6 +140,10 @@
   "Stacked": "Stack",
   "Airdrop": "Airdrop",
   "CheckInGroup": "Check In Groups",
-  "Bridge": "Bridge"
+  "Bridge": "Bridge",
+  "OpenChatgpt": "Open Chatgpt",
+  "BuyChatgpt": "Buy Chatgpt",
+  "MinPurchasesTimes": "Min Purchases Times",
+  "Times": "Times"
 }
 

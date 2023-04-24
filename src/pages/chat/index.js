@@ -23,7 +23,7 @@ import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
 import { detectMobile, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient, getTimestamp, getCurrentNetworkInfo, getStackedAmount, getTokenInfo } from '../../utils'
-import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2} from '../../abi/index'
+import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2, GPT_ABI} from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
 import SearchChat from './SearchChat'
@@ -69,7 +69,7 @@ export default function Chat() {
   const [showOpenSignIn, setShowOpenSignIn] = useState(false)
   const [showEnvelopesList, setShowEnvelopesList] = useState(false)
   const [showTips, setShowTips] = useState()
-  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, clientInfo, currentChatInfo, hasCreateRoom, chainId, signInAddress, giveAwayAddressV3, currentNetworkInfo } = useGlobal()
+  const {groupLists, setState, hasClickPlace, hasQuitRoom, networks, accounts, clientInfo, currentChatInfo, hasCreateRoom, chainId, signInAddress, giveAwayAddressV3, currentNetworkInfo, chatGptAddress } = useGlobal()
   const [currentAddress, setCurrentAddress] = useState()
   const [currentRedEnvelopTransaction, setCurrentRedEnvelopTransaction] = useState()
   const currentAddressRef = useRef(null)
@@ -1431,6 +1431,14 @@ export default function Chat() {
     }
     setShowSignIn(true)
   }
+  const handleOpenChatgpt = async() => {
+    debugger
+    const tx = await getDaiWithSigner(chatGptAddress, GPT_ABI).register(currentAddress)
+    setShowMask(true)
+    tx.wait()
+    setShowMask(false)
+    console.log(tx, '=====handleOpenChatgpt=')
+  }
   const handleOpenSign = async(tokenAddress) => {
     try {
       setShowMask(true)
@@ -1881,6 +1889,7 @@ export default function Chat() {
                           currentTabIndex={currentTabIndex}
                           handleShowPlace={() => { setShowPlaceWrapper(true) }}
                           handleAwardBonus={handleAwardBonus}
+                          handleOpenChatgpt={handleOpenChatgpt}
                           handleOpenSign={(tokenAddress) => handleOpenSign(tokenAddress)}
                           handleSignIn={(nftAddress) => { handleSignIn(nftAddress) }}
                           resetChatInputStatus={() => { setClearChatInput(false) }}

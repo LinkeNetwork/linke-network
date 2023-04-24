@@ -9,6 +9,8 @@ import RED_PACKET from './RED_PACKET.json'
 import RED_PACKET_V2 from './RED_PACKET_V2.json'
 import REGISTER_ABI from './REGISTER_ABI.json'
 import SIGN_IN_ABI from './SIGN_IN_ABI.json'
+import GPT_ABI from './GPT_ABI.json'
+
 export {
   FOLLOW_ABI,
   PROFILE_ABI,
@@ -20,5 +22,6 @@ export {
   RED_PACKET,
   REGISTER_ABI,
   SIGN_IN_ABI,
-  RED_PACKET_V2
+  RED_PACKET_V2,
+  GPT_ABI
 }
