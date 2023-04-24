@@ -5,6 +5,7 @@ import { tokenListInfo } from '../constant/tokenList'
 export default function useCheckIn() {
   const { signInAddress } = useGlobal()
   const getCheckInToken = async(currentAddress) => {
+    if(!window?.ethereum) return
     const res = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
     if(+res?.nft === 0) return
     const tx = await getDaiWithSigner(res?.nft, SIGN_IN_ABI).token()

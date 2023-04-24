@@ -280,7 +280,7 @@ export default function Chat() {
     }
   }
   const getGroupName = async(roomAddress, groupType, groupInfo) => {
-    if(!roomAddress || !groupType || !groupInfo) return
+    if(!roomAddress || !groupType || !groupInfo || !window?.ethereum) return
     getJoinRoomAccess(roomAddress, groupType)
     const { name } = +groupType === 3 ? await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo() : await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
     setCurrentRoomName(name || groupInfo?.name)
@@ -1594,8 +1594,7 @@ export default function Chat() {
     }
   }, [showPlaceWrapper])
   useEffect(() => {
-    if(!groupLists?.length && !(+getLocal('isConnect'))) {
-      debugger
+    if(!groupLists?.length && !(+getLocal('isConnect')) && !GROUP_ADDRESS) {
       setRoomList([])
       setShowChat(false)
       setState({
