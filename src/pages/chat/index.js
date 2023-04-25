@@ -1156,7 +1156,7 @@ export default function Chat() {
     setCurrentRedEnvelopTransaction(v?.transaction)
   }
   const getGiveawaysInfo = async(currentRedEnvelopId, version, id) => {
-    const item = await getCurrentNetworkInfo()
+    const item = window?.ethereum ? await getCurrentNetworkInfo() : networks.filter(i=> i.symbol === NETWORK)[0]
     const giveawayVersion = version === 'GiveawayV2' ? 'giveawayV2S' : 'giveaways'
     const tokensQuery = `
     {
