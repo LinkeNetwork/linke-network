@@ -108,7 +108,7 @@ export default function SignIn(props) {
     setState({
       canMint: !(+userAmount)
     })
-    const tokenId_ = (new BigNumber(Number(tokenId))).toNumber()
+    const tokenId_ = tokenId.toNumber()
     const registerInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId_)
     setSelectTokenId(tokenId_)
     const timestamp = formatTimestamp(lastDate)
@@ -159,7 +159,7 @@ export default function SignIn(props) {
   }
   const getSelectedToken = async () => {
     const res = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getAutomatic()
-    const isOpenAutoCheckIn = new BigNumber(Number(res)).toNumber()
+    const isOpenAutoCheckIn = res.toNumber()
     setIsOpenAutoCheckIn(Boolean(isOpenAutoCheckIn))
     console.log(isOpenAutoCheckIn, '====getAutomatic')
     const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).token()

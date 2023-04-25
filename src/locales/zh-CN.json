@@ -141,5 +141,7 @@
   "OpenChatgpt": "開通 Chatgpt",
   "BuyChatgpt": "購買 Chatgpt",
   "MinPurchasesTimes": "最少購買次數",
-  "Times": "次"
+  "Times": "次",
+  "DogewowBalance": "Dogewow 餘額",
+  "GroupRemainingTimes": "群剩餘次數"
 }

@@ -355,7 +355,7 @@ export default function Chat() {
     const envelopId = parseInt(id || redEnvelopId)
     setCurrentRedEnvelopId(envelopId)
     const tx = await getDaiWithSigner(version.address, version.reaPacket).giveawayInfo_exist(envelopId, ACCOUNT)
-    let isReceived = (new BigNumber(Number(tx))).toNumber()
+    let isReceived = tx.toNumber()
     return isReceived
   }
   const getJoinRoomAccess = async (roomAddress, groupType) => {
@@ -794,7 +794,7 @@ export default function Chat() {
     if(chatList?.length > 0) {
       chatList[index].isSuccess = true
       chatList[index].block = callback?.blockNumber
-      chatList[index].chatText = String((new BigNumber(Number(id))).toNumber())
+      chatList[index].chatText = id.toNumber()
       chatList[index].wishesText = wishesText
       setClickNumber(clickNumber+1)
       collection.insert(chatList[index])
@@ -804,7 +804,7 @@ export default function Chat() {
       setChatList([])
       chatList[0].isSuccess = true
       chatList[0].block = callback?.blockNumber
-      chatList[0].chatText = String((new BigNumber(Number(id))).toNumber())
+      chatList[0].chatText = id.toNumber()
       chatList[0].wishesText = wishesText
       // console.log('setChatList===11', chatList)
       setChatList(chatList)
@@ -1221,6 +1221,17 @@ export default function Chat() {
   const handleHiddenMask = () => {
     setShowMask(false)
   }
+  const handleOpenChatgptService = async(purchasesTimes) => {
+    try {
+      const fee = ethers.utils.parseEther(String(purchasesTimes))
+      setShowMask(true)
+      const tx = await getDaiWithSigner(chatGptAddress, GPT_ABI).openGPT(currentAddress, {value: fee})
+      tx.wait()
+      setShowMask(false)
+    } catch {
+      setShowMask(false)
+    }
+  }
   const hiddenChat = () => {
     if(!showGroupList) {
       history.goBack()
@@ -1432,12 +1443,10 @@ export default function Chat() {
     setShowSignIn(true)
   }
   const handleOpenChatgpt = async() => {
-    debugger
     const tx = await getDaiWithSigner(chatGptAddress, GPT_ABI).register(currentAddress)
     setShowMask(true)
     tx.wait()
     setShowMask(false)
-    console.log(tx, '=====handleOpenChatgpt=')
   }
   const handleOpenSign = async(tokenAddress) => {
     try {
@@ -1890,6 +1899,7 @@ export default function Chat() {
                           handleShowPlace={() => { setShowPlaceWrapper(true) }}
                           handleAwardBonus={handleAwardBonus}
                           handleOpenChatgpt={handleOpenChatgpt}
+                          handleOpenChatgptService={(purchasesTimes) => handleOpenChatgptService(purchasesTimes)}
                           handleOpenSign={(tokenAddress) => handleOpenSign(tokenAddress)}
                           handleSignIn={(nftAddress) => { handleSignIn(nftAddress) }}
                           resetChatInputStatus={() => { setClearChatInput(false) }}

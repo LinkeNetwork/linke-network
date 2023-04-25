@@ -81,7 +81,7 @@ export default function ChatContext(props) {
     const currentNetwork = getLocal('network')
     const networkList = networks.filter(item => item.name === currentNetwork)
     const res = await getDaiWithSigner(networkList[0].ProfileAddress, PROFILE_ABI).defaultToken(account)
-    const hasCreate = res && (new BigNumber(Number(res))).toNumber()
+    const hasCreate = res && res.toNumber()
     return hasCreate
   }
   const getGiveawaysInfo = async(currentRedEnvelopId, graphUrl, giveaway) => {

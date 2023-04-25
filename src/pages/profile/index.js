@@ -21,7 +21,7 @@ export default function Profile() {
       try {
         if (currentNetworkInfo && currentNetworkInfo?.ProfileAddress) {
           const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
-          const hasCreate = res && (new BigNumber(Number(res))).toNumber()
+          const hasCreate = res && res.toNumber()
           setUrlParams(account)
           setState({
             hasCreateProfile: Boolean(hasCreate),

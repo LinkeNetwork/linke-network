@@ -3,13 +3,14 @@ import { Picker } from 'emoji-mart'
 import intl from "react-intl-universal"
 import { Modal } from '../../component/index'
 import { GPT_ABI, PUBLIC_GROUP_ABI, REGISTER_ABI} from '../../abi'
+import { ethers } from "ethers"
 import styled from "styled-components"
 import { detectMobile, getDaiWithSigner, getTokenBalance } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
 export default function ChatInputBox(props) {
-  const { startChat, clearChatInput, resetChatInputStatus, handleAwardBonus, handleSignIn, handleOpenSign, hasOpenedSignIn, currentTabIndex, handleOpenChatgpt } = props
-  const { setState, accounts, signInAddress, groupType, currentAddress, chatGptAddress, giveAwayAddressV3, dogewowAddress } = useGlobal()
+  const { startChat, clearChatInput, resetChatInputStatus, handleAwardBonus, handleSignIn, handleOpenSign, hasOpenedSignIn, currentTabIndex, handleOpenChatgpt, handleOpenChatgptService } = props
+  const { setState, accounts, signInAddress, groupType, currentAddress, chatGptAddress, dogewowAddress } = useGlobal()
   const [clientHeight, setClientHeight] = useState()
   const [editorArea, setEditorArea] = useState(null)
   const [emoji, setEmoji] = useState()
@@ -78,9 +79,6 @@ export default function ChatInputBox(props) {
     setShowOpenChatgpt(false)
     handleOpenChatgpt()
   }
-  const handleOpenChatgptService = () => {
-
-  }
   const handleChange = (event) => {
     setPurchasesTimes(event.target.value)
   }
@@ -93,19 +91,17 @@ export default function ChatInputBox(props) {
     }
   }
   const handleChatgpt = async() => {
-    setShowChatgptService(true)
-    debugger
-    const balance = await getTokenBalance(dogewowAddress, 18)
-    setDogewowBalance(balance)
-    const res = await getDaiWithSigner(currentAddress, GPT_ABI).groupAddressList(chatGptAddress)
-    console.log(res, 'GPT_ABI====')
-    // const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddressV3)
-    // console.log(res, '====handleChatgpt')
-    // if(!Boolean(res?.state)) {
-    //   setShowOpenChatgpt(true)
-    // } else {
-    //   setShowChatgptService(true)
-    // }
+    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(chatGptAddress)
+    if(!Boolean(res?.state)) {
+      setShowOpenChatgpt(true)
+    } else {
+      const balance = await getTokenBalance(dogewowAddress, 18)
+      setDogewowBalance(balance)
+      const groupInfo = await getDaiWithSigner(chatGptAddress, GPT_ABI).groupAddressList(currentAddress)
+      console.log(groupInfo.toNumber(), groupInfo.toString(), 'GPT_ABI====')
+      setGroupRemainingTimes(groupInfo.toNumber())
+      setShowChatgptService(true)
+    }
   }
   const getLength = (val) => {
     var bytesCount = 0
@@ -130,7 +126,6 @@ export default function ChatInputBox(props) {
     if (cnt < 0) {
       textCounter.classList.add('max-reached')
     } else {
-      textCounter.classList.remove('max-reached')
       setCanSendMessage(true)
     }
   }
@@ -197,7 +192,7 @@ export default function ChatInputBox(props) {
     return (
       <div className='chat-gpt-info'>
         <div className='item'>
-          <span className='name'>Purchases Times：</span>
+          <span className='name'>{intl.get('MinPurchasesTimes')}：</span>
           <input type="number" min="30" value={purchasesTimes} onChange={handleChange} onBlur={handleBlur} />
           {
             showTips &&
@@ -205,15 +200,19 @@ export default function ChatInputBox(props) {
           }
         </div>
         <div className='item'>
-          <span className='name'>Group Remaining Times：</span>
-          <div>{groupRemainingTimes}</div>
+          <span className='name'>{intl.get('GroupRemainingTimes')}：</span>
+          <span>{groupRemainingTimes}</span>
         </div>
         <div className='item'>
-          <span className='name'>Dogewow Balance：</span>
+          <span className='name'>{intl.get('DogewowBalance')}：</span>
           <span>{dogewowBalance}</span>
         </div>
       </div>
     )
+  }
+  const handleBuyChatgptService = () => {
+    setShowChatgptService(false)
+    handleOpenChatgptService(purchasesTimes)
   }
   const getTextRange = (emoji) => {
     var edit = document.getElementById('contenteditablediv')
@@ -348,7 +347,7 @@ export default function ChatInputBox(props) {
         <Modal title={intl.get('BuyChatgpt')} visible={showChatgptService} onClose={() => { setShowChatgptService(false) }}>
           {chatgptService()}
           <div className='btn-operate-award'>
-            <div className='btn btn-primary' onClick={handleOpenChatgptService}>{intl.get('Confirm')}</div>
+            <div className='btn btn-primary' onClick={handleBuyChatgptService}>{intl.get('Confirm')}</div>
             <div className='btn btn-light' onClick={() => { setShowChatgptService(false) }}>{intl.get('Cancel')}</div>
           </div>
         </Modal>
