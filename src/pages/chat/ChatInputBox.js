@@ -389,9 +389,9 @@ export default function ChatInputBox(props) {
               <span className='iconfont icon-sign2'></span>
             </div>
           }
-          {/* <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleChatgpt}>
+          <div className='btn btn-icon btn-sm btn-light rounded-circle' onClick={handleChatgpt}>
             <span className='iconfont icon-Robot'></span>
-          </div> */}
+          </div>
         </div>
         <div className={`rich-editor chat-input ${!detectMobile() ? 'chat-input-pc' : 'chat-input-client'}`}>
           <div className={`wrapper ${!detectMobile() ? 'wrapper-pc' : 'wrapper-client'}`}>
