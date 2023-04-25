@@ -3,7 +3,7 @@ import styled from "styled-components"
 import { useState } from 'react'
 import intl from "react-intl-universal"
 import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI } from '../../abi'
-import { getDaiWithSigner } from '../../utils'
+import { getContractConnect } from '../../utils'
 import useGroupMember from '../../hooks/useGroupMember'
 import useGlobal from '../../hooks/useGlobal'
 import Loading from '../../component/Loading'
@@ -43,7 +43,7 @@ export default function JoinGroupButton(props) {
     try {
       if(groupType) {
         const abi = +groupType === 3 ?  PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
-        const tx = await getDaiWithSigner(currentAddress, abi).joinRoom(name)
+        const tx = await getContractConnect(currentAddress, abi).joinRoom(name)
         setTransactionHash(tx.hash)
         console.log(tx, 'tx====')
         await tx.wait()

@@ -85,14 +85,14 @@ export const isInstalledMetaMask = () => {
   return true
 }
 
-export const getDaiWithSigner = (address, abi) => {
+export const getContractConnect = (address, abi) => {
   if(!window?.ethereum) return
   const provider = new ethers.providers.Web3Provider(window.ethereum)
   const signer = provider.getSigner()
   if(address) {
-    const daiContract = new ethers.Contract(address, abi, provider)
-    const daiWithSigner = daiContract.connect(signer)
-    return daiWithSigner
+    const contract = new ethers.Contract(address, abi, provider)
+    const contractConnect = contract.connect(signer)
+    return contractConnect
   }
 }
 
@@ -210,7 +210,7 @@ export const getTimestamp = (day) => {
 
 export const getStackedAmount = async(nftAddress) => {
   const account = getLocal('account')
-  const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
+  const registerUserInfos = await getContractConnect(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
   const userAmount = ethers.utils.formatEther(registerUserInfos?.amount)
   return userAmount
 }

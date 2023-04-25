@@ -1,4 +1,4 @@
-import { detectMobile, formatAddress, getDaiWithSigner, getLocal, getCurrentNetworkInfo } from "../../utils"
+import { detectMobile, formatAddress, getContractConnect, getLocal, getCurrentNetworkInfo } from "../../utils"
 import { Jazzicon } from '@ukstv/jazzicon-react'
 import BigNumber from 'bignumber.js'
 import networks from '../../context/networks'
@@ -80,7 +80,7 @@ export default function ChatContext(props) {
   const getProfileStatus = async (account) => {
     const currentNetwork = getLocal('network')
     const networkList = networks.filter(item => item.name === currentNetwork)
-    const res = await getDaiWithSigner(networkList[0].ProfileAddress, PROFILE_ABI).defaultToken(account)
+    const res = await getContractConnect(networkList[0].ProfileAddress, PROFILE_ABI).defaultToken(account)
     const hasCreate = res && res.toNumber()
     return hasCreate
   }

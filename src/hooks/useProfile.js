@@ -1,6 +1,5 @@
-import { getDaiWithSigner, setLocal, getCurrentNetworkInfo } from '../utils'
+import { getContractConnect, setLocal, getCurrentNetworkInfo } from '../utils'
 import {PROFILE_ABI} from '../abi'
-import BigNumber from 'bignumber.js'
 import useGlobal from './useGlobal'
 import { getLocal } from '../utils'
 import { useEffect, useState } from 'react'
@@ -16,7 +15,7 @@ export default function useProfile() {
     if(account) {
       try{
         if(currentNetworkInfo && networkInfo?.ProfileAddress) {
-          const res = await getDaiWithSigner(networkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
+          const res = await getContractConnect(networkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
           var hasCreate = res && res.toNumber()
           setLocal('hasCreate', Boolean(hasCreate))
           setState({
@@ -37,7 +36,7 @@ export default function useProfile() {
     if(hasCreate) {
       try {
         if(networkInfo && networkInfo?.ProfileAddress) {
-          const res = await getDaiWithSigner(networkInfo?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)
+          const res = await getContractConnect(networkInfo?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)
           console.log(res)
           const {name, description}= JSON.parse(res)
           setProfileName(name)

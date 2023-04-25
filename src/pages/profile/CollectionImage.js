@@ -2,7 +2,7 @@ import styled from "styled-components"
 import Image from "../../component/Image"
 import moreImage from '../../assets/images/more.svg'
 import hoverImage from '../../assets/images/hover-more.svg'
-import { detectMobile, getDaiWithSigner } from '../../utils'
+import { detectMobile, getContractConnect } from '../../utils'
 import { PROFILE_ABI } from '../../abi'
 import useGlobal from '../../hooks/useGlobal'
 import { PhotoProvider, PhotoView } from 'react-photo-view'
@@ -16,7 +16,7 @@ export default function CollectionImage() {
   const collectionList = [1, 2, 3]
   const getProfileBaseUrl = async (profileId) => {
     if(!profileId) return
-    const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)
+    const res = await getContractConnect(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).tokenURI(profileId)
     const {image} = JSON.parse(res)
     setAvatar(image)
   }

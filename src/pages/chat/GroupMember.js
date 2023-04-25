@@ -8,7 +8,7 @@ import Modal from '../../component/Modal'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { PUBLIC_GROUP_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI } from '../../abi'
-import { detectMobile, formatAddress, getLocal, getDaiWithSigner } from "../../utils"
+import { detectMobile, formatAddress, getLocal, getContractConnect } from "../../utils"
 import useGroupMember from '../../hooks/useGroupMember'
 import useGlobal from "../../hooks/useGlobal"
 import { ethers } from "ethers"
@@ -64,7 +64,7 @@ export default function GroupMember(props) {
     handlePrivateChat(item, privateKey)
   }
   const getChatStatus = async (item) => {
-    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(item.id.toLowerCase())
+    const res = await getContractConnect(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(item.id.toLowerCase())
     setPrivateKey(res)
     setShowPrivateChat(Boolean(res))
   }
@@ -89,7 +89,7 @@ export default function GroupMember(props) {
   const confirmQuitRoom = async () => {
     try {
       const abi = +groupType === 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
-      const tx = await getDaiWithSigner(currentAddress, abi).quitRoom()
+      const tx = await getContractConnect(currentAddress, abi).quitRoom()
       handleShowMask()
       closeGroupMember()
       await tx.wait()
@@ -193,14 +193,14 @@ export default function GroupMember(props) {
   }
   const getManager = async (groupType) => {
     if (+groupType === 1 || +groupType === 2) {
-      const tx = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
+      const tx = await getContractConnect(currentAddress, PUBLIC_GROUP_ABI).profile()
       setManager(tx.manager)
       const canQuitRoom = tx.manager?.toLowerCase() === getLocal('account')?.toLowerCase()
       setCanQuitRoom(canQuitRoom)
       console.log(tx, 'tx===manager')
     }
     if (+groupType === 3) {
-      var res = await getDaiWithSigner(currentAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
+      var res = await getContractConnect(currentAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(getLocal('account'))
       const isMaster = ethers.BigNumber.from(res) > 0
       setCanQuitRoom(isMaster)
     }

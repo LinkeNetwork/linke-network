@@ -2,7 +2,7 @@ import { useState } from "react"
 import { create } from 'ipfs-http-client'
 import styled from "styled-components"
 import useGlobal from '../../hooks/useGlobal'
-import { getDaiWithSigner, getLocal } from '../../utils'
+import { getContractConnect, getLocal } from '../../utils'
 import { GROUP_FACTORY_ABI } from '../../abi'
 import Loading from '../../component/Loading'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
@@ -117,7 +117,7 @@ export default function CreateNewRoom(props) {
       const params = +currentGroup.value === 4 
         ? ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string"], [name, describe, avatarUrl, name_, symbol_])
         : ethers.utils.defaultAbiCoder.encode(["string", "string", "string", "string", "string", "string"], [name, describe, avatarUrl, styleList, name_, symbol_])
-      const tx = await getDaiWithSigner(currentNetworkInfo?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
+      const tx = await getContractConnect(currentNetworkInfo?.GroupProfileAddress, GROUP_FACTORY_ABI).mint(currentGroupType, params)
       setTransactionHash(tx.hash)
       let callback = await tx.wait()
       history.push(`/chat/${callback.logs[0].address}`)

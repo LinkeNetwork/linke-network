@@ -22,7 +22,7 @@ import AwardBonus from './AwardBonus'
 import ReceiveInfo from './ReceiveInfo'
 import { ethers } from "ethers"
 import useReceiveInfo from '../../hooks/useReceiveInfo'
-import { detectMobile, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getDaiWithSigner, getClient, getTimestamp, getCurrentNetworkInfo, getStackedAmount, getTokenInfo } from '../../utils'
+import { detectMobile, uniqueChatList,  getBalance,getBalanceNumber, setLocal, getLocal, getContractConnect, getClient, getTimestamp, getCurrentNetworkInfo, getStackedAmount, getTokenInfo } from '../../utils'
 import { PUBLIC_GROUP_ABI, ENCRYPTED_COMMUNICATION_ABI, PUBLIC_SUBSCRIBE_GROUP_ABI, REGISTER_ABI, SIGN_IN_ABI, RED_PACKET_V2, GPT_ABI} from '../../abi/index'
 import localForage from "localforage"
 import Modal from '../../component/Modal'
@@ -241,12 +241,12 @@ export default function Chat() {
   }
   const getManager = async (id, type) => {
     if (+type === 3) return
-    const tx = await getDaiWithSigner(id, PUBLIC_GROUP_ABI).profile()
+    const tx = await getContractConnect(id, PUBLIC_GROUP_ABI).profile()
     const canSendText = tx.manager?.toLowerCase() === ACCOUNT?.toLowerCase()
     setCanSendText(canSendText)
   }
   const getPrivateChatStatus = async (id) => {
-    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(id)
+    const res = await getContractConnect(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(id)
     setPrivateKey(res)
   }
   const initRoomAddress = async(hash) => {
@@ -282,7 +282,7 @@ export default function Chat() {
   const getGroupName = async(roomAddress, groupType, groupInfo) => {
     if(!roomAddress || !groupType || !groupInfo || !window?.ethereum) return
     getJoinRoomAccess(roomAddress, groupType)
-    const { name } = +groupType === 3 ? await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo() : await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).profile()
+    const { name } = +groupType === 3 ? await getContractConnect(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).groupInfo() : await getContractConnect(roomAddress, PUBLIC_GROUP_ABI).profile()
     setCurrentRoomName(name || groupInfo?.name)
   }
   const getGroupInfo = (groupInfo) => {
@@ -345,8 +345,8 @@ export default function Chat() {
   const getHasAccessStatus = async(roomAddress, groupType) => {
     if(!ACCOUNT || !roomAddress || !groupType) return
     const res = +groupType === 3 
-              ? await getDaiWithSigner(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(ACCOUNT)
-              : await getDaiWithSigner(roomAddress, PUBLIC_GROUP_ABI).balanceOf(ACCOUNT)
+              ? await getContractConnect(roomAddress, PUBLIC_SUBSCRIBE_GROUP_ABI).managers(ACCOUNT)
+              : await getContractConnect(roomAddress, PUBLIC_GROUP_ABI).balanceOf(ACCOUNT)
     const hasAccess= ethers.BigNumber.from(res) > 0
     setHasAccess(hasAccess)
     return hasAccess
@@ -354,7 +354,7 @@ export default function Chat() {
   const getReceivedStatus = async(version, id) => {
     const envelopId = parseInt(id || redEnvelopId)
     setCurrentRedEnvelopId(envelopId)
-    const tx = await getDaiWithSigner(version.address, version.reaPacket).giveawayInfo_exist(envelopId, ACCOUNT)
+    const tx = await getContractConnect(version.address, version.reaPacket).giveawayInfo_exist(envelopId, ACCOUNT)
     let isReceived = tx.toNumber()
     return isReceived
   }
@@ -775,12 +775,12 @@ export default function Chat() {
     const address = giveAwayAddressV3
     const redPacket = RED_PACKET_V2
       // var tx = selectTokenAddress == 0
-      // ? await getDaiWithSigner(address, redPacket).sendETH(currentAddress, total, quantity, type_, wishesText, {value:total})
-      // : await getDaiWithSigner(address, redPacket).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText)
+      // ? await getContractConnect(address, redPacket).sendETH(currentAddress, total, quantity, type_, wishesText, {value:total})
+      // : await getContractConnect(address, redPacket).send(currentAddress,selectTokenAddress, total, quantity, type_, wishesText)
 
     const tx = +selectTokenAddress === 0
-    ? await getDaiWithSigner(address, redPacket).sendETH(params, {value:total})
-    : await getDaiWithSigner(address, redPacket).send(selectTokenAddress, params)
+    ? await getContractConnect(address, redPacket).sendETH(params, {value:total})
+    : await getContractConnect(address, redPacket).send(selectTokenAddress, params)
     setShowMask(true)
     setShowAwardBonus(false)
     const db = await setDataBase()
@@ -853,14 +853,14 @@ export default function Chat() {
         })
         const encryptedMessage = getencryptedMessage(chatText, privateKey)
         const encryptedSenderMessage = getencryptedMessage(chatText, myPublicKey)
-        var tx = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
+        var tx = await getContractConnect(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       }
       if(currentTabIndex === 0 ) {
         const groupInfo = await getGroupMember(currentAddress, skip)
         const groupType = groupInfo?._type
         setGroupType(groupType)
         const abi = +groupType === 3 ? PUBLIC_SUBSCRIBE_GROUP_ABI : PUBLIC_GROUP_ABI
-        tx = await getDaiWithSigner(currentAddress, abi).send(chatText, 'msg')
+        tx = await getContractConnect(currentAddress, abi).send(chatText, 'msg')
       }
       setClearChatInput(true)
       var newChat = {
@@ -1044,7 +1044,7 @@ export default function Chat() {
 
   const verifyRegister = async(reaPacket) => {
     if(globalNftAddress) {
-      const registerNftInfos = await getDaiWithSigner(globalNftAddress, reaPacket).balanceOf(ACCOUNT)
+      const registerNftInfos = await getContractConnect(globalNftAddress, reaPacket).balanceOf(ACCOUNT)
       if(+registerNftInfos < 1) {
         setShowTips(true)
         const text = `${intl.get('YouMust')} ${intl.get('CheckIn')} ${intl.get('ReceiveRedEnvelope')}`
@@ -1225,7 +1225,7 @@ export default function Chat() {
     try {
       const fee = ethers.utils.parseEther(String(purchasesTimes))
       setShowMask(true)
-      const tx = await getDaiWithSigner(chatGptAddress, GPT_ABI).openGPT(currentAddress, {value: fee})
+      const tx = await getContractConnect(chatGptAddress, GPT_ABI).openGPT(currentAddress, {value: fee})
       tx.wait()
       setShowMask(false)
     } catch {
@@ -1283,7 +1283,7 @@ export default function Chat() {
   }
   const handleConfirmAutoCheckIn = async() => {
     const fee = ethers.utils.parseEther('1')
-    const tx = await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).automatic({value: fee})
+    const tx = await getContractConnect(globalNftAddress, SIGN_IN_ABI).automatic({value: fee})
     setShowHandlingFee(false)
     setShowSignIn(false)
     setShowMask(true)
@@ -1306,7 +1306,7 @@ export default function Chat() {
   }
   const getNftAddress = async() => {
     const currentAddress = ROOM_ADDRESS || GROUP_ADDRESS
-    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
+    const tx = await getContractConnect(signInAddress, REGISTER_ABI).registers(currentAddress)
     globalNftAddress = tx.nft
   }
   useEffect(() => {
@@ -1323,7 +1323,7 @@ export default function Chat() {
     }
   }, [])
   const handleAwardBonus = async() => {
-    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddressV3)
+    const res = await getContractConnect(currentAddress, PUBLIC_GROUP_ABI).users(giveAwayAddressV3)
     if(!Boolean(res?.state)) {
       setShowOpenAward(true)
     } else {
@@ -1359,8 +1359,8 @@ export default function Chat() {
       return
     }
     const tx = version !== 'v3'
-          ? await getDaiWithSigner(currentGiveAwayVersion, reaPacket).receive(currentRedEnvelopId)
-          : await getDaiWithSigner(currentGiveAwayVersion, reaPacket).receives(currentRedEnvelopId)
+          ? await getContractConnect(currentGiveAwayVersion, reaPacket).receive(currentRedEnvelopId)
+          : await getContractConnect(currentGiveAwayVersion, reaPacket).receives(currentRedEnvelopId)
     setState({
       showOpen: true
     })
@@ -1376,7 +1376,7 @@ export default function Chat() {
     })
   }
   const handleCancelCheckin = async() => {
-    const tx = await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).cancelCheckin()
+    const tx = await getContractConnect(globalNftAddress, SIGN_IN_ABI).cancelCheckin()
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
@@ -1388,7 +1388,7 @@ export default function Chat() {
   }
   const handleOpenAward = async() => {
     setShowOpenAward(false)
-    const tx = await getDaiWithSigner(giveAwayAddressV3, RED_PACKET_V2).register(currentAddress)
+    const tx = await getContractConnect(giveAwayAddressV3, RED_PACKET_V2).register(currentAddress)
     setShowMask(true)
     await tx.wait()
     setShowMask(false)
@@ -1443,7 +1443,7 @@ export default function Chat() {
     setShowSignIn(true)
   }
   const handleOpenChatgpt = async() => {
-    const tx = await getDaiWithSigner(chatGptAddress, GPT_ABI).register(currentAddress)
+    const tx = await getContractConnect(chatGptAddress, GPT_ABI).register(currentAddress)
     setShowMask(true)
     tx.wait()
     setShowMask(false)
@@ -1452,7 +1452,7 @@ export default function Chat() {
     try {
       setShowMask(true)
       const params = ethers.utils.defaultAbiCoder.encode(["address", "address", "string", "string"], [tokenAddress, currentAddress, "Register","register"]);
-      const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).mint(currentAddress, 1, params)
+      const tx = await getContractConnect(signInAddress, REGISTER_ABI).mint(currentAddress, 1, params)
       const receipt = await tx.wait()
       console.log("Transaction hash:", receipt.transactionHash)
       console.log("Gas used:", receipt.gasUsed.toString())
@@ -1474,7 +1474,7 @@ export default function Chat() {
     }
   }
   const handleEndStake = async(isOpenAutoCheckIn) => {
-    const tx = isOpenAutoCheckIn ? await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).receivesAuto() : await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).receives()
+    const tx = isOpenAutoCheckIn ? await getContractConnect(globalNftAddress, SIGN_IN_ABI).receivesAuto() : await getContractConnect(globalNftAddress, SIGN_IN_ABI).receives()
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()
@@ -1499,7 +1499,7 @@ export default function Chat() {
       const valueE = +token === 0 ? ethers.utils.parseEther(quantity) : 0
       const formatQuantity = ethers.utils.parseUnits(quantity, decimals)
       const value = +token === 0 ? formatQuantity : formatQuantity.toString()
-      const tx = await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).checkin(tokenId, value, {value: valueE})
+      const tx = await getContractConnect(globalNftAddress, SIGN_IN_ABI).checkin(tokenId, value, {value: valueE})
       await tx.wait()
       setShowMask(false)
     } catch(err) {
@@ -1560,7 +1560,7 @@ export default function Chat() {
     const valueE = isEthf ? ethers.utils.parseEther(quantity) : 0
     const formatQuantity = ethers.utils.parseUnits(quantity, decimals)
     const value = isEthf ? formatQuantity : formatQuantity.toString()
-    const tx = await getDaiWithSigner(globalNftAddress, SIGN_IN_ABI).mint(value,{value: valueE})
+    const tx = await getContractConnect(globalNftAddress, SIGN_IN_ABI).mint(value,{value: valueE})
     setShowSignIn(false)
     setShowMask(true)
     await tx.wait()

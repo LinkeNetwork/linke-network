@@ -1,8 +1,7 @@
 import CreateProfile from './CreateProfile'
 import ViewProfile from './ViewProfile'
-import { getDaiWithSigner, getLocal } from '../../utils'
+import { getContractConnect, getLocal } from '../../utils'
 import PROFILE_ABI from '../../abi/PROFILE_ABI.json'
-import BigNumber from 'bignumber.js'
 import Introduction from "../chat/Introduction"
 import { useHistory } from 'react-router-dom'
 import { useEffect, useState } from 'react'
@@ -20,7 +19,7 @@ export default function Profile() {
     if (account) {
       try {
         if (currentNetworkInfo && currentNetworkInfo?.ProfileAddress) {
-          const res = await getDaiWithSigner(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
+          const res = await getContractConnect(currentNetworkInfo?.ProfileAddress, PROFILE_ABI).defaultToken(account)
           const hasCreate = res && res.toNumber()
           setUrlParams(account)
           setState({

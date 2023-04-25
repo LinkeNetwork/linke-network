@@ -3,9 +3,8 @@ import { Picker } from 'emoji-mart'
 import intl from "react-intl-universal"
 import { Modal } from '../../component/index'
 import { GPT_ABI, PUBLIC_GROUP_ABI, REGISTER_ABI} from '../../abi'
-import { ethers } from "ethers"
 import styled from "styled-components"
-import { detectMobile, getDaiWithSigner, getTokenBalance } from '../../utils'
+import { detectMobile, getContractConnect, getTokenBalance } from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
 export default function ChatInputBox(props) {
@@ -52,11 +51,11 @@ export default function ChatInputBox(props) {
   }
   const isOpenSignIn = async() => {
     if(currentTabIndex === 1) return
-    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
+    const tx = await getContractConnect(signInAddress, REGISTER_ABI).registers(currentAddress)
     setState({
       nftAddress: tx.nft
     })
-    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).profile()
+    const res = await getContractConnect(currentAddress, PUBLIC_GROUP_ABI).profile()
     if(tx && +tx[0] === 0 && res?.manager?.toLowerCase() === accounts?.toLowerCase() && +groupType === 4) {
       setShowOpenSignIcon(true)
       setState({
@@ -91,13 +90,13 @@ export default function ChatInputBox(props) {
     }
   }
   const handleChatgpt = async() => {
-    const res = await getDaiWithSigner(currentAddress, PUBLIC_GROUP_ABI).users(chatGptAddress)
+    const res = await getContractConnect(currentAddress, PUBLIC_GROUP_ABI).users(chatGptAddress)
     if(!Boolean(res?.state)) {
       setShowOpenChatgpt(true)
     } else {
       const balance = await getTokenBalance(dogewowAddress, 18)
       setDogewowBalance(balance)
-      const groupInfo = await getDaiWithSigner(chatGptAddress, GPT_ABI).groupAddressList(currentAddress)
+      const groupInfo = await getContractConnect(chatGptAddress, GPT_ABI).groupAddressList(currentAddress)
       console.log(groupInfo.toNumber(), groupInfo.toString(), 'GPT_ABI====')
       setGroupRemainingTimes(groupInfo.toNumber())
       setShowChatgptService(true)
@@ -277,7 +276,7 @@ export default function ChatInputBox(props) {
     setShowPicker(false)
   }
   const handleCheckIn = async() => {
-    const tx = await getDaiWithSigner(signInAddress, REGISTER_ABI).registers(currentAddress)
+    const tx = await getContractConnect(signInAddress, REGISTER_ABI).registers(currentAddress)
     setState({
       nftAddress: tx.nft
     })

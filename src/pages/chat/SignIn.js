@@ -5,7 +5,7 @@ import intl from "react-intl-universal"
 import BigNumber from 'bignumber.js'
 import { Modal, Image } from "../../component/index"
 import { tokenListInfo } from '../../constant/tokenList'
-import { detectMobile, getDaiWithSigner, getBalance, getLocal, getBalanceNumber, formatTimestamp } from "../../utils"
+import { detectMobile, getContractConnect, getBalance, getLocal, getBalanceNumber, formatTimestamp } from "../../utils"
 import TokenList from "./TokenList"
 import { ethers } from "ethers"
 import useGlobal from "../../hooks/useGlobal"
@@ -93,7 +93,7 @@ export default function SignIn(props) {
     const list = [...nftImageList]
     for (let i = 0; i < list.length; i++) {
       const tokenId = list[i].tokenId;
-      const result = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId)
+      const result = await getContractConnect(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId)
       list[i].score = Number(ethers.utils.formatUnits(result.score.toString(), tokenInfo?.decimals))
     }
     setNftInfo(list)
@@ -101,7 +101,7 @@ export default function SignIn(props) {
   }
   const getStakedInfo = async () => {
     const account = getLocal('account').toLowerCase()
-    const registerUserInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
+    const registerUserInfos = await getContractConnect(nftAddress, SIGN_IN_ABI).getRegisterUserInfo(account)
     const {lastDate, tokenId, amount, cancelDate} = registerUserInfos
     const selectedToken = await getCheckInToken(currentAddress)
     const userAmount = ethers.utils.formatUnits(amount, selectedToken?.decimals)
@@ -109,7 +109,7 @@ export default function SignIn(props) {
       canMint: !(+userAmount)
     })
     const tokenId_ = tokenId.toNumber()
-    const registerInfos = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId_)
+    const registerInfos = await getContractConnect(nftAddress, SIGN_IN_ABI).getRegisterInfo(tokenId_)
     setSelectTokenId(tokenId_)
     const timestamp = formatTimestamp(lastDate)
     const cancelTime = formatTimestamp(cancelDate)
@@ -144,7 +144,7 @@ export default function SignIn(props) {
     setState({
       continueMint: false
     })
-    const res = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).registerUserInfos(getLocal('account'))
+    const res = await getContractConnect(nftAddress, SIGN_IN_ABI).registerUserInfos(getLocal('account'))
     const mintNum = ethers.utils.formatEther(res.amount)
     if(mintNum > 0) {
       setText(intl.get('Staking'))
@@ -158,11 +158,11 @@ export default function SignIn(props) {
     handleSelectNft(item)
   }
   const getSelectedToken = async () => {
-    const res = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).getAutomatic()
+    const res = await getContractConnect(nftAddress, SIGN_IN_ABI).getAutomatic()
     const isOpenAutoCheckIn = res.toNumber()
     setIsOpenAutoCheckIn(Boolean(isOpenAutoCheckIn))
     console.log(isOpenAutoCheckIn, '====getAutomatic')
-    const tx = await getDaiWithSigner(nftAddress, SIGN_IN_ABI).token()
+    const tx = await getContractConnect(nftAddress, SIGN_IN_ABI).token()
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() === tx.toLocaleLowerCase())
     const { symbol, logoURI, address, decimals } = selectedToken.length && selectedToken[0]

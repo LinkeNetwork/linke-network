@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { getDaiWithSigner } from '../../utils'
+import { getContractConnect } from '../../utils'
 import CopyButton from '../../component/Copy'
 import { useEffect, useState } from 'react'
 import { useHistory } from 'react-router-dom'
@@ -29,7 +29,7 @@ export default function ProfileInfo(props) {
   }
   const getPrivateChatStatus = async (pathname) => {
     if(currentNetworkInfo?.PrivateChatAddress && pathname) {
-      const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(pathname)
+      const res = await getContractConnect(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(pathname)
       setShowPrivateChat(Boolean(res))
       setPrivateKey(res)
       console.log(res, currentNetworkInfo, 'getPrivateChatStatus=====')
@@ -86,7 +86,7 @@ export default function ProfileInfo(props) {
     }
     if (profileInfo?.selfNFT) {
       setShoMask(true)
-      const res = await getDaiWithSigner(profileInfo?.selfNFT, FOLLOW_ABI).awardItem(urlParams, tokenrul)
+      const res = await getContractConnect(profileInfo?.selfNFT, FOLLOW_ABI).awardItem(urlParams, tokenrul)
       await res.wait()
       setHasFollow(true)
       getMyprofileInfo(address)
@@ -117,7 +117,7 @@ export default function ProfileInfo(props) {
     })
     .then(async(result) => {
       setShoMask(true)
-      const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).register(result)
+      const res = await getContractConnect(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).register(result)
       await res.wait()
       showOpenPrivateChatTips(true)
       setShoMask(false)
@@ -137,7 +137,7 @@ export default function ProfileInfo(props) {
     })
   }
   const jupmToChat = async() => {
-    const res = await getDaiWithSigner(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(accounts)
+    const res = await getContractConnect(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).users(accounts)
     if(Boolean(res)) {
       history.push({
         pathname: `/chat/${address}#p`,

@@ -8,7 +8,7 @@ import { useState } from "react"
 import UserInfo from './UserInfo'
 import Loading from '../../component/Loading'
 import multiavatar from '@beeprotocol/beemultiavatar/esm'
-import { getDaiWithSigner, getLocal } from '../../utils'
+import { getContractConnect, getLocal } from '../../utils'
 import useGlobal from "../../hooks/useGlobal"
 
 // const projectId = '2DCSZo1Ij4J3XhwMJ2qxifgOJ0P';
@@ -33,7 +33,7 @@ export default function InputForm(props) {
     try {
         const address = currentNetworkInfo?.ProfileAddress
        // string memory name, string memory description, string memory image, MapInfo[] memory attribute, string memory avatar, string memory name_, string memory symbol_
-        const tx = await getDaiWithSigner(address, PROFILE_ABI).register(name, describe, expandInfo, avatarUrl, "FOLLOW", "FOLLOW")
+        const tx = await getContractConnect(address, PROFILE_ABI).register(name, describe, expandInfo, avatarUrl, "FOLLOW", "FOLLOW")
         console.log(tx, 'tx====')
         await tx.wait()
         setName('')
