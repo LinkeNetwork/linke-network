@@ -336,11 +336,9 @@ export default function Chat() {
           }
         }
         setHasNotice(true)
-        setShowMask(false)
       }
       return false
     }
-    setShowMask(false)
   }
   const getHasAccessStatus = async(roomAddress, groupType) => {
     if(!ACCOUNT || !roomAddress || !groupType) return
@@ -1227,7 +1225,6 @@ export default function Chat() {
       setShowMask(true)
       const tx = await getContractConnect(chatGptAddress, GPT_ABI).openGPT(currentAddress, {value: fee})
       tx.wait()
-      setShowMask(false)
     } catch {
       setShowMask(false)
     }
@@ -1443,10 +1440,14 @@ export default function Chat() {
     setShowSignIn(true)
   }
   const handleOpenChatgpt = async() => {
-    const tx = await getContractConnect(chatGptAddress, GPT_ABI).register(currentAddress)
-    setShowMask(true)
-    tx.wait()
-    setShowMask(false)
+    try {
+      setShowMask(true)
+      const tx = await getContractConnect(chatGptAddress, GPT_ABI).register(currentAddress)
+      tx.wait()
+      setShowMask(false)
+    } catch {
+      setShowMask(false)
+    }
   }
   const handleOpenSign = async(tokenAddress) => {
     try {
