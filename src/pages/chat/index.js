@@ -369,6 +369,7 @@ export default function Chat() {
     }
   }
   const fetchPublicChatList = async (roomAddress) => {
+    setShowMask(true)
     const tokensQuery = `
     query{
       chatInfos(orderBy:index,orderDirection:desc, first:20, where:{room: "`+ roomAddress?.toLowerCase() + `"}){
