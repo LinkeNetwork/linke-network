@@ -24,6 +24,7 @@ export default function AwardBonus(props) {
   const [selectedTokenInfo, setSelectedTokenInfo] = useState('')
   const [tokenBalance, setTokenBalance] = useState('')
   const [selectTokenAddress, setSelectTokenAddress] = useState('')
+  const [mustHaveTokenDecimals, setMustHaveTokenDecimals] = useState()
   const [tokenLogo, setTokenLogo] = useState('')
   const [haveTokenLogo, setHaveTokenLogo] = useState('')
   const [mustHaveToken, setMustHaveToken] = useState()
@@ -43,7 +44,7 @@ export default function AwardBonus(props) {
   const buttonActions = () => {
     switch (btnText) {
       case intl.get('Send'):
-        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount)
+        handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount, mustHaveTokenDecimals)
         break;
       case intl.get('Approve'):
         approveActions(selectedTokenInfo, giveAwayAddressV3)
@@ -81,6 +82,7 @@ export default function AwardBonus(props) {
       setShowTokenList(false)
       setHaveTokenLogo(item.logoURI)
       setMustHaveToken(item.symbol)
+      setMustHaveTokenDecimals(item.decimals)
       setMustHaveTokenAddress(item.address)
     }
     setQuantity()

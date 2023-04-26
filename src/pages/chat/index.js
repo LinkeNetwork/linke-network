@@ -748,8 +748,8 @@ export default function Chat() {
     )
     return encryptedMessage
   }
-  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount) => {
-    const haveAmount = !minAmount ? 0 : ethers.utils.parseEther(minAmount)
+  const handleSend = async(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount, mustHaveTokenDecimals) => {
+    const haveAmount = !minAmount ? 0 : ethers.utils.parseUnits(minAmount, mustHaveTokenDecimals)
     const lastDate = getTimestamp(7)
     const stackedAmount = !minStackedAmount ? 0 : ethers.utils.parseEther(minStackedAmount)
     const haveTokenAddress= !mustHaveTokenAddress ? '0x0000000000000000000000000000000000000000' : mustHaveTokenAddress
@@ -1706,7 +1706,7 @@ export default function Chat() {
         <AwardBonus
           handleCloseAward={() => { setShowAwardBonus(false) }}
           currentAddress={currentAddress}
-          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount)}}
+          handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount, mustHaveTokenDecimals) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount, mustHaveTokenDecimals)}}
           handleGiveAway={(tx) => {handleGiveAway(tx)}}
         ></AwardBonus>
       }
@@ -1733,7 +1733,7 @@ export default function Chat() {
           <AwardBonus
             handleCloseAward={() => { setShowAwardBonus(false) }}
             currentAddress={currentAddress}
-            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount)}}
+            handleSend={(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount, mustHaveTokenDecimals) => {handleSend(currentBonusType, totalAmount,selectTokenAddress, quantity, wishesText, tokenDecimals, openStatus, minAmount, mustHaveTokenAddress, minStackedAmount, mustHaveTokenDecimals)}}
             handleGiveAway={(tx) => {handleGiveAway(tx)}}
           ></AwardBonus>
         </Modal>
