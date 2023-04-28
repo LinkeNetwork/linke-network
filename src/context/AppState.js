@@ -28,7 +28,7 @@ const state = {
   giveAwayAddressV2: '0x1ec08c106c85caa680a89f206501f227e2bde5a2',
   giveAwayAddressV3: '0x4c5da4d8a00289a2b8336926752f4c07721620ba',
   signInAddress: '0xD6425022DC33C6b5bf339AC873430b442d50D63b',
-  chatGptAddress: '0xFEE18541642e1f87FD455CcE6983CE5321A8EfA8',
+  chatGptAddress: '0x52EaEE51410f075F8644AA8b39De5897b214F139',
   currentChain: '',
   showOpen: false,
   getNewMsg: false,
