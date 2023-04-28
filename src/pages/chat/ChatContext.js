@@ -250,12 +250,16 @@ export default function ChatContext(props) {
                           onClick={(e) => { handleShowProfile(e, v) }}
                         >
                           {
-                            v.avatar && v._type !== "Register" &&
+                            v.avatar && v._type !== "Register" && v._type !== "GPT" &&
                             <Image size={25} src={v.avatar} className="address-icon" />
                           }
                           {
-                            !v.avatar && v?.user?.id && v._type !== "Register" &&
+                            !v.avatar && v?.user?.id && v._type !== "Register" && v._type !== "GPT" &&
                             <Jazzicon address={v?.user?.id} className="address-icon" />
+                          }
+                          {
+                            v._type === "GPT" &&
+                            <Image size={25} src="https://cdn-icons-png.flaticon.com/128/6540/6540769.png" className="address-icon" />
                           }
                           {
                             v.showProfile &&
@@ -337,7 +341,7 @@ export default function ChatContext(props) {
                         </div>
                       }
                       {
-                        v._type === 'msg' &&
+                        (v._type === 'msg' || v._type === 'GPT') &&
                         <div className='chat-ui-bubble chat-ui-bubble-reverse' key={i}
                           // onClick={(e) => { this.onOperateMenu(e, v) }}
                           onTouchStart={(e) => { gtouchstart(e, v) }}
