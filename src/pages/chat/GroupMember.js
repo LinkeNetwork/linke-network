@@ -140,7 +140,7 @@ export default function GroupMember(props) {
           <span className="name">{intl.get('RoomName')}: </span>
           <span className="value">{groupInfo?.name}</span>
         </div>
-        <div className="item">
+        <div className="item item-flex">
           <span className="name">{intl.get('GroupAddress')}: </span>
           <div className="d-flex">
             <span className="value">{formatAddress(groupInfo?.id, 7, 9) }</span>
@@ -447,9 +447,12 @@ z-index: 100;
   background: #fff;
   margin: 70px 10px 0;
   padding: 20px 20px 10px;
+  .item-flex {
+    display: flex;
+  }
   .item {
     margin-bottom: 20px;
-    display: flex;
+    // display: flex;
     .ewm-logo {
       width: 20px;
       margin-left: 10px;
