@@ -4,9 +4,11 @@ import intl from "react-intl-universal"
 import { Modal } from '../../component/index'
 import { GPT_ABI, PUBLIC_GROUP_ABI, REGISTER_ABI} from '../../abi'
 import styled from "styled-components"
-import { detectMobile, getContractConnect, getTokenBalance } from '../../utils'
+import {detectMobile, getContractConnect, getLocal, getTokenBalance} from '../../utils'
 import useGlobal from '../../hooks/useGlobal'
 import OpenSignIn from './OpenSignIn'
+import Web3 from "web3";
+import {ethers} from "ethers";
 export default function ChatInputBox(props) {
   const { startChat, clearChatInput, resetChatInputStatus, handleAwardBonus, handleSignIn, handleOpenSign, hasOpenedSignIn, currentTabIndex, handleOpenChatgpt, handleOpenChatgptService } = props
   const { setState, accounts, signInAddress, groupType, currentAddress, chatGptAddress, dogewowAddress } = useGlobal()
@@ -94,8 +96,10 @@ export default function ChatInputBox(props) {
     if(!Boolean(res?.state)) {
       setShowOpenChatgpt(true)
     } else {
-      const balance = await getTokenBalance(dogewowAddress, 18)
-      setDogewowBalance(balance)
+      debugger
+      const provider = new ethers.providers.JsonRpcProvider("https://testrpc.dogewow.club")
+      const balance = await provider.getBalance(getLocal('account'))
+      setDogewowBalance(ethers.utils.formatEther(balance))
       const groupInfo = await getContractConnect(chatGptAddress, GPT_ABI).groupAddressList(currentAddress)
       console.log(groupInfo.toNumber(), groupInfo.toString(), 'GPT_ABI====')
       setGroupRemainingTimes(groupInfo.toNumber())
