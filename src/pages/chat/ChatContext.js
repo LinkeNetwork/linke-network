@@ -376,7 +376,7 @@ export default function ChatContext(props) {
                             }
                             {
                               v?._type === 'GPT' &&
-                              <span><span>{v.chatText.split("---")[1]}</span>---{formatAddress(v.chatText.split("---")[0], 6, 6)}---1dogewow</span>
+                              <span><span>{v.chatText.split("---")[1]}</span>---{formatAddress(v.chatText.split("---")[0], 6, 6)}---5dogewow</span>
                             }
                             {
                               currentTabIndex === 1 && v.position &&
