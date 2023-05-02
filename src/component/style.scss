@@ -6,6 +6,9 @@
   position: relative;
   animation: sliderUp .5s ease;
   font-family: 'Helvetica';
+  .connect-tips {
+    margin-bottom: 20px;
+  }
   .chat-gpt-info {
     padding: 20px 0;
     .item {

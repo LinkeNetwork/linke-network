@@ -143,5 +143,6 @@
   "MinPurchasesTimes": "最少購買次數",
   "Times": "次",
   "DogewowBalance": "Dogewow 餘額",
-  "GroupRemainingTimes": "群剩餘次數"
+  "GroupRemainingTimes": "群剩餘次數",
+  "ConnectTips": "请链接钱包打开群链接"
 }

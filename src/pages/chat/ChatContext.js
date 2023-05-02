@@ -372,7 +372,11 @@ export default function ChatContext(props) {
                           </div>
                           <div className='text-left'>
                             {
-                              currentTabIndex === 0 && <span>{v.chatText}</span>
+                              currentTabIndex === 0 && v?._type !== 'GPT' && <span>{v.chatText}</span>
+                            }
+                            {
+                              v?._type === 'GPT' &&
+                              <span><span>{v.chatText.split("---")[1]}</span>---{formatAddress(v.chatText.split("---")[0], 6, 6)}---1dogewow</span>
                             }
                             {
                               currentTabIndex === 1 && v.position &&

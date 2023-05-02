@@ -20,6 +20,7 @@ export default function JoinGroupButton(props) {
   const [showJoinRoom, setShowJoinRoom] = useState(false)
   const [showLoading, setShowLoading] = useState(false)
   const [transactionHash, setTransactionHash] = useState()
+  const [showConnectTips, setShowConnectTips] = useState(false)
   const [name, setName] = useState()
   const [showCanJoinTips, setCanJoinTips] = useState(false)
   const skip = 0
@@ -27,6 +28,9 @@ export default function JoinGroupButton(props) {
     setName(e.target.value)
   }
   const changeNetWork = async() => {
+    if(!window?.ethereum) {
+      setShowConnectTips(true)
+    }
     const nativeCurrency = { name: "ETHF", decimals: 18, symbol: "ETHF" }
     const params = [{
       chainId: "0x7d44c",
@@ -88,6 +92,11 @@ export default function JoinGroupButton(props) {
   }
   return (
     <JoinGroupButtonContainer>
+      {
+        <Modal title="Tips" visible={showConnectTips} onClose={() => { setShowConnectTips(false) }}>
+          <div className='connect-tips'>{intl.get('ConnectTips')}</div>
+        </Modal>
+      }
       {
         <Modal title="Tips" visible={showCanJoinTips} onClose={() => { setCanJoinTips(false) }}>
           <div>{intl.get('CreateProfileTips')}</div>
