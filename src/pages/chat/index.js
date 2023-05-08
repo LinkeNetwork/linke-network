@@ -927,7 +927,7 @@ export default function Chat() {
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
     const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
-    const lastBlock = res?.length && +res[0]?.block + 1
+    const lastBlock = res?.length && +res[0]?.index + 1
     // if(!lastBlock || chatListRef.current[0]?.block == 0) return
     const tokensQuery = `
         query{
