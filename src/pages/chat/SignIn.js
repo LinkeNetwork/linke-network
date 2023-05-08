@@ -5,7 +5,7 @@ import intl from "react-intl-universal"
 import BigNumber from 'bignumber.js'
 import { Modal, Image } from "../../component/index"
 import { tokenListInfo } from '../../constant/tokenList'
-import { detectMobile, getContractConnect, getBalance, getLocal, getBalanceNumber, formatTimestamp } from "../../utils"
+import { detectMobile, getContractConnect, getBalance, getLocal, getBalanceNumber, formatTimestamp, getDays } from "../../utils"
 import TokenList from "./TokenList"
 import { ethers } from "ethers"
 import useGlobal from "../../hooks/useGlobal"
@@ -26,6 +26,7 @@ export default function SignIn(props) {
   const [showTokenList, setShowTokenList] = useState(false)
   const [selectedToken, setSelectedToken] = useState('')
   const { getCheckInToken} = useCheckIn()
+  const [pledgeDays, setPledgeDays] = useState()
   const [unstackTime, setUnstackTime] = useState()
   const [isOpenAutoCheckIn, setIsOpenAutoCheckIn] = useState(false)
   const [selectedTokenInfo, setSelectedTokenInfo] = useState('')
@@ -113,6 +114,8 @@ export default function SignIn(props) {
     setSelectTokenId(tokenId_)
     const timestamp = formatTimestamp(lastDate)
     const cancelTime = formatTimestamp(cancelDate)
+    const days = +cancelTime === 0 ? stakedDays : getDays(timestamp, cancelTime)
+    setPledgeDays(days)
     if(cancelTime > 0 ) {
       setUnstackTime(cancelTime)
     } else {
@@ -246,9 +249,12 @@ export default function SignIn(props) {
     }
   }
   useEffect(() => {
+    getStakedInfo()
+  }, [nftAddress])
+  useEffect(() => {
     if(!stakedNum && score === undefined) return
     const amount = new BigNumber(stakedNum)
-    const days = new BigNumber(stakedDays)
+    const days = new BigNumber(pledgeDays)
     const score_ = new BigNumber(score)
     if(isOpenAutoCheckIn) {
       const result = amount.multipliedBy(days)
@@ -298,9 +304,6 @@ export default function SignIn(props) {
     }
   }, [nftImageList])
   useEffect(() => {
-    getStakedInfo()
-  }, [nftAddress])
-  useEffect(() => {
     if (approveLoading) {
       setCanSend(false)
       setBtnText(intl.get('APPROVE_ING'))
@@ -336,7 +339,7 @@ export default function SignIn(props) {
             <span className="name">{intl.get('Score')}:</span><span className="score">{integral}</span>
           </div>
           {
-            isOpenAutoCheckIn &&
+            isOpenAutoCheckIn && +cancelTime === 0 &&
             <div className="staked-duration">
               <span className="name">{intl.get('StakedDuration')}:</span>
               <CumulativeTime timestamp={mintDate} stakedNum={stakedNum} isOpenAutoCheckIn={isOpenAutoCheckIn} cancelTime={cancelTime} />

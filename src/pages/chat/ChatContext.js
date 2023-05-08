@@ -48,7 +48,6 @@ export default function ChatContext(props) {
     if (currentTabIndex === 1) return
     const info = await getCheckInToken(currentAddress)
     const { symbol = '', decimals = 18 } = info || {}
-    console.log(symbol, 'token====', currentAddress)
     setTokenAddress(symbol)
     setTokenDecimals(decimals)
   }

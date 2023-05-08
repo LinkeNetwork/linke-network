@@ -403,7 +403,7 @@ export default function Chat() {
     const data = await clientInfo?.query(tokensQuery).toPromise()
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
-    const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
+    const res = await collection?.find({ room: roomAddress })?.project({})?.sort({ index: -1 })?.toArray()
     const chatList = data?.data?.chatInfos || []
     // const result = formateData(chatList, roomAddress)
     const result = await getMemberList(chatList) || []
@@ -717,7 +717,10 @@ export default function Chat() {
   const getInitChatList = async(toAddress, avatar) => {
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
-    const res = await collection?.find({ room: toAddress })?.project({})?.sort({ block: -1 })?.toArray()
+    const res = await collection?.find({ room: toAddress })?.project({})?.toArray()
+    res.sort((a, b) => {
+      return b.index - a.index;
+    })
     if (!res || res?.length === 0) {
       +currentTabIndex === 0 ? await fetchPublicChatList(toAddress) : await fetchPrivateChatList(toAddress, avatar)
     } else {
@@ -926,7 +929,10 @@ export default function Chat() {
   const getCurrentGroupChatList = async(roomAddress, newChatCount) => {
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
-    const res = await collection?.find({ room: roomAddress }).project({}).sort({ block: -1 }).toArray()
+    const res = await collection?.find({ room: roomAddress })?.project({})?.toArray()
+    res.sort((a, b) => {
+      return b.index - a.index;
+    })
     const lastBlock = res?.length && +res[0]?.index + 1
     // if(!lastBlock || chatListRef.current[0]?.block == 0) return
     const tokensQuery = `
@@ -958,12 +964,8 @@ export default function Chat() {
       if (!data?.data?.chatInfos.length) return
       const newList = data?.data?.chatInfos && await getMemberList(data?.data?.chatInfos)
       const list = (chatListRef || res?.length > 0) ? ([...res] || chatListRef?.current) : []
-      collection.insert(newList, (error) => {
-        // updateNewList(roomAddress, collection)
-        if (error) { throw error; }
-      })
+      collection.insert(newList)
       if (roomAddress?.toLowerCase() === currentAddressRef?.current?.toLowerCase() && newList?.length) {
-        
         const index = list?.findIndex(item => item.id === newList[0]?.id)
         if(index === -1) {
           // console.log('setChatList===12', chatList)
@@ -973,12 +975,14 @@ export default function Chat() {
             setChatList(newList.concat(list))
           }
           // await handleReadMessage(currentAddress)
+        } else {
+          const chatList = list.slice(0, 20)
+          setChatList([...chatList])
         }
       }
     // }
   }
   const getCurrentChatList = async (roomAddress, newChatCount) => {
-    
     if(!chainId) return
     if(currentTabIndex === 0) {
       await getCurrentGroupChatList(roomAddress, newChatCount)

@@ -248,3 +248,12 @@ export const getTokenBalance = async(tokenAddress, decimals) => {
     }
   }
 }
+
+export const getDays = (stackDate, cancelDate) => {
+  console.log(stackDate, cancelDate, '999')
+  const start = new Date(stackDate * 1000)
+  const end = new Date(cancelDate * 1000)
+  const diffInMs = end - start;
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
+  return diffInDays
+}
