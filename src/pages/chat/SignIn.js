@@ -114,6 +114,9 @@ export default function SignIn(props) {
     setSelectTokenId(tokenId_)
     const timestamp = formatTimestamp(lastDate)
     const cancelTime = formatTimestamp(cancelDate)
+    if(+cancelTime === 0 && selectedToken?.symbol === 'ETHF') {
+      setCanSend(true)
+    }
     const days = +cancelTime === 0 ? getStackedDays(timestamp) :getDays(timestamp, cancelTime)
     setPledgeDays(days)
     if(cancelTime > 0 ) {
