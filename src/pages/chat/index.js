@@ -1377,7 +1377,8 @@ export default function Chat() {
       showOpen: false
     })
   }
-  const handleCancelCheckin = async() => {
+  const handleCancelCheckin = async(canSend) => {
+    if(!canSend) return
     const tx = await getContractConnect(globalNftAddress, SIGN_IN_ABI).cancelCheckin()
     setShowSignIn(false)
     setShowMask(true)
@@ -1724,7 +1725,7 @@ export default function Chat() {
               handleSelectNft={(id) => {handleSelectNft(id)}}
               nftImageList={nftImageList}
               handleCheckIn={(token,id, num, decimals) => {handleCheckIn(token, id, num, decimals)}}
-              handleCancelCheckin={handleCancelCheckin}
+              handleCancelCheckin={(canSend) => {handleCancelCheckin(canSend)}}
               handleEndStake={(status, isOpenAutoCheckIn) => {handleEndStake(status, isOpenAutoCheckIn)}}
               handleAutoCheckIn={handleAutoCheckIn}
             />

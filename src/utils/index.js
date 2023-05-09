@@ -257,3 +257,11 @@ export const getDays = (stackDate, cancelDate) => {
   const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
   return diffInDays
 }
+
+export const getStackedDays = (timestamp) => {
+  const firstDate = new Date(timestamp * 1000)
+  const now = new Date();
+  const timeDifference = now - firstDate
+  const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24))
+  return days
+}

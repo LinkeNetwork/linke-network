@@ -5,7 +5,7 @@ import intl from "react-intl-universal"
 import BigNumber from 'bignumber.js'
 import { Modal, Image } from "../../component/index"
 import { tokenListInfo } from '../../constant/tokenList'
-import { detectMobile, getContractConnect, getBalance, getLocal, getBalanceNumber, formatTimestamp, getDays } from "../../utils"
+import { detectMobile, getContractConnect, getBalance, getLocal, getBalanceNumber, formatTimestamp, getDays, getStackedDays } from "../../utils"
 import TokenList from "./TokenList"
 import { ethers } from "ethers"
 import useGlobal from "../../hooks/useGlobal"
@@ -18,7 +18,7 @@ import useCheckIn from "../../hooks/useCheckIn"
 const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`)
 const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 export default function SignIn(props) {
-  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn, hasEndStack, canUnstake, stakedDays, allowanceTotal } = useGlobal()
+  const { swapButtonText, approveLoading, setButtonText, nftAddress, currentTokenBalance, continueMint, setState, canMint, isCancelCheckIn, hasEndStack, canUnstake, allowanceTotal } = useGlobal()
   const { getAuthorization, approveActions, authorization, secondaryAuthorization, getAllowanceTotal } = UseTokenBalance()
   const { handleMint, nftImageList, handleSelectNft, handleEndStake, handleCheckIn, handleCancelCheckin, handleAutoCheckIn, showNftList, currentAddress } = props
   const [quantity, setQuantity] = useState('')
@@ -65,7 +65,7 @@ export default function SignIn(props) {
         handleEndStake(isOpenAutoCheckIn)
         break;
       case intl.get('CancelCheckIN'):
-        handleCancelCheckin()
+        handleCancelCheckin(canSend)
         break;
       case intl.get('AutoCheckIn'):
         handleAutoCheckIn()
@@ -114,7 +114,7 @@ export default function SignIn(props) {
     setSelectTokenId(tokenId_)
     const timestamp = formatTimestamp(lastDate)
     const cancelTime = formatTimestamp(cancelDate)
-    const days = +cancelTime === 0 ? stakedDays : getDays(timestamp, cancelTime)
+    const days = +cancelTime === 0 ? getStackedDays(timestamp) :getDays(timestamp, cancelTime)
     setPledgeDays(days)
     if(cancelTime > 0 ) {
       setUnstackTime(cancelTime)
@@ -265,7 +265,7 @@ export default function SignIn(props) {
       const integral = canUnstake ? result : score_
       setIntegral(integral.toString())
     }
-  }, [stakedDays, canUnstake, stakedNum])
+  }, [pledgeDays, canUnstake, stakedNum])
   useEffect(() => {
     if(+stakedNum > 0 && isOpenAutoCheckIn) {
       setBtnText(intl.get('CancelCheckIN'))
