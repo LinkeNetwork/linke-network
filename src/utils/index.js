@@ -164,8 +164,16 @@ export const approve = async ({ spender, provider, tokenAddress, accounts }) => 
 }
 
 export const uniqueChatList = (arr,val) => {
-   const res = new Map()
-   return arr.filter(item => !res.has(item[val]) && res.set(item[val], 1))
+  const res = new Map()
+  const uniqueArr = []
+  arr.forEach(item => {
+      const key = typeof item[val] === 'string' ? item[val] : item[val].toString()
+      if (!res.has(key)) {
+          res.set(key, 1)
+          uniqueArr.push(item)
+      }
+  })
+  return uniqueArr
 }
 
 export const formatTimestamp = (date) => {

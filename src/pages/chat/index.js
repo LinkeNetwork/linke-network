@@ -975,10 +975,11 @@ export default function Chat() {
             setChatList(newList.concat(list))
           }
           // await handleReadMessage(currentAddress)
-        } else {
-          const chatList = list.slice(0, 20)
-          setChatList([...chatList])
-        }
+        } 
+        // else {
+        //   const chatList = list.slice(0, 20)
+        //   setChatList([...chatList])
+        // }
       }
     // }
   }
