@@ -23,7 +23,7 @@ export default function ChatInputBox(props) {
   const [showChatgptService, setShowChatgptService] = useState(false)
   const [showOpenChatgpt, setShowOpenChatgpt] = useState(false)
   const [chatText, setChatText] = useState()
-  const [purchasesTimes, setPurchasesTimes] = useState(30)
+  const [purchasesTimes, setPurchasesTimes] = useState(60)
   const [canSendMessage, setCanSendMessage] = useState(true)
   const [isClickSend, setIsClickSend] = useState(false)
   const [lastEditRange, setLastEditRange] = useState(null)
@@ -85,7 +85,7 @@ export default function ChatInputBox(props) {
   }
   const handleBlur = (event) => {
     const value = event.target.value
-    if (value < 30 || !Number.isInteger(Number(value))) {
+    if (value < 60 || !Number.isInteger(Number(value))) {
       setShowTips(true)
     } else {
       setShowTips(false)
@@ -96,12 +96,10 @@ export default function ChatInputBox(props) {
     if(!Boolean(res?.state)) {
       setShowOpenChatgpt(true)
     } else {
-      debugger
       const provider = new ethers.providers.JsonRpcProvider("https://testrpc.dogewow.club")
       const balance = await provider.getBalance(getLocal('account'))
       setDogewowBalance(ethers.utils.formatEther(balance))
       const groupInfo = await getContractConnect(chatGptAddress, GPT_ABI).groupAddressList(currentAddress)
-      console.log(groupInfo.toNumber(), groupInfo.toString(), 'GPT_ABI====')
       setGroupRemainingTimes(groupInfo.toNumber())
       setShowChatgptService(true)
     }
@@ -196,10 +194,10 @@ export default function ChatInputBox(props) {
       <div className='chat-gpt-info'>
         <div className='item'>
           <span className='name'>{intl.get('MinPurchasesTimes')}：</span>
-          <input type="number" min="30" value={purchasesTimes} onChange={handleChange} onBlur={handleBlur} />
+          <input type="number" min="60" value={purchasesTimes} onChange={handleChange} onBlur={handleBlur} />
           {
             showTips &&
-            <div className='tips'>{intl.get('MinPurchasesTimes')}：30 {intl.get('Times')}</div>
+            <div className='tips'>{intl.get('MinPurchasesTimes')}：60 {intl.get('Times')}</div>
           }
         </div>
         <div className='item'>
@@ -214,6 +212,10 @@ export default function ChatInputBox(props) {
     )
   }
   const handleBuyChatgptService = () => {
+    if(+purchasesTimes < 60) {
+      setShowTips(true)
+      return
+    }
     setShowChatgptService(false)
     handleOpenChatgptService(purchasesTimes)
   }
