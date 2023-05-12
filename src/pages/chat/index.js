@@ -718,7 +718,7 @@ export default function Chat() {
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
     const res = await collection?.find({ room: toAddress })?.project({})?.toArray()
-    res.sort((a, b) => {
+    res?.sort((a, b) => {
       return b.index - a.index;
     })
     if (!res || res?.length === 0) {
@@ -930,7 +930,7 @@ export default function Chat() {
     const db = await setDataBase()
     const collection = db?.collection('chatInfos')
     const res = await collection?.find({ room: roomAddress })?.project({})?.toArray()
-    res.sort((a, b) => {
+    res?.sort((a, b) => {
       return b.index - a.index;
     })
     const lastBlock = res?.length && +res[0]?.index + 1
