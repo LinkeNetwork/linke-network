@@ -278,6 +278,7 @@ export default function SignIn(props) {
     if (+quantity > 0 && +quantity <= +tokenBalance) {
       setCanSend(true)
     } else {
+      if(isOpenAutoCheckIn) return
       setCanSend(false)
     }
   }, [quantity, tokenBalance])
