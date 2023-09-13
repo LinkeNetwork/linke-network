@@ -169,6 +169,7 @@ export default function SignIn(props) {
     setIsOpenAutoCheckIn(Boolean(isOpenAutoCheckIn))
     console.log(isOpenAutoCheckIn, '====getAutomatic')
     const tx = await getContractConnect(nftAddress, SIGN_IN_ABI).token()
+    console.log(tx, '=====<<<<')
     const tokenList = [...tokenListInfo]
     const selectedToken = tokenList.filter(i => i.address.toLocaleLowerCase() === tx.toLocaleLowerCase())
     const { symbol, logoURI, address, decimals } = selectedToken.length && selectedToken[0]

@@ -189,6 +189,7 @@ export default function ReceiveInfo(props) {
               dataLength={receiveList?.length}
               next={loadingDatas}
               hasMore={true}
+              endMessage="no data"
             >
               {rowRenderer()}
             </InfiniteScroll>
