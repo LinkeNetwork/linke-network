@@ -10,12 +10,12 @@ const networks =  [
     blockExplorerUrls: ["https://www.oklink.com/en/ethf"],
     ProfileAddress: "0x68A92c93807E8E07Ae1A89F59D7C0A5e877C57b0",
     GroupProfileAddress: "0x07B588De7Ba7415b033bdD2Ab6Bb286Aed016F7e",
-    APIURL: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
-    signInGraphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
+    APIURL: "https://graph.linke.network/subgraphs/name/LinkeNetwork/linke-network-subgraph",
+    signInGraphUrl: "https://graph.linke.network/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
     PrivateChatAddress: '0x55Ccf906741dF31a8663B8a5a2bA65FA9756468f',
     addressList: {
       '0x71d17da8b8a90f94528a7557e34b30df041f278f': {
-        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
+        graphUrl: "https://graph.linke.network/subgraphs/name/LinkeNetwork/linke-network-subgraph",
         reaPacket: RED_PACKET,
         giveaway: 'giveaways',
         version: "v1",
@@ -23,7 +23,7 @@ const networks =  [
         giveaway_: "giveaway"
       },
       '0x1ec08c106c85caa680a89f206501f227e2bde5a2': {
-        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
+        graphUrl: "https://graph.linke.network/subgraphs/name/LinkeNetwork/linke-network-subgraph",
         reaPacket: RED_PACKET,
         giveaway: 'giveawayV2S',
         version: "v2",
@@ -31,7 +31,7 @@ const networks =  [
         giveaway_: "giveawayV2"
       },
       '0x4c5da4d8a00289a2b8336926752f4c07721620ba': {
-        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
+        graphUrl: "https://graph.linke.network/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
         reaPacket: RED_PACKET_V2,
         giveaway: 'giveawayV2S',
         version: "v3",
@@ -42,7 +42,7 @@ const networks =  [
     versionList: {
       v1: {
         address: '0x71d17da8b8a90f94528a7557e34b30df041f278f',
-        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
+        graphUrl: "https://graph.linke.network/subgraphs/name/LinkeNetwork/linke-network-subgraph",
         reaPacket: RED_PACKET,
         giveaway: 'giveaways',
         version: "v1",
@@ -50,7 +50,7 @@ const networks =  [
       },
       v2: {
         address: '0x1ec08c106c85caa680a89f206501f227e2bde5a2',
-        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-subgraph",
+        graphUrl: "https://graph.linke.network/subgraphs/name/LinkeNetwork/linke-network-subgraph",
         reaPacket: RED_PACKET_V2,
         giveaway: 'giveawayV2S',
         version: "v2",
@@ -58,7 +58,7 @@ const networks =  [
       },
       v3: {
         address: '0x4c5da4d8a00289a2b8336926752f4c07721620ba',
-        graphUrl: "https://graph.etherfair.org/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
+        graphUrl: "https://graph.linke.network/subgraphs/name/LinkeNetwork/linke-network-plugins-subgraph",
         reaPacket: RED_PACKET_V2,
         giveaway: 'giveawayV2S',
         version: "v3",
