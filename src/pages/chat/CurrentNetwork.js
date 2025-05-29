@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import czzURL from '../../assets/images/ethf.svg';
 import Image from '../../component/Image'
+import dogeIcon from '../../assets/images/doge.png';
 export default function CurrentNetwork(props) {
   const { currNetwork, handleChangeNetwork } = props
   const networkList = [
@@ -9,6 +10,11 @@ export default function CurrentNetwork(props) {
       icon: czzURL,
       name: 'ETHF'
     },
+    {
+      chainId: '',
+      icon: dogeIcon,
+      name: 'DOGE'
+    }
   ]
   const currentNetwork = networkList.filter(
     (i) => i.name === currNetwork

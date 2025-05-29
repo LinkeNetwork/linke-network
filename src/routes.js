@@ -21,7 +21,12 @@ const routes = [
       }
     ]
   },
-  
+  {
+    path: '/chatgpt',
+    ico:'chatgpt',
+    exact:true,
+    compontent: lazy(() => import('./pages/chat/ChatGPT'))
+  },
   {
     path: "/checkin",
     component: CheckIn,

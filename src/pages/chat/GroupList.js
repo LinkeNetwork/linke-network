@@ -89,7 +89,7 @@ export default function GroupList(props) {
         return group
       }
     }).concat(cachePrivateGroupList.filter(group => !currentPrivateGroupList.find(current => current.id === group.id)))
-    if(currentTabIndex === 1) {
+    if(currentTabIndex === 2) {
       // console.log('setGroupList====4', result)
       setGroupList(result)
     }
@@ -329,9 +329,9 @@ export default function GroupList(props) {
   }
 
   const processingGroup = async () => {
-    if (currentTabIndex === 0) {
+    if (currentTabIndex === 1) {
       await getGroupList()
-    } else {
+    } else if (currentTabIndex === 2) {
       await getPrivateGroupList()
     }
   }

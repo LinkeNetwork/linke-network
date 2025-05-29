@@ -6,9 +6,9 @@ import CopyButton from '../../component/Copy'
 import intl from "react-intl-universal"
 import styled from 'styled-components'
 export default function ConnectInfo(props) {
-  // const { setDataBase } = useDataBase()
   const { account, handleDisconnect } = props
   const { disConnect } = useWallet()
+  const currentWallet = localStorage.getItem('currentWallet')
   const [showTips, setShowTips] = useState(false)
   // const handleClearCache = async() => {
   //   const db = await setDataBase()
@@ -27,7 +27,7 @@ export default function ConnectInfo(props) {
       }
       <ConnectBlock>
         <div className="f-c-sb">
-          <h4>Connected with MetaMask</h4>
+          <h4>Connected with {currentWallet}</h4>
           <div className="f-c">
             <div className="button-min" onClick={() => disConnect().then(() => handleDisconnect())}>{intl.get('Disconnect')}</div>
           </div>

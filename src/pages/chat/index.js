@@ -359,7 +359,7 @@ export default function Chat() {
   const getJoinRoomAccess = async (roomAddress, groupType) => {
     if(!roomAddress || !groupType) return
     try {
-      if(location?.state?.currentIndex === 0 || currentTabIndex === 0) {
+      if(location?.state?.currentIndex === 1 || currentTabIndex === 1) {
         const hasAccess = await getHasAccessStatus(roomAddress, groupType)
         setShowJoinGroupButton(!Boolean(hasAccess))
         setShowMask(false)
@@ -507,7 +507,7 @@ export default function Chat() {
     })
     setMemberCount(item.userCount)
     setCurrentRoomName(item.name)
-    if (currentTabIndex === 0 && window.ethereum) {
+    if (currentTabIndex === 1 && window.ethereum) {
       const state = {
         address: item.id,
         network: getLocal('network'),
@@ -536,7 +536,7 @@ export default function Chat() {
     setState({
       groupType: item._type
     })
-    if (currentTabIndex === 1) {
+    if (currentTabIndex === 2) {
       setShowChat(true)
       setCurrentAddress(item.id)
       getPrivateChatStatus(item.id)
@@ -593,7 +593,11 @@ export default function Chat() {
     }
   }
   const loadingData = async () => {
-    currentTabIndex === 0 ? loadingGroupData() : loadingPrivateData()
+    if (currentTabIndex === 1) {
+      loadingGroupData()
+    } else if (currentTabIndex === 2) {
+      loadingPrivateData()
+    }
   }
   const loadingPrivateData = async() => {
     const firstBlock = chatList && chatList[chatList.length-1]?.block
@@ -643,8 +647,12 @@ export default function Chat() {
     setShowInfo(true)
     setShareTextInfo(v.chatText)
   }
-  const onClickDialog = (e) => {
-    setShowJoinRoom(true)
+  const handleClickDialog = () => {
+    if (+currentTabIndex !== 0) {
+      setShowJoinRoom(true)
+    } else {
+      history.push('/chatgpt')
+    }
   }
   const formatePrivateData = (res, toAddress, avatar, type) => {
     const data = res?.data?.encryptedInfos.map(item => {
@@ -722,7 +730,12 @@ export default function Chat() {
       return b.index - a.index;
     })
     if (!res || res?.length === 0) {
-      +currentTabIndex === 0 ? await fetchPublicChatList(toAddress) : await fetchPrivateChatList(toAddress, avatar)
+      if (+currentTabIndex === 1) {
+        await fetchPublicChatList(toAddress)
+      }
+      if (+currentTabIndex === 2) {
+        await fetchPrivateChatList(toAddress, avatar)
+      }
     } else {
       const address = currentAddressRef?.current || GROUP_ADDRESS || ROOM_ADDRESS
       if(toAddress?.toLowerCase() === address?.toLowerCase()) {
@@ -817,7 +830,7 @@ export default function Chat() {
   }
   const handleGiveAway = async(tx, wishesText) => {
     const myAvatar = await getMyAvatar()
-    if(currentTabIndex === 0 ) {
+    if(currentTabIndex === 1 ) {
       var newChat = {
         id: tx.hash,
         block: 0,
@@ -849,7 +862,7 @@ export default function Chat() {
     const myAvatar = await getMyAvatar()
     setSendSuccess(false)
     try {
-      if(currentTabIndex === 1) {
+      if(currentTabIndex === 2) {
         const myPublicKey = await localForage.getItem('publicKeyList').then(res => {
           return res[myAddress]
         })
@@ -857,7 +870,7 @@ export default function Chat() {
         const encryptedSenderMessage = getencryptedMessage(chatText, myPublicKey)
         var tx = await getContractConnect(currentNetworkInfo?.PrivateChatAddress, ENCRYPTED_COMMUNICATION_ABI).send(currentAddress, encryptedMessage, encryptedSenderMessage, 'msg')
       }
-      if(currentTabIndex === 0 ) {
+      if(currentTabIndex === 1 ) {
         const groupInfo = await getGroupMember(currentAddress, skip)
         const groupType = groupInfo?._type
         setGroupType(groupType)
@@ -985,10 +998,10 @@ export default function Chat() {
   }
   const getCurrentChatList = async (roomAddress, newChatCount) => {
     if(!chainId) return
-    if(currentTabIndex === 0) {
+    if(currentTabIndex === 1) {
       await getCurrentGroupChatList(roomAddress, newChatCount)
     }
-    if(currentTabIndex === 1) {
+    if(currentTabIndex === 2) {
       await getCurrentPrivateChatList(roomAddress)
     }
   }
@@ -1187,7 +1200,7 @@ export default function Chat() {
     }
   }
   const getMemberList = async(chatList) => {
-    if(currentTabIndex === 1 || !chatList.length) return
+    if(currentTabIndex === 2 || !chatList.length) return
     let result = [...chatList]
     let collectedRedEnvelope = []
     await Promise.all(
@@ -1294,7 +1307,7 @@ export default function Chat() {
     setShowMask(false)
   }
   const handlePrivateChat = (item, res) => {
-    setCurrentTabIndex(1)
+    setCurrentTabIndex(2)
     setShowGroupMember(false)
     if(Boolean(res)) {
       history.push({
@@ -1317,7 +1330,7 @@ export default function Chat() {
     const address = GROUP_ADDRESS
     const network = NETWORK || CURRENT_NETWORK
     const hash = history.location.hash
-    hash ? setCurrentTabIndex(1) : setCurrentTabIndex(0)
+    hash ? setCurrentTabIndex(2) : setCurrentTabIndex(0)
     if(!(+getLocal('isConnect')) && address) {
       getInitChatList(address)
     }
@@ -1588,6 +1601,11 @@ export default function Chat() {
       setShowRedEnvelope(true)
     }
   }
+  const onClickDialog = () => {
+    if (+currentTabIndex !== 0) {
+      setShowJoinRoom(true)
+    }
+  }
   useEffect(() => {
     if(hasCreateRoom && redEnvelopId) {
       setShowRedEnvelope(true)
@@ -1633,7 +1651,7 @@ export default function Chat() {
       getNftAddress()
     }
     if(location.hash === '#p') {
-      setCurrentTabIndex(1)
+      setCurrentTabIndex(2)
     }
     if(address) {
       isRoom(address)
@@ -1708,7 +1726,6 @@ export default function Chat() {
       }
       {
         showAwardBonus && detectMobile() &&
-        showAwardBonus &&
         <AwardBonus
           handleCloseAward={() => { setShowAwardBonus(false) }}
           currentAddress={currentAddress}
@@ -1845,7 +1862,7 @@ export default function Chat() {
                     currNetwork={currNetwork}
                     currentTabIndex={currentTabIndex}
                     currentAddress={currentAddress?.toLowerCase()}
-                    onClickDialog={() => { setShowJoinRoom(true) }}
+                    onClickDialog={handleClickDialog}
                     >
                   </ListGroup>
                 </div>
@@ -1897,7 +1914,7 @@ export default function Chat() {
                         </div>
                       </div>
                       {
-                        ((hasAccess || +currentTabIndex === 1) || (canSendText && +currentGroupTypeRef.current === 3)) &&
+                        ((hasAccess || +currentTabIndex === 2) || (canSendText && +currentGroupTypeRef.current === 3)) &&
                         <ChatInputBox
                           currentAddress={currentAddress}
                           startChat={(text) => startChat(text)}
@@ -1914,7 +1931,7 @@ export default function Chat() {
                         ></ChatInputBox>
                       }
                       {
-                        !hasAccess && +currentGroupTypeRef.current !== 3 && +currentTabIndex !== 1 &&
+                        !hasAccess && +currentGroupTypeRef.current !== 3 && +currentTabIndex !== 2 &&
                         <JoinGroupButton hasAccess={hasAccess} currentAddress={currentAddress} changeJoinStatus={(groupType) => changeJoinStatus(groupType)} chainId={chainId} />
                       }
                     </div>

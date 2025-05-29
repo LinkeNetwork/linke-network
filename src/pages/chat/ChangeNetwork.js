@@ -1,5 +1,6 @@
 import metaURL from '../../assets/images/MetaMask_Fox.svg';
 import okexURL from '../../assets/images/okex.svg';
+import dogeuniURL from '../../assets/images/dogeuni.png';
 import styled from 'styled-components'
 import { detectMobile } from '../../utils';
 import Image from '../../component/Image';
@@ -15,6 +16,11 @@ export default function ChangeNetwork(props) {
       image: okexURL,
       name: 'MetaX',
       network: 'ETHF',
+    },
+    {
+      image: dogeuniURL,
+      name: 'DogeUni',
+      network: 'DOGE',
     }
   ]
   return (

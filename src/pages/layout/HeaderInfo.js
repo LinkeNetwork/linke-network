@@ -18,7 +18,7 @@ import HomeHeader from '../home/Header'
 import useWallet from "../../hooks/useWallet";
 import useGlobal from "../../hooks/useGlobal";
 export default function HeaderInfo() {
-  const { chainId, network, changeNetwork, disConnect, connectOkexchain } = useWallet()
+  const { chainId, network, changeNetwork, disConnect, connectOkexchain, connectDogeUni } = useWallet()
   const locations = useLocation()
   const [showMenu, setShowMenu] = useState(false)
   const { setState, showConnectNetwork, accounts, showHeader, currentTokenBalance } = useGlobal()
@@ -36,17 +36,26 @@ export default function HeaderInfo() {
       case 'MetaMask':
         changeNetwork(item.network)
         break;
+      case 'DogeUni':
+        connectDogeUni()
+        break;
       default:
         console.log('Unknown')
     }
     setShowConnectWallet(false)
   }
   const handleDisconnect = () => {
-    setShowAccount(false)
-    disConnect()
     setState({
+      accounts: null,
+      chainId: null,
+      network: '',
+      currentTokenBalance: 0,
+      showConnectNetwork: false,
+      isConnect: false,
       groupLists: []
     })
+    setShowAccount(false)
+    // disConnect()
   }
   useEffect(() => {
     if(showConnectNetwork) {
@@ -112,7 +121,7 @@ export default function HeaderInfo() {
           showHomeHeader && (accounts || getLocal('account')) &&
           <div className='header-top-info'>
             {
-              chainId !== 513100 &&
+              chainId && chainId !== 513100 &&
               <ErrorNetwork handleChangeNetwork={() => setShowConnectWallet(true)}/>
             }
             <CurrentNetwork currNetwork={network} handleChangeNetwork={() => setShowConnectWallet(true)} />
@@ -120,7 +129,7 @@ export default function HeaderInfo() {
               <span style={{ marginRight: '4px' }}>{Number(currentBalance).toFixed(4)}</span><span>{network}</span>
             </div>
             {
-              (chainId === 513100) && accounts &&
+              (chainId === 513100 || network === 'DOGE') && accounts &&
               <span className='header-top' onClick={() => setShowAccount(true)}>
                 <Jazzicon address={accounts} className="account-icon" />
                 {formatAddress(accounts, 6, 6)}

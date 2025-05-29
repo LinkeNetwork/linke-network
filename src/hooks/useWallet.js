@@ -1,12 +1,14 @@
 import { token } from "../constant/token"
 import { ethers } from "ethers"
-import { detectMobile, getLocal, setLocal, getCurrentNetworkInfo } from "../utils"
+import { detectMobile, getLocal, setLocal, getCurrentNetworkInfo, getBalanceNumber, clearLocal } from "../utils"
 import { useState, useEffect } from "react"
 import useProfile from "./useProfile"
 import MetaMaskOnboarding from '@metamask/onboarding'
 import { useHistory } from 'react-router-dom'
 import useGlobal from './useGlobal'
 import { createClient } from 'urql'
+import BigNumber from 'bignumber.js'
+
 const networkList = {
   // 2019: 'CZZ',
   // 47805: 'REI',
@@ -23,6 +25,8 @@ export default function useWallet() {
   const [network, setNetwork] = useState()
 
   const disConnect = async () => {
+    clearLocal()
+    setNetwork('')
     if (window.ethereum.on) {
       await window.ethereum.request({
         method: "eth_requestAccounts",
@@ -53,6 +57,7 @@ export default function useWallet() {
       if (typeof window !== 'undefined' && window.okexchain) {
         const accounts = await window.okexchain.request({ method: 'eth_requestAccounts' })
         handleNewAccounts(accounts)
+        setLocal('currentWallet', 'OKX Wallet')
         getAccounInfo(accounts)
         if(path.includes('/profile')) {
           history.push(`/profile/${accounts}`)
@@ -65,6 +70,26 @@ export default function useWallet() {
       throw error
     }
   }
+  const connectDogeUni = async () => {
+    setState({
+      showConnectNetwork: false
+    })
+    if (typeof window !== 'undefined' && window?.dogeuni) {
+      const resullt = await window.dogeuni.requestAccounts()
+      const accounts = resullt[0]
+      const balance = await window.dogeuni.getBalance()
+      setLocal('currentWallet', 'DogeUni')
+      setLocal('account', accounts)
+      setLocal('isConnect', 1)
+      setLocal('network', 'DOGE')
+      setNetwork('DOGE')
+      const formatBalance = new BigNumber(balance?.total)
+      setState({
+        currentTokenBalance: getBalanceNumber(formatBalance, 8),
+        accounts: accounts
+      })
+    }
+  }
   const changeNetwork = async (network) => {
     if(detectMobile()) {
       window.open('https://metamask.app.link/dapp/https://linke.network', '_blank');
@@ -74,6 +99,7 @@ export default function useWallet() {
     })
     const account = await window.ethereum.request({ method: 'eth_requestAccounts' })
     handleNewAccounts(account)
+    setLocal('currentWallet', 'MetaMask')
     if(path.includes('/profile')) {
       history.push(`/profile/${account}`)
     }
@@ -176,6 +202,11 @@ export default function useWallet() {
     getCurrentBalance(account[0])
   }
   const initWallet = async () => {
+    const currentNetwork = getLocal('network') || network
+    if (currentNetwork === 'DOGE') {
+      connectDogeUni()
+      return
+    }
     if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined' && MetaMaskOnboarding.isMetaMaskInstalled() && getLocal('account')) {
       const account = await window?.ethereum?.request({ method: 'eth_requestAccounts' })
       handleNewAccounts(account)
@@ -194,7 +225,6 @@ export default function useWallet() {
             address: ''
           }
         })
-        console.log('accountsChanged====>>>')
         updateAccounts(account[0])
         setLocal('account', account[0])
         getAccounInfo(account)
@@ -219,6 +249,6 @@ export default function useWallet() {
   }
   useEffect(() => {
     initWallet()
-  }, [getLocal('account')])
-  return { disConnect, chainId, balance ,network, changeNetwork, connectOkexchain, getCurrentBalance }
+  }, [])
+  return { disConnect, chainId, balance ,network, changeNetwork, connectOkexchain, connectDogeUni, getCurrentBalance }
 }

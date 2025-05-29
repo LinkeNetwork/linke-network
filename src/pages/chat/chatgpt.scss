@@ -1,0 +1,43 @@
+
+.chatgpt-input-wrapper {
+  display: flex;
+  margin: 0 auto;
+  background: rgb(244, 244, 244);
+  border-radius: 24px;
+  position: relative;
+  .chatgpt-input {
+    width: 100%;
+    padding: 20px;
+    // margin-left: 200px;
+  }
+}
+.chatgpt-content {
+ width: calc(100vw - 164px) ;
+ margin-left: 161px;
+}
+.title {
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+.send-icon {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  font-size: 24px;
+}
+@media (max-width: 991px) {
+  .title {
+    position: fixed;
+    bottom: 180px;
+    left: 5%;
+    right: 5%;
+  }
+  .chatgpt-input-wrapper {
+    position: fixed;
+    bottom: 60px;
+    left: 5%;
+    right: 5%;
+  }
+}
